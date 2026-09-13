@@ -1,0 +1,15 @@
+# ── 项目内部记忆与本地缓存（含数据库结构、认证实现等细节，不入库）──
+.workbuddy/
+
+# ── 过程产物：验证截图（约 20 MB，用 mkshot_*.py 可随时重拍）──
+build/*.png
+
+# ── 历史备份 / 归档 HTML（内容已被模板取代）──
+build/backup_*.html
+build/archive_*.html
+
+# ── 系统垃圾 ──
+Thumbs.db
+desktop.ini
+.DS_Store
+*~

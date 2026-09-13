@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>深度研究报告</title>
+<script>
+/* 最早注入错误钩子：脚本块语法错之外的运行时错误都能抓到（探针用） */
+window.__RPT_ERR = [];
+window.onerror = function(m, s, l, c){ window.__RPT_ERR.push(String(m) + ' @' + l + ':' + c); };
+window.addEventListener('unhandledrejection', function(e){ window.__RPT_ERR.push('unhandled: ' + String(e.reason && e.reason.message || e.reason)); });
+</script>
+<script>/*__ECHARTS__*/</script>
+<style>
+/*__REPORTCSS__*/
+
+/* ============================================================
+   研报页附加样式（顶部操作条 / 编辑抽屉 / 图表工具条 / 空态）
+   主题色：正红 #c8102e · 深红 #8c0a20 · 亮红 #e63946 · 金 #c9a227
+   ============================================================ */
+:root{
+  --brand:#c8102e; --brand-deep:#8c0a20; --brand-bright:#e63946;
+  --brand-soft:#fdecee; --brand-line:rgba(200,16,46,.18); --gold2:#c9a227;
+}
+body{font-size:15.5px}
+
+/* ---------- 顶部操作条 ---------- */
+.rbar{
+  position:sticky;top:10px;z-index:60;display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+  padding:9px 12px;margin:0 0 18px;border-radius:14px;
+  background:rgba(255,255,255,.94);
+  backdrop-filter:saturate(180%) blur(12px);-webkit-backdrop-filter:saturate(180%) blur(12px);
+  border:1px solid var(--brand-line);box-shadow:0 6px 22px rgba(140,10,32,.08);
+}
+.rbar .rb-brand{font-weight:800;color:var(--brand-deep);font-size:15px;letter-spacing:.2px;white-space:nowrap}
+.rbar .rb-brand em{font-style:normal;color:var(--brand)}
+.rbar .rb-sp{flex:1;min-width:8px}
+.rbar .rb-tag{font-size:12px;padding:2px 9px;border-radius:999px;background:var(--brand-soft);
+  color:var(--brand-deep);border:1px solid var(--brand-line);white-space:nowrap}
+.rbar .rb-tag.ok{background:#eefaf3;color:#0b8a5c;border-color:rgba(11,138,92,.25)}
+.rbar .rb-tag.warn{background:#fff8e8;color:#8a6d10;border-color:rgba(201,162,39,.35)}
+.rbtn{
+  font:inherit;font-size:13px;line-height:1;padding:8px 13px;border-radius:10px;cursor:pointer;
+  border:1px solid var(--brand-line);background:#fff;color:var(--brand-deep);
+  transition:.16s;white-space:nowrap;
+}
+.rbtn:hover{background:var(--brand-soft);border-color:var(--brand)}
+.rbtn.pri{background:linear-gradient(135deg,var(--brand),var(--brand-deep));color:#fff;border-color:transparent;
+  box-shadow:0 4px 14px rgba(200,16,46,.24)}
+.rbtn.pri:hover{filter:brightness(1.08)}
+.rbtn.on{background:linear-gradient(135deg,#e63946,#c8102e);color:#fff;border-color:transparent}
+.rbtn.gh{background:transparent;border-color:rgba(140,10,32,.22);color:#7d5b60}
+.rbtn.sm{font-size:12px;padding:6px 10px;border-radius:8px}
+.rbtn:disabled{opacity:.55;cursor:default}
+.rsel{font:inherit;font-size:13px;padding:7px 9px;border-radius:10px;
+  border:1px solid var(--brand-line);background:#fff;color:var(--brand-deep);cursor:pointer;max-width:190px}
+
+/* ---------- 模块上的编辑按钮（仅编辑模式显示） ---------- */
+.rpt-ops{position:absolute;top:14px;right:16px;display:none;gap:6px;z-index:5}
+html.edit .rpt-ops{display:flex}
+.rpt-ops .rbtn{background:rgba(255,255,255,.96);box-shadow:0 3px 10px rgba(140,10,32,.12)}
+.rpt-chartwrap{position:relative}
+html.edit .rpt-chartwrap::after{
+  content:'📊 点右上角按钮编辑图表数据';position:absolute;inset:0;pointer-events:none;
+  border:2px dashed rgba(200,16,46,.30);border-radius:12px;background:rgba(253,236,238,.10);
+}
+html.edit .rpt-chartwrap>.rpt-cops{display:flex}
+.rpt-cops{position:absolute;top:6px;right:8px;display:none;gap:6px;z-index:6}
+
+/* ---------- 图表占位 / 失败 ---------- */
+.rpt-chartmiss{display:flex;align-items:center;justify-content:center;height:100%;min-height:120px;
+  color:#a0888d;font-size:13px;background:repeating-linear-gradient(45deg,#fffafb,#fffafb 10px,#fdf2f3 10px,#fdf2f3 20px);
+  border-radius:10px}
+.rpt-toolbar{display:flex;justify-content:flex-end;gap:3px;margin:2px 0 4px}
+.rpt-toolbar button{font:inherit;font-size:11.5px;padding:3px 9px;border-radius:7px;cursor:pointer;
+  border:1px solid #f2dce0;background:#fff;color:#a0888d;transition:.14s}
+.rpt-toolbar button:hover{border-color:var(--brand);color:var(--brand)}
+.rpt-toolbar button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+
+/* ---------- 空态 ---------- */
+.rpt-empty{background:#fff;border:1px dashed var(--brand-line);border-radius:16px;
+  padding:44px 26px;text-align:center;color:#7d5b60;box-shadow:0 4px 18px rgba(140,10,32,.05)}
+.rpt-empty .big{font-size:38px;line-height:1;margin-bottom:12px}
+.rpt-empty h3{font-size:19px;color:var(--brand-deep);margin-bottom:8px;font-weight:800}
+.rpt-empty p{font-size:13.5px;line-height:2;max-width:620px;margin:0 auto}
+
+/* ---------- 编辑抽屉 ---------- */
+.rpt-mask{position:fixed;inset:0;z-index:200;display:none;background:rgba(74,7,16,.44)}
+.rpt-mask.on{display:block;animation:rptFade .18s ease}
+@keyframes rptFade{from{opacity:0}to{opacity:1}}
+.rpt-drawer{
+  position:absolute;top:0;right:0;bottom:0;width:min(880px,94vw);
+  display:flex;flex-direction:column;background:#fffdfd;
+  box-shadow:-16px 0 50px rgba(74,7,16,.22);
+  animation:rptSlide .24s cubic-bezier(.22,.8,.36,1);
+}
+@keyframes rptSlide{from{transform:translateX(30px);opacity:.5}to{transform:none;opacity:1}}
+.rpt-dhead{display:flex;align-items:center;gap:10px;padding:14px 18px;
+  background:linear-gradient(135deg,#8c0a20,#c8102e);color:#fff}
+.rpt-dhead b{font-size:16px;font-weight:800}
+.rpt-dhead .sub{font-size:12px;opacity:.82}
+.rpt-dhead .x{margin-left:auto;cursor:pointer;font-size:20px;line-height:1;opacity:.9;padding:2px 6px;
+  border-radius:8px}
+.rpt-dhead .x:hover{background:rgba(255,255,255,.16)}
+.rpt-tabs{display:flex;gap:6px;padding:10px 18px 0;background:#fff;border-bottom:1px solid #f6e6e9}
+.rpt-tabs button{font:inherit;font-size:13.5px;padding:8px 14px;border:0;background:transparent;cursor:pointer;
+  color:#9a7d82;border-bottom:2px solid transparent;transition:.15s}
+.rpt-tabs button:hover{color:var(--brand)}
+.rpt-tabs button.on{color:var(--brand-deep);font-weight:700;border-bottom-color:var(--brand)}
+.rpt-dbody{flex:1;overflow:auto;padding:16px 18px 26px}
+.rpt-dfoot{display:flex;gap:8px;justify-content:flex-end;align-items:center;
+  padding:11px 18px;border-top:1px solid #f6e6e9;background:#fffafb}
+.rpt-dfoot .lf{margin-right:auto;font-size:12px;color:#a0888d}
+
+.rfld{margin-bottom:14px}
+.rfld>label{display:block;font-size:12.5px;font-weight:700;color:#7d5b60;margin-bottom:6px}
+.rfld>label em{font-style:normal;font-weight:400;color:#b09a9e;margin-left:6px}
+.rinp,.rtxt,.rsel2{width:100%;font:inherit;font-size:13.5px;padding:9px 11px;border-radius:10px;
+  border:1px solid #f0dde0;background:#fff;color:#3a2024;transition:.15s}
+.rinp:focus,.rtxt:focus,.rsel2:focus{outline:0;border-color:var(--brand);box-shadow:0 0 0 3px rgba(200,16,46,.10)}
+.rtxt{font-family:ui-monospace,Consolas,"Courier New",monospace;font-size:12.5px;line-height:1.75;
+  resize:vertical;min-height:260px;white-space:pre;overflow-wrap:normal;overflow-x:auto}
+.rtxt.js{min-height:200px}
+.rgrid2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.rgrid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 14px}
+.rhint{font-size:12px;color:#a0888d;line-height:1.85;margin:-4px 0 12px}
+.rhint code{background:#fdf2f3;padding:1px 5px;border-radius:5px;color:var(--brand-deep);font-size:11.5px}
+
+/* 抽屉里的列表 */
+.rlist{display:flex;flex-direction:column;gap:6px}
+.rlist .it{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:11px;
+  border:1px solid #f4e4e7;background:#fff;cursor:pointer;transition:.14s}
+.rlist .it:hover{border-color:var(--brand);background:#fffafb;transform:translateX(2px)}
+.rlist .it .no{flex:0 0 30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#c8102e,#8c0a20);color:#fff;font-size:12.5px;font-weight:800}
+.rlist .it .tx{flex:1;min-width:0}
+.rlist .it .tx b{display:block;font-size:13.5px;color:#3a2024;font-weight:700;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rlist .it .tx span{font-size:11.5px;color:#a0888d}
+
+/* 可视化编辑区（所见即所得，用户不必面对 HTML 代码） */
+.rtebar{display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding:6px 8px;
+  background:#fdf2f3;border:1px solid #f0dde0;border-bottom:none;border-radius:10px 10px 0 0}
+.rteb{font:inherit;font-size:12px;line-height:1;padding:6px 9px;border-radius:8px;cursor:pointer;
+  border:1px solid #f0dde0;background:#fff;color:#7d5b60;transition:.14s}
+.rteb:hover{border-color:var(--brand);color:var(--brand-deep);background:#fffafb}
+.rteb:active{transform:translateY(1px)}
+.rteb b,.rteb i,.rteb u,.rteb s{font-size:12.5px}
+.rteSep{width:1px;height:17px;background:#edd6da;margin:0 3px}
+.rtesel{font:inherit;font-size:12px;padding:5px 6px;border-radius:8px;border:1px solid #f0dde0;
+  background:#fff;color:#7d5b60;max-width:150px}
+.rtebar-tip{margin-left:auto;font-size:11.5px;color:#b09a9e;padding-right:4px}
+
+.rte{min-height:170px;max-height:50vh;overflow:auto;padding:14px 16px;background:#fff;
+  border:1px solid #f0dde0;border-radius:0 0 10px 10px;font-size:14px;line-height:1.78;color:#3a2024;
+  outline:0;transition:.15s}
+.rte:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(200,16,46,.10)}
+.rte>*:first-child{margin-top:0}
+.rte>*:last-child{margin-bottom:0}
+.rte img{max-width:100%}
+.rte table{max-width:100%}
+
+/* 图表位置：受保护的标签，点不动、改不了，避免误删代码 */
+.rte-chip{display:inline-block;vertical-align:middle;margin:3px 2px;padding:4px 11px;border-radius:20px;
+  background:#fde8ea;border:1px dashed #d99aa3;color:#a3122a;font-size:12.5px;font-weight:700;
+  user-select:none;-webkit-user-select:none;cursor:default;white-space:nowrap}
+.rte-chip::before{content:'📊 ';font-weight:400}
+
+.rsrc{margin-top:9px}
+.rsrc>summary{cursor:pointer;font-size:12px;color:#a0888d;list-style:none;padding:3px 0}
+.rsrc>summary::-webkit-details-marker{display:none}
+.rsrc>summary::before{content:'▸ '}
+.rsrc[open]>summary::before{content:'▾ '}
+.rsrc-warn{font-size:12px;color:#a3122a;background:#fdecee;border:1px solid #f4d4d8;
+  border-radius:9px;padding:7px 10px;margin:4px 0 7px;line-height:1.7}
+.rsrc-txt{min-height:120px !important;font-size:12px;line-height:1.6}
+
+/* 新建研报：代码已存在时的拒绝提示（防止整份覆盖） */
+.n-warn{margin:4px 0 12px;padding:11px 13px;border-radius:11px;font-size:13px;line-height:1.8;
+  background:#fdecee;border:1px solid #f0c7cc;color:#8c0a20}
+.n-warn b{color:#a3122a}
+
+/* 数据表格编辑器 */
+.rpt-gridwrap{border:1px solid #f2dce0;border-radius:12px;overflow:auto;max-height:52vh;background:#fff}
+table.rpt-grid{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px}
+table.rpt-grid th{position:sticky;top:0;z-index:2;background:#fdf2f3;color:#8c0a20;font-weight:700;
+  padding:7px 8px;border-bottom:1px solid #f2dce0;white-space:nowrap;font-size:12px}
+table.rpt-grid td{padding:2px 4px;border-bottom:1px solid #fbf0f1}
+table.rpt-grid td input{width:100%;font:inherit;font-size:12.5px;padding:5px 7px;border-radius:7px;
+  border:1px solid transparent;background:transparent;color:#3a2024}
+table.rpt-grid td input:hover{border-color:#f2dce0}
+table.rpt-grid td input:focus{outline:0;background:#fff;border-color:var(--brand);box-shadow:0 0 0 3px rgba(200,16,46,.09)}
+table.rpt-grid td.ix{width:38px;text-align:center;color:#c0a8ac;font-size:11px}
+table.rpt-grid tr:hover td{background:#fffafb}
+
+/* 提示条 */
+.rpt-toast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,20px);z-index:400;
+  padding:11px 20px;border-radius:12px;font-size:13.5px;font-weight:600;color:#fff;
+  background:linear-gradient(135deg,#8c0a20,#c8102e);box-shadow:0 10px 30px rgba(140,10,32,.3);
+  opacity:0;pointer-events:none;transition:.24s;max-width:80vw;text-align:center}
+.rpt-toast.on{opacity:1;transform:translate(-50%,0)}
+.rpt-toast.bad{background:linear-gradient(135deg,#4a0710,#7a0a1c)}
+.rpt-toast.ok{background:linear-gradient(135deg,#0b6b47,#0b8a5c)}
+
+/* 密码弹窗 */
+.rpt-pmask{position:fixed;inset:0;z-index:500;display:none;align-items:center;justify-content:center;
+  background:rgba(74,7,16,.5)}
+.rpt-pmask.on{display:flex}
+.rpt-pbox{width:min(420px,92vw);background:#fff;border-radius:16px;overflow:hidden;
+  box-shadow:0 24px 70px rgba(74,7,16,.35);animation:rptSlide .2s ease}
+.rpt-pbox .hd{padding:14px 18px;background:linear-gradient(135deg,#8c0a20,#c8102e);color:#fff;font-weight:800}
+.rpt-pbox .bd{padding:16px 18px}
+.rpt-pbox .warn{background:#fff6f7;border:1px solid #f6d5da;border-radius:10px;padding:11px 13px;
+  font-size:12.5px;color:#8c0a20;line-height:1.9;margin-bottom:12px}
+.rpt-pbox .err{color:#c8102e;font-size:12.5px;min-height:18px}
+.rpt-pbox .ft{display:flex;gap:8px;justify-content:flex-end;padding:0 18px 16px}
+.shake{animation:rptShake .38s}
+@keyframes rptShake{0%,100%{transform:none}20%{transform:translateX(-7px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+
+/* 卡片入场（比原来的 IntersectionObserver 方案更稳：不会因为没滚动而永远透明） */
+.card,.stat,.verdict,.essence,.criteria{animation:rptIn .5s cubic-bezier(.22,.8,.36,1) both}
+@keyframes rptIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+@media print{
+  .rbar,.rpt-ops,.rpt-toolbar,.rpt-toast{display:none!important}
+  body{background:#fff}
+}
+@media (max-width:820px){
+  .rpt-drawer{width:100vw}
+  .rgrid2,.rgrid3{grid-template-columns:1fr}
+  .rbar .rb-tag{display:none}
+}
+</style>
+</head>
+<body>
+<div class="bg-orbs"><i></i><i></i><i></i><i></i></div>
+
+<div class="wrap" id="wrap">
+  <div class="rbar" id="rbar"></div>
+  <header class="hero" id="hero"></header>
+  <div id="verdict"></div>
+  <div class="grid4" id="kpis"></div>
+  <p class="muted" id="kpiNote"></p>
+  <nav class="toc" id="toc"></nav>
+  <div id="mods"></div>
+  <div id="foot"></div>
+</div>
+
+<aside class="rpt-mask" id="rptMask" onclick="if(event.target===this)Rpt.closeDrawer()">
+  <div class="rpt-drawer" id="rptDrawer"></div>
+</aside>
+<div class="rpt-pmask" id="rptPMask"></div>
+<div class="rpt-toast" id="rptToast"></div>
+
+<script>/*__RPTCFG__*/</script>
+<script>
+/* ============================================================================
+   研报页 · 核心
+   —— 数据全部来自数据库（wb_reports / wb_report_mods / wb_report_charts）
+   —— 页面只负责渲染与编辑，改文案/改数字都不用动代码
+   ============================================================================ */
+var CFG   = window.RPT_CFG || {envId:'', key:''};
+var REST  = CFG.envId ? ('https://' + CFG.envId + '.api.tcloudbasegateway.com/v1/rdb/rest/') : '';
+var SEED  = window.RPT_SEED || null;
+var THEME = 'report';
+
+var AUTH_KEY = 'wb_auth_v1', AUTH_TTL = 7 * 24 * 3600 * 1000, AUTH_LAST_USER = 'wb_last_user_v1';
+var Auth = {token:'', user:'', name:'', role:''};
+
+var St = {
+  code:'', rep:null, mods:[], charts:{}, chartKeys:[], all:[],
+  src:'',                     /* cloud | seed */
+  edit:false, inst:{}
+};
+var UI = {tab:'head', selMod:'', selChart:'', preview:false, confirmCb:null,
+          rteDirty:{}, rteSrcOrig:{}};
+
+/* ---------------------------------------------------------------- 小工具 */
+function $(id){ return document.getElementById(id); }
+function esc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function escq(s){ return esc(s); }
+function attr(s){ return esc(s); }
+function qs(k){
+  var m = new RegExp('[?&]' + k + '=([^&]*)').exec(location.search || '');
+  return m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : '';
+}
+function enc(s){ return encodeURIComponent(String(s == null ? '' : s)); }
+function nowTs(){ return Date.now(); }
+var _tt = null;
+function toast(msg, kind){
+  var t = $('rptToast'); if(!t) return;
+  t.className = 'rpt-toast on' + (kind ? ' ' + kind : '');
+  t.textContent = msg;
+  clearTimeout(_tt);
+  _tt = setTimeout(function(){ t.className = 'rpt-toast'; }, 2600);
+}
+function copy(o){ return JSON.parse(JSON.stringify(o == null ? null : o)); }
+
+/* ---------------------------------------------------------------- 云端访问 */
+function api(table, opt){
+  if(!REST) return Promise.reject(new Error('未配置云环境'));
+  opt = opt || {};
+  var h = {'Authorization': 'Bearer ' + CFG.key};
+  if(opt.headers) for(var k in opt.headers) h[k] = opt.headers[k];
+  var init = {method: opt.method || 'GET', headers: h};
+  if(opt.body !== undefined) init.body = JSON.stringify(opt.body);
+  return fetch(REST + table + (opt.q || ''), init).then(function(r){
+    if(!r.ok){
+      return r.text().then(function(t){
+        throw new Error('HTTP ' + r.status + ' ' + String(t).slice(0, 220));
+      });
+    }
+    if(r.status === 204) return null;
+    return r.text().then(function(t){
+      if(!t) return null;
+      try{ return JSON.parse(t); }catch(e){ return null; }
+    });
+  });
+}
+function rpc(fn, args){
+  return api('rpc/' + fn, {method:'POST', headers:{'Content-Type':'application/json'}, body:args || {}});
+}
+
+/* ---------------------------------------------------------------- 登录态（与工作台共用） */
+function restoreAuth(){
+  var a = null;
+  try{ a = JSON.parse(localStorage.getItem(AUTH_KEY) || sessionStorage.getItem(AUTH_KEY) || 'null'); }catch(e){}
+  if(!a || !a.t) return false;
+  if(a.ts && (Date.now() - a.ts) > AUTH_TTL) return false;
+  Auth.token = a.t; Auth.user = a.u || ''; Auth.name = a.n || a.u || ''; Auth.role = a.r || '';
+  return true;
+}
+function persistAuth(r, remember){
+  try{
+    var s = JSON.stringify({t:r.token, u:r.user, n:r.name || r.user, r:r.role || 'super', ts:Date.now()});
+    if(remember){ localStorage.setItem(AUTH_KEY, s); sessionStorage.removeItem(AUTH_KEY); }
+    else { sessionStorage.setItem(AUTH_KEY, s); localStorage.removeItem(AUTH_KEY); }
+    localStorage.setItem(AUTH_LAST_USER, r.user);
+  }catch(e){}
+}
+function authClear(){
+  Auth.token = ''; Auth.user = ''; Auth.name = ''; Auth.role = '';
+  try{ localStorage.removeItem(AUTH_KEY); sessionStorage.removeItem(AUTH_KEY); }catch(e){}
+}
+
+/* ---------------------------------------------------------------- 读取 */
+function normalizeCharts(rows){
+  var m = {}, keys = [];
+  (rows || []).forEach(function(c){
+    var k = String(c.id || '');
+    if(St.code && k.indexOf(St.code + '_') === 0) k = k.slice(St.code.length + 1);
+    m[k] = c; keys.push(k);
+  });
+  St.charts = m; St.chartKeys = keys;
+}
+function applyReport(r, mods, charts, src){
+  St.rep = r; St.mods = mods || []; normalizeCharts(charts); St.src = src;
+}
+function useSeed(){
+  if(SEED && SEED.report && (!St.code || SEED.report.code === St.code)){
+    St.code = SEED.report.code;
+    applyReport(copy(SEED.report), copy(SEED.mods), copy(SEED.charts), 'seed');
+    return true;
+  }
+  return false;
+}
+function load(){
+  var code = qs('code') || (SEED && SEED.report ? SEED.report.code : '');
+  St.code = code;
+  if(!REST || !code){ useSeed(); return Promise.resolve(false); }
+  return Promise.all([
+    api('wb_reports?id=eq.' + enc(code)),
+    api('wb_report_mods?report_id=eq.' + enc(code) + '&order=seq.asc'),
+    api('wb_report_charts?report_id=eq.' + enc(code) + '&order=seq.asc')
+  ]).then(function(a){
+    if(!a[0] || !a[0].length) throw new Error('NO_REPORT');
+    applyReport(a[0][0], a[1] || [], a[2] || [], 'cloud');
+    return true;
+  }).catch(function(e){
+    St.loadErr = String(e && e.message || e);
+    return useSeed();
+  });
+}
+function loadAllReports(){
+  if(!REST) return Promise.resolve();
+  return api('wb_reports?select=id,code,name&order=code.asc').then(function(rows){
+    St.all = rows || [];
+  }).catch(function(){ St.all = []; });
+}
+
+/* ---------------------------------------------------------------- 渲染 */
+function render(){
+  document.title = (St.rep && (St.rep.name || St.rep.code) ? (St.rep.name || St.rep.code) + ' · ' : '') + '深度研究报告';
+  renderBar(); renderHero(); renderVerdict(); renderKpis(); renderToc(); renderMods(); renderFoot();
+  /* 等布局稳定后再初始化图表，否则 echarts 取到的容器宽高是 0 */
+  setTimeout(renderCharts, 40);
+}
+
+function renderBar(){
+  var r = St.rep || {};
+  var srcTag = St.src === 'cloud'
+    ? '<span class="rb-tag ok">☁️ 云端数据库</span>'
+    : (REST ? '<span class="rb-tag warn">📦 内置副本 · 云端暂无此研报</span>'
+            : '<span class="rb-tag warn">📦 本机副本（本机打开）</span>');
+  var opts = '';
+  if(St.all.length > 1){
+    opts = St.all.map(function(x){
+      return '<option value="' + attr(x.id) + '"' + (String(x.id) === String(r.id) ? ' selected' : '') + '>' +
+        esc((x.code || x.id) + ' ' + (x.name || '')) + '</option>';
+    }).join('');
+  }
+  var h = '';
+  h += '<span class="rb-brand">矿产战略 · <em>深度研究报告</em></span>';
+  h += '<span class="rb-tag">' + esc((r.code || '') + ' ' + (r.name || '')) + '</span>';
+  h += srcTag;
+  h += '<span class="rb-tag">' + St.mods.length + ' 个模块 · ' + St.chartKeys.length + ' 张图表</span>';
+  h += '<span class="rb-sp"></span>';
+  if(St.src === 'cloud') h += '<span class="rb-tag">数据存于数据库 · 可编辑</span>';
+  h += '<button class="rbtn" onclick="Rpt.back()">← 返回工作台</button>';
+  h += '<button class="rbtn' + (St.edit ? ' on' : '') + '" id="rbEdit" onclick="Rpt.toggleEdit()">' +
+        (St.edit ? '✅ 完成编辑' : '✏️ 编辑数据') + '</button>';
+  if(St.edit) h += '<button class="rbtn pri" onclick="Rpt.openDrawer(\'head\')">🗂 数据管理面板</button>';
+  h += '<button class="rbtn" onclick="Rpt.openDrawer(\'new\')">＋ 新建研报</button>';
+  h += '<button class="rbtn" onclick="window.print()">🖨 打印 / PDF</button>';
+  if(opts) h += '<select class="rsel" onchange="Rpt.go(this.value)">' + opts + '</select>';
+  $('rbar').innerHTML = h;
+}
+
+function renderHero(){
+  var r = St.rep || {};
+  var h = '';
+  if(r.kicker) h += '<div class="kicker">' + r.kicker + '</div>';
+  h += '<h1>' + (r.title || '') + '</h1>';
+  if(r.subtitle) h += '<div class="sub">' + r.subtitle + '</div>';
+  var b = r.badges || [];
+  if(b.length) h += '<div class="meta">' + b.map(function(x){ return '<span class="badge">' + esc(x) + '</span>'; }).join('') + '</div>';
+  $('hero').innerHTML = h;
+}
+
+function renderVerdict(){
+  var r = St.rep || {};
+  if(!r.verdict_html){ $('verdict').innerHTML = ''; return; }
+  $('verdict').innerHTML = '<div class="verdict"><div class="vt">' + esc(r.verdict_title || '核心结论') +
+    '</div><div class="vc">' + r.verdict_html + '</div></div>';
+}
+
+function renderKpis(){
+  var k = (St.rep && St.rep.kpis) || [];
+  $('kpis').innerHTML = k.map(function(x){
+    return '<div class="stat"><div class="label">' + esc(x.label) + '</div>' +
+      '<div class="val' + (x.cls ? ' ' + esc(x.cls) : '') + '"' +
+        (x.style ? ' style="' + attr(x.style) + '"' : '') + '>' +
+        esc(x.val) + (x.unit ? ' <small>' + esc(x.unit) + '</small>' : '') + '</div></div>';
+  }).join('');
+  var n = $('kpiNote');
+  n.innerHTML = (St.rep && St.rep.kpi_note) || '';
+  n.style.display = n.innerHTML ? '' : 'none';
+}
+
+function renderToc(){
+  var t = (St.rep && St.rep.toc) || [];
+  $('toc').innerHTML = t.map(function(x){
+    return '<a href="#' + attr(x.anchor) + '">' + esc(x.text) + '</a>';
+  }).join('');
+  $('toc').style.display = t.length ? '' : 'none';
+}
+
+function renderMods(){
+  var box = $('mods');
+  if(!St.mods.length){
+    box.innerHTML =
+      '<div class="rpt-empty"><div class="big">📄</div>' +
+      '<h3>这份研报还没有内容</h3>' +
+      '<p>数据库里 <code>wb_reports</code> 还没有 <b>' + esc(St.code || '(未指定代码)') + '</b> 的记录。' +
+      '点右上角的「✏️ 编辑数据」→「数据管理面板」可以新建一份研报并逐个模块填写；' +
+      '也可以从工作台的标的列表里点标的名称进入。</p></div>';
+    return;
+  }
+  var h = '';
+  St.mods.forEach(function(m){
+    if(String(m.no) === '23' && St.rep.essence_html) h += St.rep.essence_html;
+    h += '<div class="card" id="m' + attr(m.no) + '" data-mod="' + attr(m.id) + '">' +
+           '<h2><span class="no">' + esc(m.no) + '</span>' + (m.title || '') + '</h2>' +
+           '<div class="rpt-ops">' +
+             '<button class="rbtn sm" onclick="Rpt.openMod(\'' + escq(m.id) + '\')">✏️ 编辑本模块</button>' +
+           '</div>' +
+           (m.html || '') +
+         '</div>';
+  });
+  box.innerHTML = h;
+}
+
+function renderFoot(){
+  var h = (St.rep && St.rep.footer_html) || '';
+  if(St.edit){
+    h += '<div class="rpt-ops" style="position:static;display:flex;justify-content:center;margin-top:16px">' +
+         '<button class="rbtn sm" onclick="Rpt.openDrawer(\'head\')">✏️ 编辑页脚 / 免责声明</button></div>';
+  }
+  $('foot').innerHTML = h;
+}
+
+/* ---------------------------------------------------------------- 图表 */
+var FNS = {
+  catBreak: function(){ return function(v){ return String(v).split(' ').join('\n'); }; },
+  nullDash: function(){ return function(p){ return p.value == null ? '—' : p.value; }; },
+  unit: function(u){ return function(v){ return (v == null ? '—' : v) + u; }; },
+  valUnit: function(u){ return function(p){ return p.value + u; }; },
+  idxColorList: function(list){
+    return function(p){ return list[p.dataIndex] || list[0]; };
+  },
+  idxColorBreak: function(a){
+    var n = parseFloat(a[0]), c1 = a[1], c2 = a[2];
+    return function(p){ return p.dataIndex < n ? c1 : c2; };
+  },
+  stackSum: function(which, opt){
+    var rb = seriesArr(opt, which === 'rev' ? '营业收入·存量' : '归母净利润·存量');
+    var ra = seriesArr(opt, which === 'rev' ? '营业收入·募投增量' : '归母净利润·募投增量');
+    return function(p){
+      return ((rb[p.dataIndex] || 0) + (ra[p.dataIndex] || 0)).toFixed(1);
+    };
+  },
+  forecastTip: function(_a, opt){
+    var xa = Array.isArray(opt.xAxis) ? opt.xAxis[0] : opt.xAxis;
+    var years = (xa && xa.data) || [];
+    var rb = seriesArr(opt, '营业收入·存量'),   ra = seriesArr(opt, '营业收入·募投增量');
+    var nb = seriesArr(opt, '归母净利润·存量'), na = seriesArr(opt, '归母净利润·募投增量');
+    return function(ps){
+      if(!ps || !ps.length) return '';
+      var i = ps[0].dataIndex, out = [String(years[i]) + '年'];
+      function f(v){ return (v == null ? 0 : v).toFixed(2); }
+      if(i < 24){
+        out.push('营业收入：' + f(rb[i]) + ' 亿（实际披露）');
+        out.push('归母净利润：' + f(nb[i]) + ' 亿（实际披露）');
+      } else {
+        out.push('营业收入：' + f(rb[i]) + ((ra[i] || 0) > 0 ? ' + ' + f(ra[i]) + '（募投增量）' : '') + ' = ' + f((rb[i] || 0) + (ra[i] || 0)) + ' 亿');
+        out.push('归母净利润：' + f(nb[i]) + ((na[i] || 0) > 0 ? ' + ' + f(na[i]) + '（募投增量）' : '') + ' = ' + f((nb[i] || 0) + (na[i] || 0)) + ' 亿');
+        if((ra[i] || 0) === 0 && (na[i] || 0) === 0) out.push('※ 2026E-2028E建设期，增量为0');
+        else out.push('※ 2029E起募投项目逐步投产');
+      }
+      return out.join('\n');
+    };
+  }
+};
+function seriesArr(opt, name){
+  var s = opt.series || [];
+  for(var i = 0; i < s.length; i++) if(s[i] && s[i].name === name) return s[i].data || [];
+  return [];
+}
+function mkFn(token, opt){
+  var i = token.indexOf(':');
+  var name = i < 0 ? token : token.slice(0, i);
+  var arg  = i < 0 ? '' : token.slice(i + 1);
+  /* 容错：早期导出脚本每个标记多写了一个右花括号（`{{fn:unit: 亿元}}}`），
+     剥掉尾巴上的 `}` 与空白，保证已入库的老数据也能正确还原 */
+  name = String(name).replace(/[}\s]+$/, '');
+  arg  = String(arg).replace(/[}\s]+$/, '');
+  var f = FNS[name];
+  if(!f) return undefined;
+  if(name === 'idxColorList')  return f(arg.split(','));
+  if(name === 'idxColorBreak') return f(arg.split(':'));
+  if(name === 'stackSum')      return f(arg, opt);
+  if(name === 'forecastTip')   return f(arg, opt);
+  return f(arg, opt);
+}
+/* 把 option 里的 {{fn:xxx}} 标记还原成真正的函数（存库只存 JSON，渲染时才还原） */
+function revive(node, opt){
+  if(typeof node === 'string'){
+    var m = /^\{\{fn:([\s\S]+)\}\}$/.exec(node);
+    if(m){ var fn = mkFn(m[1], opt); if(fn) return fn; }
+    return node;
+  }
+  if(Array.isArray(node)){
+    var a = []; for(var i = 0; i < node.length; i++) a[i] = revive(node[i], opt); return a;
+  }
+  if(node && typeof node === 'object'){
+    var o = {}; for(var k in node) o[k] = revive(node[k], opt); return o;
+  }
+  return node;
+}
+function catCount(opt){
+  var xa = Array.isArray(opt.xAxis) ? opt.xAxis[0] : opt.xAxis;
+  return (xa && Array.isArray(xa.data)) ? xa.data.length : 0;
+}
+var NO_ZOOM = {chartForecast: 1, chart2: 1};
+function renderCharts(){
+  var slots = document.querySelectorAll('[data-chart]');
+  St.inst = {};
+  St.slots = [];
+  for(var i = 0; i < slots.length; i++){
+    var el = slots[i];
+    var key = el.getAttribute('data-chart');
+    var rec = St.charts[key];
+    el.setAttribute('data-key', key);
+    if(!(el.getAttribute('class') || '').match(/chart|mi-chart/)) el.className = (el.className || '') + ' chart-box short';
+    if(St.edit){
+      var box = document.createElement('div');
+      box.className = 'rpt-chartwrap';
+      el.parentNode.insertBefore(box, el);
+      box.appendChild(el);
+      var ops = document.createElement('div');
+      ops.className = 'rpt-cops';
+      ops.innerHTML = '<button class="rbtn sm" data-cedit="' + attr(key) + '">✏️ 图表数据</button>';
+      box.appendChild(ops);
+    }
+    var slot = el;
+    if(!rec){
+      slot.innerHTML = '<div class="rpt-chartmiss">图表「' + esc(key) + '」暂无数据 —— 点「✏️ 图表数据」导入或编辑</div>';
+      continue;
+    }
+    try{
+      var opt = revive(copy(rec.opt), copy(rec.opt));
+      var n = catCount(opt);
+      var zoom = (n >= 5 && !NO_ZOOM[key]);
+      if(zoom){
+        opt.dataZoom = [{type:'inside', start:0, end:100}, {type:'slider', show:false, start:0, end:100}];
+      }
+      delete opt.__noZoom;
+      var inst = echarts.init(slot, THEME);
+      inst.setOption(opt, true);
+      St.inst[key] = inst;
+      St.slots.push({key:key, n:n, zoom:zoom});
+    }catch(e){
+      slot.innerHTML = '<div class="rpt-chartmiss">图表渲染失败：' + esc(String(e && e.message || e)) + '</div>';
+    }
+  }
+  if(St.edit){
+    var bts = document.querySelectorAll('[data-cedit]');
+    for(var j = 0; j < bts.length; j++){
+      bts[j].onclick = (function(k){
+        return function(ev){ ev.stopPropagation(); Rpt.openChart(k); };
+      })(bts[j].getAttribute('data-cedit'));
+    }
+  }
+  renderToolbars();
+  window.__RPT_CHARTS = St.slots.length;
+}
+/* 时间范围按钮组（和原研报一致：3年 / 5年 / 10年 / 全部） */
+function renderToolbars(){
+  var old = document.querySelectorAll('.rpt-toolbar');
+  for(var i = 0; i < old.length; i++) old[i].parentNode.removeChild(old[i]);
+  (St.slots || []).forEach(function(s){
+    if(!s.zoom) return;
+    var inst = St.inst[s.key]; if(!inst) return;
+    var dom = inst.getDom(); if(!dom) return;
+    var bar = document.createElement('div');
+    bar.className = 'rpt-toolbar';
+    bar.innerHTML = '<button data-r="3">3年</button><button data-r="5">5年</button>' +
+                    '<button data-r="10">10年</button><button data-r="all" class="on">全部</button>';
+    dom.parentNode.insertBefore(bar, dom);
+    var btns = bar.querySelectorAll('button');
+    for(var b = 0; b < btns.length; b++){
+      btns[b].onclick = (function(n, inst, bar){
+        return function(){
+          var bs = bar.querySelectorAll('button');
+          for(var q = 0; q < bs.length; q++) bs[q].className = '';
+          this.className = 'on';
+          var yrs = this.getAttribute('data-r') === 'all' ? 9999 : parseInt(this.getAttribute('data-r'), 10);
+          var st = yrs >= n ? 0 : Math.round((n - yrs) / n * 100);
+          inst.dispatchAction({type:'dataZoom', dataZoomIndex:1, start:st, end:100});
+          inst.dispatchAction({type:'dataZoom', dataZoomIndex:0, start:st, end:100});
+        };
+      })(s.n, inst, bar);
+    }
+  });
+}
+window.addEventListener('resize', function(){
+  for(var k in St.inst){ try{ St.inst[k].resize(); }catch(e){} }
+});
+
+/* ---------------------------------------------------------------- 启动 */
+function boot(){
+  restoreAuth();
+  load().then(function(ok){
+    if(!ok && !St.mods.length){
+      if(SEED && SEED.report) St.code = St.code || SEED.report.code;
+    }
+    render();
+    loadAllReports().then(function(){ renderBar(); });
+  });
+}
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+else boot();
+/* ============================================================================
+   研报页 · 编辑（数据管理面板）
+   —— 改标题 / 改正文 / 改表格里的数字 / 改图表数据，全部直接写回数据库
+   —— 删除走管理员密码（服务端 wb_admin_delete_row 校验）
+   ============================================================================ */
+var MOD_SKELETON = [
+  '公司简介', '公司历史沿革', '股东结构', '实控人与集团背景', '业务及产品',
+  '主要产品产能与技术', '主要产品产量与销量（量价拆分）', '主要子公司与基地',
+  '产业链结构（全产业链一体化）', '上游原料价格', '产品价格与成本', '在建工程与新项目',
+  '风险事件与关注事项', '公司营业收入与利润', '公司产品收入与毛利结构', '毛利率、净利率、ROE',
+  '费用结构', '现金流与资产负债', '历年分红情况', '公司估值', '公司股价表现',
+  '企业评分（选股原则 10 项 · 满分 100）', '投资结论与跟踪清单'
+];
+
+var Rpt = {
+  /* ---------------- 导航 ---------------- */
+  back: function(){ location.href = 'index.html'; },
+  go: function(id){ location.replace(location.pathname + '?code=' + enc(id)); },
+  toggleEdit: function(){
+    St.edit = !St.edit;
+    document.documentElement.className = St.edit ? 'edit' : '';
+    render();
+    if(St.edit){ toast('已进入编辑模式 —— 每张卡片右上角、每张图表右上角都能点开编辑', 'ok'); }
+    else { this.closeDrawer(); }
+  },
+  openDrawer: function(tab, keepSel){
+    UI.tab = tab || UI.tab || 'head';
+    /* ⚠️ keepSel：openMod/openChart 是「先设选中项再开抽屉」，若这里无条件清空，
+       点了「✏️ 编辑本模块 / 图表数据」只会看到列表 —— 表现为「按钮点了没反应」。 */
+    if(!keepSel){ UI.selMod = ''; UI.selChart = ''; }
+    this.renderDrawer();
+    $('rptMask').className = 'rpt-mask on';
+  },
+  closeDrawer: function(){ $('rptMask').className = 'rpt-mask'; },
+  tab: function(t){ UI.tab = t; UI.selMod = ''; UI.selChart = ''; this.renderDrawer(); },
+  openMod: function(id){ UI.tab = 'mods'; UI.selMod = id; UI.selChart = ''; this.openDrawer('mods', true); },
+  openChart: function(key){ UI.tab = 'charts'; UI.selChart = key; UI.selMod = ''; this.openDrawer('charts', true); },
+  findMod: function(id){
+    for(var i = 0; i < St.mods.length; i++) if(String(St.mods[i].id) === String(id)) return St.mods[i];
+    return null;
+  },
+  findChart: function(key){ return St.charts[key] || null; },
+
+  /* ---------------- 可视化编辑（工具条动作） ---------------- */
+  rteDo: function(id, cmd, arg){
+    var box = $(id);
+    if(!box) return;
+    box.focus();
+    if(cmd === 'link'){
+      var sel = '';
+      try{ sel = String(window.getSelection() || ''); }catch(e){}
+      if(!sel.trim()){ toast('先在编辑区里选中要加链接的文字', 'bad'); return; }
+      var url = window.prompt('链接地址（http:// 或 https:// 开头）：', 'https://');
+      if(!url) return;
+      if(!/^https?:\/\//i.test(url)){ toast('只允许 http / https 链接', 'bad'); return; }
+      try{ document.execCommand('createLink', false, url); }catch(e){}
+      UI.rteDirty[id] = 1;
+      return;
+    }
+    try{
+      document.execCommand('styleWithCSS', false, false);
+      document.execCommand(cmd, false, arg === undefined ? null : arg);
+      UI.rteDirty[id] = 1;
+    }catch(e){ toast('这个格式没生效（浏览器不支持），可展开「代码」手动改', 'bad'); }
+  },
+  rteChart: function(id){
+    var box = $(id), pick = $(id + '-pick');
+    if(!box || !pick) return;
+    var k = pick.value;
+    if(!k){ toast('「图表」页里还没有图表', 'bad'); return; }
+    box.focus();
+    var chip = '<span class="rte-chip" contenteditable="false" data-chart="' + attr(k) +
+               '" data-cls="" data-sty="">图表：' + esc(k) + '</span>&nbsp;';
+    try{ document.execCommand('insertHTML', false, chip); }
+    catch(e){ box.innerHTML += chip; }
+    UI.rteDirty[id] = 1;
+    toast('已插入图表位置：' + k, 'ok');
+  },
+  rteToggle: function(id, det){
+    var box = $(id), src = $(id + '-src');
+    if(!box || !src) return;
+    if(det.open){
+      /* 进源码前，先把可视化内容原样同步下来（用户看到的就是当前真正的代码） */
+      src.value = rteSave(box.innerHTML);
+      UI.rteSrcOrig[id] = src.value;
+    } else if(UI.rteSrcOrig[id] !== undefined && src.value !== UI.rteSrcOrig[id]){
+      /* 只在源码真的被改过时才按源码重建，否则保持原样不动 */
+      box.innerHTML = rteLoad(src.value);
+      UI.rteDirty[id] = 1;
+    }
+  },
+
+  /* ---------------- 抽屉 ---------------- */
+  renderDrawer: function(){
+    var d = $('rptDrawer');
+    var tabs = [['head', '页眉与结论'], ['mods', '模块（' + St.mods.length + '）'],
+                ['charts', '图表（' + St.chartKeys.length + '）'], ['io', '导入 / 导出'], ['new', '＋ 新建研报']];
+    var h = '<div class="rpt-dhead"><b>🗂 数据管理面板</b>' +
+            '<span class="sub">' + esc((St.rep && (St.rep.code + ' ' + St.rep.name)) || '') +
+            ' · 改完点保存即写入数据库</span>' +
+            '<span class="x" onclick="Rpt.closeDrawer()">✕</span></div>' +
+            '<div class="rpt-tabs">' +
+            tabs.map(function(t){
+              return '<button class="' + (UI.tab === t[0] ? 'on' : '') + '" onclick="Rpt.tab(\'' + t[0] + '\')">' + t[1] + '</button>';
+            }).join('') + '</div>';
+    h += '<div class="rpt-dbody" id="rptBody">' + this.bodyHTML() + '</div>';
+    h += '<div class="rpt-dfoot" id="rptFoot">' + this.footHTML() + '</div>';
+    d.innerHTML = h;
+  },
+  bodyHTML: function(){
+    if(UI.tab === 'head')   return headForm();
+    if(UI.tab === 'mods')   return UI.selMod ? modForm(UI.selMod) : modList();
+    if(UI.tab === 'charts') return UI.selChart ? chartForm(UI.selChart) : chartList();
+    if(UI.tab === 'new')    return newForm();
+    return ioForm();
+  },
+  footHTML: function(){
+    var h = '<span class="lf">';
+    if(UI.tab === 'mods' && UI.selMod) h += '模块 ID：' + esc(UI.selMod);
+    else if(UI.tab === 'charts' && UI.selChart) h += '图表键：' + esc(UI.selChart);
+    else h += '全部内容保存在数据库三张表里';
+    h += '</span>';
+    if(UI.tab === 'new') return h + '<button class="rbtn gh" onclick="Rpt.closeDrawer()">取消</button>' +
+      '<button class="rbtn pri" id="n-go" onclick="Rpt.createReport()">✚ 创建并写入数据库</button>';
+    if(UI.tab === 'head') return h + '<button class="rbtn gh" onclick="Rpt.closeDrawer()">关闭</button>' +
+      '<button class="rbtn pri" onclick="Rpt.svHead()">💾 保存页眉与结论</button>';
+    if(UI.tab === 'mods'){
+      if(UI.selMod) return h + '<button class="rbtn" onclick="Rpt.tab(\'mods\')">← 返回列表</button>' +
+        '<button class="rbtn gh" onclick="Rpt.delMod(\'' + escq(UI.selMod) + '\')">🗑 删除模块</button>' +
+        '<button class="rbtn pri" onclick="Rpt.svMod()">💾 保存模块</button>';
+      return h + '<button class="rbtn gh" onclick="Rpt.closeDrawer()">关闭</button>' +
+        '<button class="rbtn" onclick="Rpt.addMod()">＋ 新增模块</button>';
+    }
+    if(UI.tab === 'charts'){
+      if(UI.selChart) return h + '<button class="rbtn" onclick="Rpt.tab(\'charts\')">← 返回列表</button>' +
+        '<button class="rbtn gh" onclick="Rpt.delChart(\'' + escq(UI.selChart) + '\')">🗑 删除图表</button>' +
+        '<button class="rbtn pri" onclick="Rpt.svChart()">💾 保存图表</button>';
+      return h + '<button class="rbtn gh" onclick="Rpt.closeDrawer()">关闭</button>' +
+        '<button class="rbtn" onclick="Rpt.addChart()">＋ 新增图表</button>';
+    }
+    return h + '<button class="rbtn gh" onclick="Rpt.closeDrawer()">关闭</button>' +
+      '<button class="rbtn" onclick="Rpt.exportJSON()">⬇ 导出 JSON</button>' +
+      '<button class="rbtn gh" onclick="Rpt.delReport()">🗑 删除整份研报</button>';
+  },
+
+  /* ---------------- 保存 ---------------- */
+  ensureReport: function(){
+    if(!REST) return Promise.reject(new Error('未配置云环境'));
+    /* 页面上还没有研报记录时（比如从一个空代码进来），先兜一个最小壳 */
+    if(!St.rep){
+      St.rep = {id:St.code, code:St.code, name:'', kicker:'', title:'', subtitle:'', badges:[],
+                verdict_title:'核心结论', verdict_html:'', kpis:[], kpi_note:'', toc:[],
+                essence_html:'', footer_html:'', theme:'red', sort:99};
+    }
+    var r = St.rep;
+    var id = r.id || St.code;
+    if(!id) return Promise.reject(new Error('缺少研报 ID'));
+    var row = {
+      id:id, code:r.code || id, name:r.name || '', kicker:r.kicker || '', title:r.title || '',
+      subtitle:r.subtitle || '', badges:r.badges || [], verdict_title:r.verdict_title || '核心结论',
+      verdict_html:r.verdict_html || '', kpis:r.kpis || [], kpi_note:r.kpi_note || '',
+      toc:r.toc || [], essence_html:r.essence_html || '', footer_html:r.footer_html || '',
+      theme:r.theme || 'red', sort:r.sort || 99, up:nowTs()
+    };
+    return api('wb_reports?on_conflict=id', {
+      method:'POST',
+      headers:{'Content-Type':'application/json', 'Prefer':'resolution=merge-duplicates,return=minimal'},
+      body:[row]
+    }).then(function(){
+      r.id = id; St.src = 'cloud';
+      if(St.all.map(function(x){ return String(x.id); }).indexOf(String(id)) < 0){
+        St.all.push({id:id, code:row.code, name:row.name});
+      }
+    });
+  },
+  patch: function(table, q, body, label){
+    if(!REST){ toast('未配置云环境，无法保存', 'bad'); return Promise.reject(new Error('no rest')); }
+    var self = this;
+    return this.ensureReport().then(function(){
+      body.up = nowTs();
+      return api(table + q, {
+        method:'PATCH',
+        headers:{'Content-Type':'application/json', 'Prefer':'return=minimal'},
+        body:body
+      });
+    }).then(function(){
+      toast(label + ' 已保存到数据库', 'ok');
+    }).catch(function(e){
+      toast('保存失败：' + String(e && e.message || e).slice(0, 110), 'bad');
+      throw e;
+    });
+  },
+
+  /* ---------- 页眉与结论 ---------- */
+  svHead: function(){
+    var r = St.rep || {};
+    var v = function(id){ var e = $(id); return e ? e.value : ''; };
+    var lines = v('h-badges').split('\n').map(function(s){ return s.trim(); }).filter(Boolean);
+    var toc = v('h-toc').split('\n').map(function(s){ return s.trim(); }).filter(Boolean).map(function(s){
+      var i = s.indexOf('|');
+      return i < 0 ? {anchor:s, text:s} : {anchor:s.slice(0, i).trim(), text:s.slice(i + 1).trim()};
+    });
+    var kpis = [];
+    var rows = document.querySelectorAll('#kpiEdit tr[data-k]');
+    for(var i = 0; i < rows.length; i++){
+      var g = function(n){ var e = rows[i].querySelector('[data-f="' + n + '"]'); return e ? e.value : ''; };
+      if(!g('label') && !g('val')) continue;
+      kpis.push({label:g('label'), val:g('val'), unit:g('unit'), cls:g('cls'), style:g('style')});
+    }
+    r.kicker = v('h-kicker'); r.title = v('h-title'); r.subtitle = v('h-sub');
+    r.badges = lines;
+    r.verdict_title = v('h-vt'); r.verdict_html = rteRead('h-vc', r.verdict_html);
+    r.kpis = kpis; r.kpi_note = v('h-note');
+    r.toc = toc;
+    r.essence_html = rteRead('h-essence', r.essence_html);
+    r.footer_html  = rteRead('h-footer', r.footer_html);
+    r.id = r.id || St.code; r.code = r.code || St.code;
+    r.name = r.name || '';
+    ['h-vc', 'h-essence', 'h-footer'].forEach(function(k){ UI.rteDirty[k] = 0; UI.rteSrcOrig[k] = undefined; });
+    this.patch('wb_reports', '?id=eq.' + enc(r.id), {
+      code:r.code, name:r.name, kicker:r.kicker, title:r.title, subtitle:r.subtitle,
+      badges:r.badges, verdict_title:r.verdict_title, verdict_html:r.verdict_html,
+      kpis:r.kpis, kpi_note:r.kpi_note, toc:r.toc, essence_html:r.essence_html,
+      footer_html:r.footer_html, theme:r.theme || 'red'
+    }, '页眉与结论').then(function(){
+      St.rep = r; render();
+    }).catch(function(){});
+  },
+
+  /* ---------- 模块 ---------- */
+  svMod: function(){
+    var id = UI.selMod; if(!id) return;
+    var m = this.findMod(id); if(!m) return;
+    var no = ($('m-no') || {}).value || m.no;
+    var title = ($('m-title') || {}).value || '';
+    /* ⚠️ 富文本：用户没动过编辑区时，rteRead 直接返回库里的原 HTML（一个字节都不改），
+       避免「打开-保存」这种无意义操作把排版洗掉。 */
+    var html = rteRead('m-edit', m.html);
+    m.no = String(no).trim(); m.title = String(title).trim(); m.html = html;
+    UI.rteDirty['m-edit'] = 0; UI.rteSrcOrig['m-edit'] = undefined;
+    this.patch('wb_report_mods', '?id=eq.' + enc(id),
+      {no:m.no, title:m.title, html:m.html, seq:m.seq, report_id:St.code, code:St.code}, '模块 ' + m.no)
+      .then(function(){ render(); Rpt.renderDrawer(); }).catch(function(){});
+  },
+  addMod: function(){
+    var maxNo = 0;
+    St.mods.forEach(function(m){ maxNo = Math.max(maxNo, parseInt(m.no, 10) || 0); });
+    var no = String(maxNo + 1);
+    var id = St.code + '_m' + no;
+    var m = {id:id, report_id:St.code, code:St.code, seq:St.mods.length + 1, no:no,
+             title: (MOD_SKELETON[maxNo] || ('新模块 ' + no)), html: '<p>在此填写内容……</p>'};
+    var self = this;
+    this.ensureReport().then(function(){
+      return api('wb_report_mods?on_conflict=id', {
+        method:'POST',
+        headers:{'Content-Type':'application/json', 'Prefer':'resolution=merge-duplicates,return=minimal'},
+        body:[{id:id, report_id:St.code, code:St.code, seq:m.seq, no:m.no, title:m.title, html:m.html, up:nowTs()}]
+      });
+    }).then(function(){
+      St.mods.push(m);
+      UI.selMod = id;
+      toast('已新增模块 ' + no, 'ok');
+      render(); self.renderDrawer();
+    }).catch(function(e){ toast('新增失败：' + String(e.message || e).slice(0, 100), 'bad'); });
+  },
+  delMod: function(id){
+    var m = this.findMod(id) || {};
+    this.askPass('删除模块 ' + (m.no || '') + ' · ' + (m.title || ''), function(pw){
+      rpc('wb_admin_delete_row', {p_token:Auth.token, p_kind:'reportmod', p_id:id, p_pass:pw})
+        .then(function(r){
+          if(!r || !r.ok){ toast((r && r.msg) || '删除失败', 'bad'); return; }
+          St.mods = St.mods.filter(function(x){ return String(x.id) !== String(id); });
+          UI.selMod = '';
+          toast('已删除模块 ' + (m.no || ''), 'ok');
+          render(); Rpt.renderDrawer();
+        }).catch(function(e){ toast('删除失败：' + String(e.message || e).slice(0, 90), 'bad'); });
+    });
+  },
+
+  /* ---------- 图表 ---------- */
+  svChart: function(){
+    var key = UI.selChart; if(!key) return;
+    var rec = this.findChart(key); if(!rec) return;
+    var name = ($('c-name') || {}).value || key;
+    var opt;
+    try{
+      opt = JSON.parse(($('c-json') || {}).value || '{}');
+    }catch(e){ toast('图表 option 不是合法 JSON：' + String(e.message).slice(0, 80), 'bad'); return; }
+    /* 优先用界面上那张数据表覆盖 series / 类别 */
+    var model = readGrid();
+    if(model.rows.length){
+      try{ opt = applyGrid(opt, model); }
+      catch(e){ toast('数据表写回失败：' + String(e.message).slice(0, 80), 'bad'); return; }
+      if($('c-json')) $('c-json').value = JSON.stringify(opt, null, 1);
+    }
+    rec.name = String(name).trim(); rec.opt = opt;
+    var id = rec.id || (St.code + '_' + key);
+    if(!rec.id) rec.id = id;
+    this.ensureReport().then(function(){
+      return api('wb_report_charts?on_conflict=id', {
+        method:'POST',
+        headers:{'Content-Type':'application/json', 'Prefer':'resolution=merge-duplicates,return=minimal'},
+        body:[{id:id, report_id:St.code, code:St.code, seq:rec.seq, name:rec.name, opt:opt, up:nowTs()}]
+      });
+    }).then(function(){
+      toast('图表「' + rec.name + '」已保存', 'ok');
+      render(); Rpt.renderDrawer();
+    }).catch(function(e){ toast('保存失败：' + String(e.message || e).slice(0, 100), 'bad'); });
+  },
+  addChart: function(){
+    var n = 1;
+    while(St.charts['newchart' + n]) n++;
+    var key = 'newchart' + n;
+    var id = St.code + '_' + key;
+    var rec = {id:id, report_id:St.code, code:St.code, seq:St.chartKeys.length + 1,
+               name:'新图表 ' + n,
+               opt:{tooltip:{trigger:'axis'}, legend:{data:['系列1']},
+                    grid:{left:50, right:30, top:40, bottom:40},
+                    xAxis:{type:'category', data:['A','B','C','D','E']},
+                    yAxis:{type:'value'}, series:[{name:'系列1', type:'bar', data:[1,2,3,2,1]}]}};
+    var self = this;
+    this.ensureReport().then(function(){
+      return api('wb_report_charts?on_conflict=id', {
+        method:'POST',
+        headers:{'Content-Type':'application/json', 'Prefer':'resolution=merge-duplicates,return:minimal'},
+        body:[{id:id, report_id:St.code, code:St.code, seq:rec.seq, name:rec.name, opt:rec.opt, up:nowTs()}]
+      });
+    }).then(function(){
+      St.charts[key] = rec; St.chartKeys.push(key);
+      toast('已新增图表（记得在模块正文里放 &lt;div data-chart="' + key + '"&gt;&lt;/div&gt; 才会显示）', 'ok');
+      UI.selChart = key;
+      self.renderDrawer();
+    }).catch(function(e){ toast('新增失败：' + String(e.message || e).slice(0, 100), 'bad'); });
+  },
+  delChart: function(key){
+    var rec = this.findChart(key) || {};
+    this.askPass('删除图表「' + (rec.name || key) + '」（模块正文里的占位会变成空框）', function(pw){
+      rpc('wb_admin_delete_row', {p_token:Auth.token, p_kind:'reportchart', p_id:rec.id, p_pass:pw})
+        .then(function(r){
+          if(!r || !r.ok){ toast((r && r.msg) || '删除失败', 'bad'); return; }
+          delete St.charts[key];
+          St.chartKeys = St.chartKeys.filter(function(k){ return k !== key; });
+          UI.selChart = '';
+          toast('已删除图表', 'ok');
+          render(); Rpt.renderDrawer();
+        }).catch(function(e){ toast('删除失败：' + String(e.message || e).slice(0, 90), 'bad'); });
+    });
+  },
+
+  /* ---------- 整份研报 ---------- */
+  delReport: function(){
+    var r = St.rep || {};
+    this.askPass('删除整份研报「' + (r.name || r.code) + '」，连同它的 ' + St.mods.length +
+                 ' 个模块与 ' + St.chartKeys.length + ' 张图表一起删除', function(pw){
+      rpc('wb_admin_delete_row', {p_token:Auth.token, p_kind:'report', p_id:(r.id || St.code), p_pass:pw})
+        .then(function(x){
+          if(!x || !x.ok){ toast((x && x.msg) || '删除失败', 'bad'); return; }
+          toast('整份研报已删除', 'ok');
+          setTimeout(function(){ location.href = 'index.html'; }, 900);
+        }).catch(function(e){ toast('删除失败：' + String(e.message || e).slice(0, 90), 'bad'); });
+    });
+  },
+
+  /* ---------- 导入 / 导出 ---------- */
+  exportJSON: function(){
+    var pack = {report:St.rep, mods:St.mods, charts:St.chartKeys.map(function(k){ return St.charts[k]; })};
+    var txt = JSON.stringify(pack, null, 1);
+    try{
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([txt], {type:'application/json'}));
+      a.download = (St.rep && (St.rep.code || St.rep.id) || 'report') + '_研报数据.json';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      toast('已导出 JSON（可直接编辑后再导入）', 'ok');
+    }catch(e){ toast('导出失败：' + String(e.message), 'bad'); }
+  },
+
+  /* ---------- 管理员密码 ---------- */
+  askPass: function(label, cb){
+    UI.confirmCb = cb;
+    var last = '';
+    try{ last = localStorage.getItem(AUTH_LAST_USER) || ''; }catch(e){}
+    $('rptPMask').innerHTML =
+      '<div class="rpt-pbox" id="rptPBox" onclick="event.stopPropagation()">' +
+        '<div class="hd">🔒 管理员验证</div>' +
+        '<div class="bd">' +
+          '<div class="warn">⚠️ <b>此操作不可撤销</b><br>' + esc(label) + '<br>' +
+            '请求会带上密码提交到云端函数校验，通过后才会真正动数据库。</div>' +
+          '<div class="rfld"><label>管理员账号 <em>' + (Auth.token ? '当前已登录 ' + esc(Auth.user) : '') + '</em></label>' +
+            '<input class="rinp" id="rpUser" value="' + attr(last) + '" placeholder="luoshui"' +
+            (Auth.token ? ' disabled' : '') + '></div>' +
+          '<div class="rfld"><label>管理员密码</label>' +
+            '<input class="rinp" id="rpPass" type="password" autocomplete="off" placeholder="请输入管理员密码" ' +
+            'onkeydown="if(event.key===\'Enter\')Rpt.confirmPass()"></div>' +
+          '<div class="err" id="rpErr"></div>' +
+        '</div>' +
+        '<div class="ft"><button class="rbtn gh" onclick="Rpt.cancelPass()">取消</button>' +
+          '<button class="rbtn pri" id="rpGo" onclick="Rpt.confirmPass()">确认删除</button></div>' +
+      '</div>';
+    $('rptPMask').className = 'rpt-pmask on';
+    setTimeout(function(){ var i = $('rpPass'); if(i) i.focus(); }, 70);
+  },
+  pErr: function(msg){
+    var e = $('rpErr'); if(e) e.textContent = msg || '';
+    var b = $('rptPBox');
+    if(b && msg){ b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); }
+    var i = $('rpPass'); if(i && msg) i.value = '';
+  },
+  cancelPass: function(){ UI.confirmCb = null; $('rptPMask').className = 'rpt-pmask'; },
+  confirmPass: function(){
+    var uEl = $('rpUser'), pEl = $('rpPass'), go = $('rpGo');
+    var u = uEl ? String(uEl.value || '').trim() : '';
+    var p = pEl ? String(pEl.value || '') : '';
+    if(!String(p).trim()){ this.pErr('请输入管理员密码'); return; }
+    if(!REST){ this.pErr('未配置云环境，无法删除'); return; }
+    var self = this;
+    if(go){ go.disabled = true; go.textContent = '验 证 中…'; }
+    function ok(){
+      if(go){ go.disabled = false; go.textContent = '确认删除'; }
+      $('rptPMask').className = 'rpt-pmask';
+      var cb = UI.confirmCb; UI.confirmCb = null;
+      if(cb) cb(String(p).trim());
+    }
+    function no(msg){
+      if(go){ go.disabled = false; go.textContent = '确认删除'; }
+      self.pErr(msg);
+    }
+    var chain;
+    if(Auth.token){
+      chain = rpc('wb_admin_verify', {p_token:Auth.token, p_pass:String(p).trim()});
+    } else {
+      if(!u){ no('请输入管理员账号'); return; }
+      chain = rpc('wb_admin_login', {
+        p_user:u, p_pass:String(p), p_device:(navigator.userAgent || '').slice(0, 80), p_days:7
+      }).then(function(r){
+        if(r && r.ok){
+          Auth.token = r.token; Auth.user = r.user; Auth.name = r.name || r.user; Auth.role = r.role || 'super';
+          persistAuth(r, true);
+        }
+        return r;
+      });
+    }
+    chain.then(function(r){
+      if(!r || !r.ok){ no((r && r.msg) || '账号或密码错误，操作已取消'); return; }
+      ok();
+    }).catch(function(e){ no('验证失败：' + String(e.message || e).slice(0, 90)); });
+  }
+};
+
+/* ================================================================
+   可视化编辑（RTE）—— 用户改的是「文字和样子」，不是代码
+   设计要点：
+   1) 正文/结论/一句话本质/页脚一律用 contenteditable 直接编辑，输入框里**不出现标签**；
+   2) 图表占位在编辑区里显示成受保护的胶囊标签（contenteditable=false），点不动、也删不掉半截；
+      保存时按标签上记下的 data-chart / class / style 原样还原成 <div data-chart="…"></div>；
+   3) 双重保险：UI.rteDirty 没置位（用户根本没动）时，保存直接写回**库里原来的 HTML**，一个字节都不改；
+   4) 源码只在折叠的「代码」区可见，且只在真的改了源码时才以此为准；
+   5) 凡进入编辑区/写库的 HTML 都过一遍 sanitizeHtml（剥掉 script、iframe、style、
+      on… 事件属性与 javascript: 链接）。
+   ================================================================ */
+var RTE_BAD = /^(script|style|link|meta|base|iframe|object|embed|form|input|button|textarea|select|noscript)$/i;
+
+function sanitizeHtml(html){
+  var box = document.createElement('div');
+  box.innerHTML = (html == null ? '' : String(html));
+  var all = box.querySelectorAll('*');
+  for(var i = 0; i < all.length; i++){
+    var el = all[i];
+    if(RTE_BAD.test(el.tagName)){ if(el.parentNode) el.parentNode.removeChild(el); continue; }
+    var at = el.attributes;
+    for(var j = at.length - 1; j >= 0; j--){
+      var n = at[j].name, v = at[j].value || '';
+      if(/^on/i.test(n)){ el.removeAttribute(n); continue; }
+      if(n === 'contenteditable'){ el.removeAttribute(n); continue; }
+      if((n === 'href' || n === 'src' || n === 'xlink:href') && /^\s*javascript:/i.test(v)) el.removeAttribute(n);
+    }
+  }
+  return box.innerHTML;
+}
+
+/* 库里的 HTML → 编辑区内容（图表 div 换成受保护的胶囊标签） */
+function rteLoad(html){
+  var box = document.createElement('div');
+  box.innerHTML = sanitizeHtml(html);
+  var ds = box.querySelectorAll('[data-chart]');
+  for(var i = 0; i < ds.length; i++){
+    var d = ds[i], k = d.getAttribute('data-chart') || '';
+    var chip = document.createElement('span');
+    chip.className = 'rte-chip';
+    chip.setAttribute('contenteditable', 'false');
+    chip.setAttribute('data-chart', k);
+    chip.setAttribute('data-cls', d.getAttribute('class') || '');
+    chip.setAttribute('data-sty', d.getAttribute('style') || '');
+    chip.setAttribute('title', '图表「' + k + '」的位置：数据在「图表」页里改，改文字不会影响它');
+    chip.textContent = '图表：' + k;
+    if(d.parentNode) d.parentNode.replaceChild(chip, d);
+  }
+  return box.innerHTML;
+}
+
+/* 编辑区内容 → 存库的 HTML（把胶囊标签还原成带 data-chart 的 div） */
+function rteSave(html){
+  var box = document.createElement('div');
+  box.innerHTML = sanitizeHtml(html);
+  var cs = box.querySelectorAll('.rte-chip[data-chart]');
+  for(var i = 0; i < cs.length; i++){
+    var c = cs[i];
+    var d = document.createElement('div');
+    d.setAttribute('data-chart', c.getAttribute('data-chart') || '');
+    var cls = c.getAttribute('data-cls') || '', sty = c.getAttribute('data-sty') || '';
+    if(cls) d.setAttribute('class', cls);
+    if(sty) d.setAttribute('style', sty);
+    if(c.parentNode) c.parentNode.replaceChild(d, c);
+  }
+  return box.innerHTML;
+}
+
+/* 读取某个富文本字段的最终值：源码区开着就以源码为准；否则只在用户动过时才用编辑区内容 */
+function rteRead(id, orig){
+  var w = $(id + '-wrap'), src = $(id + '-src'), box = $(id);
+  if(w && w.open && src) return rteSave(src.value);
+  if(box && UI.rteDirty[id]) return rteSave(box.innerHTML);
+  return (orig == null ? '' : String(orig));
+}
+
+function rteBar(id, withChart){
+  function b(cmd, label, title, arg){
+    return '<button type="button" class="rteb" onmousedown="return false" title="' + attr(title) + '" ' +
+      'onclick="Rpt.rteDo(\'' + id + '\',\'' + cmd + '\'' + (arg === undefined ? '' : ',\'' + arg + '\'') + ')">' +
+      label + '</button>';
+  }
+  var h = '<div class="rtebar">';
+  h += b('bold', '<b>B</b>', '加粗');
+  h += b('italic', '<i>I</i>', '斜体');
+  h += b('underline', '<u>U</u>', '下划线');
+  h += b('strikeThrough', '<s>S</s>', '删除线');
+  h += '<span class="rteSep"></span>';
+  h += b('formatBlock', '小标题', '这一段改成小标题', 'h3');
+  h += b('formatBlock', '正文', '这一段改回正文', 'p');
+  h += b('formatBlock', '引用', '这一段改成引用块', 'blockquote');
+  h += '<span class="rteSep"></span>';
+  h += b('insertUnorderedList', '• 列表', '项目符号列表');
+  h += b('insertOrderedList', '1. 列表', '编号列表');
+  h += '<span class="rteSep"></span>';
+  h += b('link', '🔗 链接', '给选中的文字加链接（http/https）');
+  h += b('removeFormat', '清格式', '清除选中文字的样式');
+  h += '<span class="rteSep"></span>';
+  h += b('undo', '↶', '撤销');
+  h += b('redo', '↷', '重做');
+  if(withChart){
+    h += '<span class="rteSep"></span>';
+    h += '<select class="rtesel" id="' + id + '-pick" onmousedown="return false" title="把某张图表插到光标处">' +
+         St.chartKeys.map(function(k){ return '<option value="' + attr(k) + '">' + esc(k) + '</option>'; }).join('') +
+         '</select>';
+    h += '<button type="button" class="rteb" onmousedown="return false" title="在光标处插入图表位置" ' +
+         'onclick="Rpt.rteChart(\'' + id + '\')">＋图表</button>';
+  }
+  h += '<span class="rtebar-tip">直接点文字就能改</span>';
+  return h + '</div>';
+}
+
+/* 富文本字段（带工具条 + 折叠的源码区） */
+function rteField(id, label, val, rows, hint, withChart){
+  return '<div class="rfld"><label>' + label + (hint ? ' <em>' + hint + '</em>' : '') + '</label>' +
+    rteBar(id, withChart) +
+    '<div class="rte" id="' + id + '" contenteditable="true" spellcheck="false"' +
+      ' oninput="UI.rteDirty[\'' + id + '\']=1"' +
+      ' onfocus="try{document.execCommand(\'styleWithCSS\',false,false);}catch(e){}">' + rteLoad(val) + '</div>' +
+    '<details class="rsrc" id="' + id + '-wrap" ontoggle="Rpt.rteToggle(\'' + id + '\',this)">' +
+      '<summary>代码（一般不用动 —— 平时看不到标签，就是在这里被藏起来的）</summary>' +
+      '<div class="rsrc-warn">⚠️ 下面是网页代码。改错会让这一段显示异常；<b>不点保存就不会生效</b>。</div>' +
+      '<textarea class="rtxt rsrc-txt" id="' + id + '-src" rows="' + (rows || 8) + '"></textarea>' +
+    '</details></div>';
+}
+
+/* ---------------------------------------------------------------- 表单渲染 */
+function headForm(){
+  var r = St.rep || {};
+  var h = '';
+  h += '<div class="rhint">这里改的是研报的「外壳」：顶部标题区、核心结论、8 项指标、目录、一句话本质、页脚免责声明。</div>';
+  h += '<div class="rgrid2">';
+  h += fld('h-kicker', '顶部小字（kicker）', r.kicker, '英文/中文都行，如 TITANIUM · AEROSPACE &amp; METAL');
+  h += fld('h-title',  '主标题', r.title);
+  h += '</div>';
+  h += fld('h-sub', '副标题', r.subtitle);
+  h += ta('h-badges', '顶部徽标（一行一个）', (r.badges || []).join('\n'), 3, '如「行情时点 2026-08-24」');
+  h += rteField('h-vc', '核心结论正文', r.verdict_html, 6, '直接改文字，加粗 / 链接用上面按钮', false);
+  h += '<div class="rfld"><label>核心结论小标题</label><input class="rinp" id="h-vt" value="' + attr(r.verdict_title || '核心结论') + '"></div>';
+  h += '<div class="rfld"><label>8 项指标 <em>（cls 可填 down / up 让数字变色；style 可填内联样式）</em></label>' +
+       '<div class="rpt-gridwrap" style="max-height:none"><table class="rpt-grid" id="kpiEdit"><thead><tr>' +
+       '<th>标签</th><th>数值</th><th>单位</th><th>颜色</th><th>内联样式</th></tr></thead><tbody>';
+  var ks = (r.kpis || []).slice();
+  while(ks.length < 8) ks.push({label:'', val:'', unit:'', cls:'', style:''});
+  ks.forEach(function(k){
+    h += '<tr data-k="1">' +
+      '<td><input data-f="label" value="' + attr(k.label) + '"></td>' +
+      '<td><input data-f="val" value="' + attr(k.val) + '"></td>' +
+      '<td><input data-f="unit" value="' + attr(k.unit) + '"></td>' +
+      '<td><input data-f="cls" value="' + attr(k.cls) + '" placeholder="down/up"></td>' +
+      '<td><input data-f="style" value="' + attr(k.style) + '" placeholder="color:var(--red);"></td>' +
+      '</tr>';
+  });
+  h += '</tbody></table></div></div>';
+  h += fld('h-note', '指标下方小字说明', r.kpi_note);
+  h += ta('h-toc', '目录（一行一条，格式：锚点|显示文字）', (r.toc || []).map(function(x){ return x.anchor + '|' + x.text; }).join('\n'), 5,
+          '锚点是模块编号对应的 #m1 / #m6 / #m14 …');
+  h += rteField('h-essence', '一句话本质', r.essence_html, 4, '会显示在 23 号模块上方', false);
+  h += rteField('h-footer', '页脚 / 免责声明', r.footer_html, 5, '', false);
+  return h;
+}
+function fld(id, label, val, ph){
+  return '<div class="rfld"><label>' + label + '</label><input class="rinp" id="' + id + '" value="' +
+    attr(val == null ? '' : val) + '"' + (ph ? ' placeholder="' + attr(ph) + '"' : '') + '></div>';
+}
+function ta(id, label, val, rows, hint){
+  return '<div class="rfld"><label>' + label + (hint ? ' <em>' + hint + '</em>' : '') + '</label>' +
+    '<textarea class="rtxt" id="' + id + '" rows="' + (rows || 6) + '">' + esc(val == null ? '' : val) + '</textarea></div>';
+}
+function modList(){
+  var h = '<div class="rhint">点任意一行编辑。改完点下面的「💾 保存模块」写回数据库；右上角 × 是删除。</div><div class="rlist">';
+  St.mods.forEach(function(m){
+    h += '<div class="it" onclick="Rpt.openMod(\'' + escq(m.id) + '\')">' +
+      '<div class="no">' + esc(m.no) + '</div>' +
+      '<div class="tx"><b>' + esc(m.title || '(无标题)') + '</b>' +
+      '<span>' + m.html.length + ' 字' + (m.html.indexOf('data-chart') >= 0 ? ' · 含图表' : '') + '</span></div>' +
+      '<span style="font-size:16px;color:#c0a8ac">✏️</span></div>';
+  });
+  return h + '</div>';
+}
+function modForm(id){
+  var m = Rpt.findMod(id);
+  if(!m) return '<div class="rhint">模块不存在</div>';
+  var h = '<div class="rhint">下面是这一段的真实样子：<b>点文字直接改</b>，选中文字后用上面的按钮加粗、改标题、加链接。' +
+          '图表位置显示成 <span class="rte-chip" style="margin:0">图表：chart1</span> 这样的标签 —— <b>点不动、也改不坏</b>，' +
+          '回头在「图表」页里改数字即可。</div>';
+  h += '<div class="rgrid2">';
+  h += fld('m-no', '模块编号', m.no);
+  h += fld('m-title', '模块标题', m.title);
+  h += '</div>';
+  h += rteField('m-edit', '正文内容', m.html, 14, '所见即所得，不用管代码', true);
+  return h;
+}
+function chartList(){
+  var h = '<div class="rhint">每张图表存的是完整 ECharts option。点进去可以直接改数据表的数字，' +
+          '也可以改高级 JSON（样式、坐标轴、颜色）。</div><div class="rlist">';
+  St.chartKeys.forEach(function(k){
+    var c = St.charts[k] || {};
+    var used = St.mods.some(function(m){ return (m.html || '').indexOf('"' + k + '"') >= 0; });
+    h += '<div class="it" onclick="Rpt.openChart(\'' + escq(k) + '\')">' +
+      '<div class="no">📊</div>' +
+      '<div class="tx"><b>' + esc(c.name || k) + '</b><span>' + esc(k) +
+      (used ? '' : ' · ⚠️ 没有模块引用它') + '</span></div>' +
+      '<span style="font-size:16px;color:#c0a8ac">✏️</span></div>';
+  });
+  return h + '</div>';
+}
+function chartForm(key){
+  var c = Rpt.findChart(key);
+  if(!c) return '<div class="rhint">图表不存在</div>';
+  var opt = c.opt || {};
+  var model = chartModel(opt);
+  var h = '';
+  h += '<div class="rhint">上面这张表就是图表里的数字：<b>类别</b>列是横坐标，后面每列是一个系列。' +
+        '改完保存即生效。留空表示该点没有数据。' +
+        (model.kind === 'pie' ? '（这张是饼图：两列分别是扇区名称和数值）' : '') + '</div>';
+  h += fld('c-name', '图表名称（只在管理面板里用）', c.name || key);
+  h += '<div class="rfld"><label>数据表 <em>' + model.rows.length + ' 行 × ' + Math.max(0, model.cols.length - 1) + ' 个系列</em></label>' + gridHTML(model) + '</div>';
+  h += '<div class="rfld"><label>高级：ECharts option（JSON） <em>改样式 / 颜色 / 坐标轴时用</em></label>' +
+       '<textarea class="rtxt js" id="c-json" rows="12">' + esc(JSON.stringify(opt, null, 1)) + '</textarea></div>';
+  return h;
+}
+function ioForm(){
+  var h = '<div class="rhint">整份研报（含 23 个模块与全部图表）可以导出成 JSON 备份，改完再贴回来导入。</div>';
+  h += '<div class="rfld"><label>当前概况</label>' +
+       '<div class="rhint" style="margin:0">标的：<b>' + esc((St.rep && St.rep.code) || '') + ' ' + esc((St.rep && St.rep.name) || '') +
+       '</b><br>模块：' + St.mods.length + ' 个 · 图表：' + St.chartKeys.length + ' 张 · 数据来源：' +
+       (St.src === 'cloud' ? '云端数据库' : '内置副本') + '</div></div>';
+  h += '<div class="rfld"><label>粘贴 JSON 覆盖导入</label>' +
+       '<textarea class="rtxt js" id="io-json" rows="10" placeholder="{&quot;report&quot;:{...},&quot;mods&quot;:[...],&quot;charts&quot;:[...]}"></textarea></div>';
+  h += '<button class="rbtn pri" onclick="Rpt.importJSON()">⬆ 导入并覆盖写入数据库</button>';
+  h += '<div class="rhint" style="margin-top:14px">' +
+       '· 导入会按 <code>id</code> 逐条 upsert，不会删除你没写进去的记录。<br>' +
+       '· 想彻底清空请用「删除整份研报」。</div>';
+  return h;
+}
+function gridHTML(m){
+  var h = '<div class="rpt-gridwrap"><table class="rpt-grid"><thead><tr><th>#</th>';
+  m.cols.forEach(function(c){ h += '<th>' + esc(c) + '</th>'; });
+  h += '</tr></thead><tbody>';
+  m.rows.forEach(function(r, i){
+    h += '<tr><td class="ix">' + (i + 1) + '</td>';
+    for(var j = 0; j < m.cols.length; j++){
+      var v = r[j];
+      h += '<td><input data-r="' + i + '" data-c="' + j + '" value="' + attr(v == null ? '' : v) + '"></td>';
+    }
+    h += '</tr>';
+  });
+  return h + '</tbody></table></div>';
+}
+function readGrid(){
+  var ins = document.querySelectorAll('.rpt-grid input[data-r]');
+  var rows = {}, maxR = -1, maxC = -1;
+  for(var i = 0; i < ins.length; i++){
+    var r = parseInt(ins[i].getAttribute('data-r'), 10);
+    var c = parseInt(ins[i].getAttribute('data-c'), 10);
+    if(!rows[r]) rows[r] = [];
+    rows[r][c] = ins[i].value;
+    if(r > maxR) maxR = r;
+    if(c > maxC) maxC = c;
+  }
+  var out = [];
+  for(var r2 = 0; r2 <= maxR; r2++){
+    var arr = [];
+    for(var c2 = 0; c2 <= maxC; c2++){
+      var cell = (rows[r2] || [])[c2];
+      arr.push(cell === undefined ? '' : cell);
+    }
+    out.push(arr);
+  }
+  return {rows: out};
+}
+/* option ←→ 数据表 */
+function chartModel(opt){
+  var s = opt.series || [];
+  if(s.length && s[0].type === 'pie' && Array.isArray(s[0].data) && s[0].data.length &&
+     typeof s[0].data[0] === 'object' && !Array.isArray(s[0].data[0])){
+    return {kind:'pie', cols:['名称', '数值'],
+            rows:s[0].data.map(function(d){ return [d.name, d.value]; })};
+  }
+  var xa = Array.isArray(opt.xAxis) ? opt.xAxis[0] : opt.xAxis;
+  var cats = (xa && Array.isArray(xa.data)) ? xa.data.slice() : null;
+  var cols = ['类别'].concat(s.map(function(x, i){ return x.name || ('系列' + (i + 1)); }));
+  var n = cats ? cats.length : 0;
+  s.forEach(function(x){ n = Math.max(n, (x.data || []).length); });
+  var rows = [];
+  for(var i = 0; i < n; i++){
+    var row = [cats ? cats[i] : ''];
+    s.forEach(function(x){
+      var d = (x.data || [])[i];
+      row.push(d && typeof d === 'object' && !Array.isArray(d) ? d.value : (d === undefined ? '' : d));
+    });
+    rows.push(row);
+  }
+  return {kind:'series', cols:cols, rows:rows};
+}
+function applyGrid(opt, model){
+  var s = opt.series || [];
+  if(!s.length) return opt;
+  if(model.kind === undefined){
+    model.kind = (s[0].type === 'pie' && s[0].data && typeof s[0].data[0] === 'object') ? 'pie' : 'series';
+  }
+  if(model.kind === 'pie'){
+    s[0].data = model.rows.map(function(r){
+      return {name:String(r[0] == null ? '' : r[0]), value:parseFloat(r[1]) || 0};
+    }).filter(function(d){ return d.name !== ''; });
+    return opt;
+  }
+  var xa = Array.isArray(opt.xAxis) ? opt.xAxis[0] : opt.xAxis;
+  var cats = model.rows.map(function(r){ return String(r[0] == null ? '' : r[0]); });
+  if(xa && Array.isArray(xa.data)){
+    xa.data = cats;
+    if(Array.isArray(opt.xAxis) && opt.xAxis[1] && Array.isArray(opt.xAxis[1].data)) opt.xAxis[1].data = cats.slice();
+  }
+  s.forEach(function(x, i){
+    var old = x.data || [];
+    x.data = model.rows.map(function(r, ri){
+      var v = r[i + 1];
+      var num = (v === '' || v === null || v === undefined) ? null : parseFloat(v);
+      if(num !== null && isNaN(num)) num = null;
+      var o = old[ri];
+      if(o && typeof o === 'object' && !Array.isArray(o)){ o.value = num; return o; }
+      return num;
+    });
+  });
+  return opt;
+}
+/* ---------------------------------------------------------------- 新建 / 导入 */
+function blankKpis(){
+  var t = ['最新价', '总市值', 'PE（TTM）', 'PB（MRQ）', 'EPS（TTM）', '营业收入', '归母净利润', '机构目标价'];
+  var u = ['元', '亿元', '倍', '倍', '元', '亿元', '亿元', '元'];
+  return t.map(function(x, i){ return {label:x, val:'', unit:u[i], cls:'', style:''}; });
+}
+function newForm(){
+  var h = '<div class="rhint">研报是一份独立的数据记录：先建壳（公司 / 标题 / 8 项指标），' +
+          '再逐个模块填内容。建好后会生成 23 个空模块，标题按标准模板预置。</div>';
+  h += '<div class="rhint" style="color:#a3122a">⚠️ 股票代码是研报的身份证。' +
+       '<b>输入一个已经有研报的代码，会被拒绝</b>（否则会把那份研报的 23 个模块、16 张图整份覆盖掉）。' +
+       '想改现有的研报，请从下面的列表点进去。</div>';
+  h += '<div class="rgrid2">';
+  h += fld('n-code', '股票代码（6 位）', '', '600459');
+  h += fld('n-name', '公司简称', '', '贵研铂业');
+  h += '</div>';
+  h += fld('n-title', '主标题（留空自动生成）', '', '贵研铂业（600459.SH）深度研究报告');
+  h += fld('n-sub', '副标题', '', '核心变量：……');
+  h += fld('n-kicker', '顶部小字', 'DEEP DIVE · 深度研究报告');
+  h += '<div id="n-warn" class="n-warn" style="display:none"></div>';
+  return h;
+}
+function RptCreate(){
+  var v = function(id){ var e = $(id); return e ? String(e.value || '') : ''; };
+  var code = v('n-code').replace(/[^0-9]/g, '');
+  if(!/^\d{6}$/.test(code)){ toast('股票代码应为 6 位数字', 'bad'); return; }
+  var btn = $('n-go');
+  if(btn){ btn.disabled = true; btn.textContent = '检 查 中…'; }
+  /* ⚠️ 必须先查重：wb_reports 是按 id upsert 的，用已存在的代码建研报
+     会把那份研报连同它的 23 个模块、16 张图**整份覆盖**（不可恢复）。
+     这是真实事故 —— 一律先查，存在就拒绝并给出口。 */
+  api('wb_reports?id=eq.' + code + '&select=id,name,title').then(function(rows){
+    if(rows && rows.length){
+      var r0 = rows[0] || {};
+      if(btn){ btn.disabled = false; btn.textContent = '创建并写入数据库'; }
+      var w = $('n-warn');
+      if(w){
+        w.style.display = 'block';
+        w.innerHTML = '⚠️ 代码 <b>' + esc(code) + '</b> 已经有研报《' +
+          esc(r0.title || r0.name || code) + '》了，<b>不能重复创建</b> —— ' +
+          '重建会把它连 23 个模块、16 张图一起覆盖掉。' +
+          '<div style="margin-top:9px">' +
+          '<button type="button" class="rbtn sm" onclick="location.href=\'report.html?code=' + escq(code) + '\'">' +
+          '打开这份已有研报</button>' +
+          '<span style="margin-left:8px;font-size:12px;color:#a0888d">要另建一份，请把上面的股票代码改成别的</span>' +
+          '</div>';
+      }
+      toast('代码 ' + code + ' 已有研报，未创建', 'bad');
+      return;
+    }
+    doCreate(code, v, btn);
+  }).catch(function(e){
+    if(btn){ btn.disabled = false; btn.textContent = '创建并写入数据库'; }
+    toast('检查代码是否已存在时失败：' + String(e && e.message || e).slice(0, 90), 'bad');
+  });
+}
+function doCreate(code, v, btn){
+  var name = v('n-name').trim();
+  var r = {
+    id:code, code:code, name:name,
+    kicker:v('n-kicker') || 'DEEP DIVE · 深度研究报告',
+    title:v('n-title') || (name ? name + '（' + code + '）深度研究报告' : code + ' 深度研究报告'),
+    subtitle:v('n-sub'), badges:[], verdict_title:'核心结论',
+    verdict_html:'<p>在此填写核心结论：中期方向、关键变量、估值位置、评级与目标价。</p>',
+    kpis:blankKpis(), kpi_note:'',
+    toc:[{anchor:'m1', text:'公司基本面'}, {anchor:'m14', text:'财务分析'}, 
+         {anchor:'m20', text:'估值判断'}, {anchor:'m23', text:'投资结论'}],
+    essence_html:'<div class="essence"><div class="et">THE ESSENCE · 一句话本质（可证伪命题）</div>' +
+                 '<div class="ec">在此写一句话本质：买它本质上是在买什么，什么条件下成立、什么条件下证伪。</div></div>',
+    footer_html:'<div class="disclaimer"><strong>免责声明</strong>：以上内容基于公开数据整理，仅供参考，' +
+                '不构成投资建议。市场有风险，投资需谨慎。</div>',
+    theme:'red', sort:99
+  };
+  var mods = MOD_SKELETON.map(function(t, i){
+    return {id:code + '_m' + (i + 1), report_id:code, code:code, seq:i + 1,
+            no:String(i + 1), title:t, html:'<p>在此填写内容……</p>'};
+  });
+  if(btn){ btn.disabled = true; btn.textContent = '创 建 中…'; }
+  St.rep = r; St.mods = mods; St.charts = {}; St.chartKeys = [];
+  Rpt.ensureReport().then(function(){
+    return postAll('wb_report_mods', mods.map(function(m){
+      return {id:m.id, report_id:code, code:code, seq:m.seq, no:m.no, title:m.title, html:m.html, up:nowTs()};
+    }), 6);
+  }).then(function(){
+    toast('研报已创建（含 23 个空模块），正在打开…', 'ok');
+    setTimeout(function(){ location.replace(location.pathname + '?code=' + enc(code)); }, 800);
+  }).catch(function(e){
+    if(btn){ btn.disabled = false; btn.textContent = '创建并写入数据库'; }
+    toast('创建失败：' + String(e.message || e).slice(0, 100), 'bad');
+  });
+}
+function postAll(table, rows, size){
+  var i = 0;
+  function step(){
+    if(i >= rows.length) return Promise.resolve();
+    var part = rows.slice(i, i + size);
+    i += size;
+    return api(table + '?on_conflict=id', {
+      method:'POST',
+      headers:{'Content-Type':'application/json', 'Prefer':'resolution=merge-duplicates,return=minimal'},
+      body:part
+    }).then(step);
+  }
+  return step();
+}
+
+Rpt.importJSON = function(){
+  var el = $('io-json');
+  var txt = el ? String(el.value || '') : '';
+  if(!txt.trim()){ toast('请先粘贴 JSON 内容', 'bad'); return; }
+  var pack;
+  try{ pack = JSON.parse(txt); }
+  catch(e){ toast('JSON 格式错误：' + String(e.message).slice(0, 90), 'bad'); return; }
+  if(!pack || !pack.report){ toast('JSON 里缺少 report 字段', 'bad'); return; }
+  var code = St.code || pack.report.code || pack.report.id;
+  pack.report.id = code; pack.report.code = pack.report.code || code;
+  var mods = (pack.mods || []).map(function(m, i){
+    return {id:code + '_m' + (m.no || (i + 1)), report_id:code, code:code, seq:m.seq || (i + 1),
+            no:String(m.no || (i + 1)), title:m.title || '', html:m.html || '', up:nowTs()};
+  });
+  var charts = (pack.charts || []).map(function(c, i){
+    var k = String(c.id || ('chart' + (i + 1)));
+    if(k.indexOf(code + '_') === 0) k = k.slice(code.length + 1);
+    return {id:code + '_' + k, report_id:code, code:code, seq:c.seq || (i + 1),
+            name:c.name || k, opt:c.opt || {}, up:nowTs()};
+  });
+  St.rep = pack.report; St.mods = mods;
+  St.charts = {}; St.chartKeys = [];
+  charts.forEach(function(c){ St.charts[c.id.slice(code.length + 1)] = c; St.chartKeys.push(c.id.slice(code.length + 1)); });
+  toast('正在写入数据库…');
+  Rpt.ensureReport()
+    .then(function(){ return postAll('wb_report_mods', mods, 6); })
+    .then(function(){ return postAll('wb_report_charts', charts, 4); })
+    .then(function(){
+      toast('导入完成：' + mods.length + ' 个模块 · ' + charts.length + ' 张图表', 'ok');
+      render(); Rpt.renderDrawer();
+    })
+    .catch(function(e){ toast('导入失败：' + String(e.message || e).slice(0, 100), 'bad'); });
+};
+
+/* 把「数据管理面板」挂到 Rpt 上（保持内联 onclick 的调用点统一） */
+Rpt.createReport = RptCreate;
+
+
+
+</script>
+</body>
+</html>
