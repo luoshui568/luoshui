@@ -17,3 +17,31 @@ desktop.ini
 # ── Python 字节码 ──
 __pycache__/
 *.pyc
+
+# ── 本地私有配置：管理员口令（探针用 `from _secret import PW` 读它，或设 WB_PW）──
+build/_secret.py
+
+# ── 本地一次性脚本 / 运行日志 / headless 浏览器临时 profile ──
+#    下划线前缀 = 只在开发机用，不入库（诊断脚本、标定脚本、清理脚本、_out_*.txt …）
+build/_*
+build/*.log
+build/src/
+
+# ── 探针在 deploy/ 里就地清空的临时页（0 字节空壳，避免误提交成网页）──
+deploy/_*.html
+
+# ── 环境级迁移 ──
+#    这个 env 里混着另一个项目（love_*）的 schema；且 20260913200000_create_admin_auth.sql
+#    内含**明文种子口令** ⇒ 整个目录排除，只用 ! 白名单放行本项目自己的迁移。
+#    （另一个项目的迁移可由 `tcb db pg migration fetch -e <envId>` 重新拉取。）
+cloudbase/migrations/*.sql
+!cloudbase/migrations/20260910070221_create_strategy_workbench.sql
+!cloudbase/migrations/20260910150000_create_wb_works.sql
+!cloudbase/migrations/20260912133000_fix_sort_and_timestamps.sql
+!cloudbase/migrations/20260912140000_create_wb_works.sql
+!cloudbase/migrations/20260913201000_admin_delete_via_rpc.sql
+!cloudbase/migrations/20260913202000_admin_verify_fn.sql
+!cloudbase/migrations/20260913210000_create_wb_stocks.sql
+!cloudbase/migrations/20260913220000_add_stock_lock_fields.sql
+!cloudbase/migrations/20260913230000_create_wb_reports.sql
+!cloudbase/migrations/20260914120000_admin_register.sql

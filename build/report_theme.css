@@ -183,28 +183,67 @@
   .tag.neg{background:#fdeaea;color:var(--red);}
   .tag.warn{background:#fff4dc;color:var(--amber);}
   .tag.info{background:var(--accent-soft);color:var(--accent);}
+  /* ============================================================
+     左侧竖排目录（红色主体 · 固定悬浮，不再被顶部操作条遮挡）
+     ≥1361px 完整竖排；≤1360px 收成序号胶囊（悬停展开）；≤760px 变底部横排条
+     ============================================================ */
   nav.toc{
-    position:sticky;top:14px;z-index:50;
-    background:rgba(255,255,255,.70);
-    backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);
-    border:1px solid rgba(221,24,50,.10);border-radius:14px;
-    padding:6px 14px;margin-bottom:22px;
-    display:flex;flex-wrap:wrap;gap:4px 6px;justify-content:center;
-    box-shadow:0 4px 18px rgba(221,24,50,.06),inset 0 1px 0 rgba(255,255,255,.85);
-    transition:box-shadow .25s ease;
+    position:fixed;z-index:80;
+    left:max(10px,calc(50% - 688px));top:50%;transform:translateY(-50%);
+    width:132px;max-height:86vh;overflow-y:auto;overscroll-behavior:contain;
+    display:flex;flex-direction:column;gap:3px;
+    padding:10px 9px;border-radius:16px;
+    background:linear-gradient(165deg,#d81f38 0%,#c8102e 46%,#8c0a20 100%);
+    border:1px solid rgba(255,255,255,.20);
+    box-shadow:0 16px 40px rgba(140,10,32,.34),0 0 0 4px rgba(200,16,46,.07),inset 0 1px 0 rgba(255,255,255,.22);
+    scrollbar-width:none;transition:box-shadow .25s ease;
   }
-  nav.toc:hover{box-shadow:0 8px 24px rgba(221,24,50,.10);}
+  nav.toc::-webkit-scrollbar{display:none;}
+  nav.toc:hover{box-shadow:0 20px 46px rgba(140,10,32,.42),0 0 0 5px rgba(200,16,46,.10),inset 0 1px 0 rgba(255,255,255,.26);}
+  nav.toc::before{
+    content:'目录';display:block;text-align:center;font-size:11px;font-weight:800;letter-spacing:3px;
+    color:rgba(255,255,255,.74);padding:0 0 7px;margin-bottom:3px;border-bottom:1px solid rgba(255,255,255,.22);
+  }
   nav.toc a{
-    font-size:12.5px;font-weight:600;
-    padding:5px 14px;border-radius:8px;
-    background:transparent;color:#4a2a2f;text-decoration:none;
-    transition:all .2s ease;border:1px solid transparent;
+    position:relative;display:block;font-size:12.5px;font-weight:600;line-height:1.25;
+    padding:7px 12px;border-radius:9px;
+    color:rgba(255,255,255,.86);text-decoration:none;border:1px solid transparent;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    transition:background .18s ease,color .18s ease,transform .18s ease;
   }
-  nav.toc a:hover{
-    background:linear-gradient(135deg,#c8102e,#e63946);color:#fff;
-    box-shadow:0 4px 12px rgba(221,24,50,.30);
-    border-color:transparent;
-    transform:translateY(-1px);
+  nav.toc a:hover{background:rgba(255,255,255,.18);color:#fff;transform:translateX(2px);}
+  nav.toc a.on{background:#fff;color:#8c0a20;font-weight:800;box-shadow:0 4px 14px rgba(60,13,19,.30);}
+  nav.toc a.on::before{
+    content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);
+    width:3px;height:56%;border-radius:0 3px 3px 0;background:linear-gradient(180deg,#e6c558,#c9a227);
+  }
+  /* 锚点定位补偿：点目录跳过去时，模块标题不被顶部操作条压住 */
+  .card[id]{scroll-margin-top:86px;}
+  /* 窄屏：目录收成「序号胶囊」，悬停 / 聚焦后展开全文 */
+  @media(max-width:1360px){
+    body{padding-left:62px;}
+    nav.toc{left:9px;width:44px;padding:9px 6px;}
+    nav.toc::before{letter-spacing:1px;font-size:10px;}
+    nav.toc a{font-size:0;padding:8px 0;text-align:center;}
+    nav.toc a::after{content:attr(data-i);font-size:12px;font-weight:700;}
+    nav.toc:hover,nav.toc:focus-within{width:132px;padding:10px 9px;}
+    nav.toc:hover::before,nav.toc:focus-within::before{letter-spacing:3px;font-size:11px;}
+    nav.toc:hover a,nav.toc:focus-within a{font-size:12.5px;padding:7px 12px;text-align:left;}
+    nav.toc:hover a::after,nav.toc:focus-within a::after{content:none;}
+  }
+  /* 手机：目录改成底部横排条，横向可滑 */
+  @media(max-width:760px){
+    body{padding-left:0;padding-bottom:72px;}
+    nav.toc{
+      left:0;right:0;bottom:0;top:auto;transform:none;width:auto;max-height:none;
+      flex-direction:row;gap:5px;overflow-x:auto;overflow-y:hidden;
+      padding:8px 10px;border-radius:14px 14px 0 0;border-width:1px 0 0;
+      box-shadow:0 -8px 26px rgba(140,10,32,.30);
+    }
+    nav.toc::before{display:none;}
+    nav.toc a,nav.toc:hover a{flex:0 0 auto;font-size:12.5px;padding:6px 12px;text-align:left;}
+    nav.toc a::after,nav.toc:hover a::after{content:none;}
+    nav.toc a:hover{transform:none;}
   }
   .verdict{
     position:relative;overflow:hidden;

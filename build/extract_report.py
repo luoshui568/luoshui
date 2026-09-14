@@ -12,10 +12,36 @@ import io, json, os, re, sys, colorsys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-SRC = os.path.join(os.path.expanduser("~"), "Desktop", "宝钛股份深度研究报告-模块版-20260826.html")
-OPT = os.path.join(HERE, "_rpt_opts.json")
-CSS_OUT = os.path.join(HERE, "report_theme.css")
-SEED_OUT = os.path.join(HERE, "seed", "report_600456.json")
+
+
+def _parse_args():
+    """默认 = 600456 宝钛股份（保持原有行为不变）。
+
+    其他研报用命令行覆盖，例如：
+      python extract_report.py --code 002237 --name 恒邦股份 \\
+        --src "%USERPROFILE%/Desktop/恒邦股份半年报追踪研究报告-模块版-20260826.html" \\
+        --opts build/_rpt_opts_002237.json --seed build/seed/report_002237.json
+    """
+    a = sys.argv[1:]
+    get = lambda k, d: (a[a.index(k) + 1] if k in a and a.index(k) + 1 < len(a) else d)
+    code = get('--code', '600456')
+    return {
+        'code': code,
+        'name': get('--name', '宝钛股份'),
+        'src': get('--src', os.path.join(os.path.expanduser("~"), "Desktop",
+                                        "宝钛股份深度研究报告-模块版-20260826.html")),
+        'opts': get('--opts', os.path.join(HERE, "_rpt_opts.json")),
+        'css_out': get('--css', os.path.join(HERE, "report_theme.css")),
+        'seed_out': get('--seed', os.path.join(HERE, "seed", "report_%s.json" % code)),
+        'theme': get('--theme', 'red'),
+    }
+
+
+ARGS = _parse_args()
+SRC = ARGS['src']
+OPT = ARGS['opts']
+CSS_OUT = ARGS['css_out']
+SEED_OUT = ARGS['seed_out']
 
 # ---------------------------------------------------------------- 红色主题映射
 # 原研报是「蓝 + 金」体系，这里整体映射到「正红 + 金」体系，
@@ -123,6 +149,16 @@ def fn_token(src, chart_id):
     m = re.search(r"return p\.value\+'(.*?)';", s)
     if m:
         return "valUnit:" + m.group(1)
+    # 指定数据点覆盖标签：p.dataIndex===N ? '-23.4%' : '{c}'
+    # （贵研铂业底稿用过：某个年份实际是负值/含同比，标签要写成特例）
+    m = re.search(r"p\.dataIndex\s*===?\s*(\d+)\s*\?\s*'([^']*)'\s*:\s*'([^']*)'", s)
+    if m:
+        if m.group(3).replace(" ", "") != "{c}":
+            return None                         # 兜底不是 '{c}' 的形态，宁可不还原
+        # ⚠️ 标记内部不能出现花括号：_scan_fn 按「无嵌套花括号」配对，
+        #    后面的 fail-closed 自检也按 [^{}]+ 判「规范形态」。
+        #    所以把 {c} 写成 @c@ 占位，前端再还原。
+        return "idxText:%s:%s" % (m.group(1), m.group(2).replace("{c}", "@c@"))
     if "cs[p.dataIndex]" in s:
         # 原脚本里的具名常量，这里直接展开成显式色值（红色系）
         return "idxColorList:#e8909a,#c8102e,#c9a227,#8c0a20"
@@ -357,12 +393,32 @@ def main():
         "chartCapacity": "募投新增产能构成",
         "chartSales": "产能 vs 产销对比",
     }
+    def derive_name(cid):
+        """图表名：优先取同一模块里紧邻容器之前的 <h3> 小标题，否则用模块标题。
+        （宝钛那份有手工整理的 CHART_NAMES 覆盖，其他研报自动推导即可。）"""
+        for m in mods:
+            key = 'id="%s"' % cid
+            if key not in m["html"]:
+                continue
+            seg = m["html"][:m["html"].index(key)]
+            last = None
+            for mm in re.finditer(r"<h3[^>]*>([\s\S]*?)</h3>", seg):
+                last = mm
+            if last is not None and len(seg) - last.end() < 1600:
+                t = re.sub(r"<[^>]+>", "", last.group(1)).strip()
+                if t:
+                    return t
+            return m["title"]
+        return cid
+
     charts = []
     for n, (cid, _attrs) in enumerate(seen, 1):
         if cid not in opts:
             print("  !! 图表 %s 有容器但没抓到 option" % cid)
             continue
-        charts.append({"id": cid, "seq": n, "name": CHART_NAMES.get(cid, cid), "opt": opts[cid]})
+        charts.append({"id": cid, "seq": n,
+                       "name": CHART_NAMES.get(cid) or derive_name(cid),
+                       "opt": opts[cid]})
 
     # 模块 HTML 里把图表容器改成 data-chart 占位（去掉 id，避免重复 id）
     for mod in mods:
@@ -372,26 +428,39 @@ def main():
 
     seed = {
         "report": {
-            "code": "600456", "name": "宝钛股份",
+            "code": ARGS['code'], "name": ARGS['name'],
             "kicker": kicker, "title": title, "subtitle": sub, "badges": badges,
             "verdict_title": vt, "verdict_html": verdict_html,
             "kpis": kpis, "kpi_note": kpi_note,
             "toc": toc, "essence_html": essence_html, "footer_html": footer_html,
-            "theme": "red",
+            "theme": ARGS['theme'],
         },
         "mods": [dict(m, seq=n) for n, m in enumerate(mods, 1)],
         "charts": charts,
     }
 
     # ---------- 输出 ----------
+    # ⚠️ 主题 CSS 只在**显式传 --css** 时才写。
+    # 原因：网上那份 report_theme.css 是从宝钛底稿生成的「超集」（135 个类），
+    # 而恒邦/贵研底稿只有 76 个类；直接按底稿覆盖会把宝钛研报用到的 59 个类抹掉，
+    # 已有研报立刻掉样式。所以默认**只读不写**。
     css = recolor(css_raw)
-    io.open(CSS_OUT, "w", encoding="utf-8").write(css)
+    if '--css' in sys.argv:
+        io.open(CSS_OUT, "w", encoding="utf-8").write(css)
+        print("主题 CSS       已写出 %s（%d 字符）" % (os.path.basename(CSS_OUT), len(css)))
+    else:
+        print("主题 CSS       跳过（未传 --css；现有 %s 是超集，不能覆盖）" % os.path.basename(CSS_OUT))
 
     # ECharts 库本体单独落一份，供 build.py 注入研报页（保证离线可用）
     blk1 = re.search(r"<script[^>]*>([\s\S]*?)</script>", html).group(1)
     libdir = os.path.join(HERE, "lib")
     os.makedirs(libdir, exist_ok=True)
-    io.open(os.path.join(libdir, "echarts.min.js"), "w", encoding="utf-8").write(blk1)
+    ech = os.path.join(libdir, "echarts.min.js")
+    if not os.path.exists(ech):
+        io.open(ech, "w", encoding="utf-8").write(blk1)
+        print("ECharts 库      已写出 %.0f KB" % (os.path.getsize(ech) / 1024))
+    else:
+        print("ECharts 库      已存在，跳过")
 
     seed_txt = recolor(json.dumps(seed, ensure_ascii=False, separators=(",", ":")))
     io.open(SEED_OUT, "w", encoding="utf-8").write(seed_txt)
@@ -429,7 +498,9 @@ def main():
     well = len(re.findall(r"\{\{fn:[^{}]+\}\}", opt_txt))     # 规范形态
     extra = len(re.findall(r"\{\{fn:[^{}]+\}\}\}", opt_txt))  # 标记后多一个右花括号
     print("具名标记      %d 处（规范 %d · 多花括号 %d）" % (opened, well, extra))
-    assert opened == well and opened > 0, \
+    # 注意：不是每份研报都有 {{fn:}} 标记（恒邦/贵研底稿的函数已内联成色值，标记数为 0），
+    # 所以只校验「形式合法」，不强制存在。
+    assert opened == well, \
         "{{fn:}} 标记形式不合法：出现 %d 处，其中规范 %d 处" % (opened, well)
     assert extra == 0, "标记多写了右花括号（reviver 会整串匹配失败）：%d 处" % extra
 

@@ -69,7 +69,9 @@ for tab, name in [('head', 'v6_head_rte.png'), ('mod', 'v6_mod_rte.png')]:
     #    只塞裸标识符会变成 `if(head === 'head')` → ReferenceError。
     open(out, 'w', encoding='utf-8').write(
         src[:i] + TPL.replace('__TAB__', '"' + tab + '"') + src[i:])
-    shutil.rmtree(prof, ignore_errors=True)
+    # ★ 复用固定 profile：不删目录——Edge profile 有 300+ 文件，
+    #   rmtree 会触发环境的 safe-delete 批量删除拦截；探针自己会重置状态
+    os.makedirs(prof, exist_ok=True)
     png = os.path.join(BASE, 'build', name)
     cmd = [e, '--headless=new', '--disable-gpu', '--no-sandbox', '--hide-scrollbars',
            '--window-size=1680,1180', '--user-data-dir=' + prof,
@@ -90,4 +92,6 @@ for tab, name in [('head', 'v6_head_rte.png'), ('mod', 'v6_mod_rte.png')]:
     os.remove(out)
 
 httpd.shutdown()
-shutil.rmtree(prof, ignore_errors=True)
+# ★ 复用固定 profile：不删目录——Edge profile 有 300+ 文件，
+#   rmtree 会触发环境的 safe-delete 批量删除拦截；探针自己会重置状态
+os.makedirs(prof, exist_ok=True)

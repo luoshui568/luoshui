@@ -94,6 +94,10 @@ body::after{
 .nav button .cnt{margin-left:auto;font-size:12.5px;color:#fff;background:rgba(0,0,0,.22);border-radius:20px;padding:1px 9px;font-variant-numeric:tabular-nums}
 .nav button.on .cnt{background:rgba(200,16,46,.14);color:#a30b23}
 .sideFoot{margin-top:20px;padding:14px;border-radius:15px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.2);font-size:13.5px;color:#ffe3e6;line-height:1.8;position:relative;z-index:1}
+/* 普通管理员（团队成员）视图提示：只开放「投资标的」「研究报告」「数据与设置」 */
+.opsHint{margin-top:12px;padding:11px 13px;border-radius:13px;font-size:13px;line-height:1.65;
+  background:rgba(0,0,0,.18);border:1px dashed rgba(255,255,255,.42);color:#ffe3e6;position:relative;z-index:1}
+.opsHint b{color:#ffe08a}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.5);margin-right:6px;vertical-align:middle}
 .dot.ok{background:#7dffc0;box-shadow:0 0 10px #7dffc0}
 .dot.bad{background:#ffb3b3}
@@ -335,7 +339,7 @@ label{display:block;font-size:13.5px;color:var(--tx2);margin-bottom:6px;letter-s
 .modal h3{font-family:"Songti SC","Noto Serif SC",Georgia,serif;font-size:22px;margin-bottom:5px;color:var(--red-deep);text-align:center}
 .modal .sub{font-size:13.5px;color:var(--tx3);margin-bottom:18px;text-align:center}
 .toast{
-  position:fixed;left:50%;bottom:38px;transform:translateX(-50%) translateY(20px);z-index:120;
+  position:fixed;left:50%;bottom:38px;transform:translateX(-50%) translateY(20px);z-index:600;
   padding:14px 24px;border-radius:15px;background:#fff;border:2px solid var(--red);
   font-size:15px;color:var(--tx);opacity:0;transition:.3s;box-shadow:0 18px 44px -14px rgba(90,6,18,.42);
   pointer-events:none;max-width:86vw;font-weight:600;
@@ -346,7 +350,7 @@ label{display:block;font-size:13.5px;color:var(--tx2);margin-bottom:6px;letter-s
 
 /* ---------- 超级管理员登录门 ---------- */
 .gate{
-  position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:22px;
+  position:fixed;inset:0;z-index:200;display:none;padding:22px;overflow-y:auto;
   background:
     radial-gradient(1100px 780px at 12% -14%, rgba(255,105,110,.30), transparent 62%),
     radial-gradient(900px 680px at 92% 4%, rgba(201,162,39,.28), transparent 60%),
@@ -354,6 +358,8 @@ label{display:block;font-size:13.5px;color:var(--tx2);margin-bottom:6px;letter-s
     linear-gradient(168deg,#fffaf8 0%,#fff0eb 38%,#ffe3da 72%,#ffd6c9 100%);
   animation:gateIn .38s ease both;
 }
+/* ⚠️ 居中不能用 align-items:center —— 注册表单比视口高时，flex 居中会把顶部
+   （含账号输入框）裁到滚动区之外，用户根本滚不上去。用 .gateBox{margin:auto} 居中。 */
 .gate.on{display:flex}
 html.authed .gate{display:none !important}   /* head 里预判已登录 → 首屏零闪烁 */
 html.gating{overflow:hidden}                 /* 未登录时锁住背景滚动 */
@@ -366,7 +372,8 @@ body.gated{overflow:hidden}
   mask-image:radial-gradient(circle at 50% 34%,#000 8%,transparent 76%);
 }
 .gateBox{
-  position:relative;width:100%;max-width:430px;background:#fff;border-radius:26px;padding:38px 34px 30px;
+  position:relative;width:100%;max-width:430px;margin:auto;            /* margin:auto = 可滚动的居中 */
+  background:#fff;border-radius:26px;padding:38px 34px 30px;
   box-shadow:0 34px 80px -26px rgba(140,10,32,.5), 0 0 0 1px rgba(200,16,46,.1);
   animation:gateUp .46s cubic-bezier(.22,1,.3,1) both;
 }
@@ -408,9 +415,37 @@ body.gated{overflow:hidden}
   display:none;
 }
 .gateErr.on{display:block;animation:shake .42s}
-.gateFoot{margin-top:20px;text-align:center;font-size:12px;color:var(--tx3);line-height:1.9}
+.gateFoot{margin-top:20px;text-align:center;font-size:13px;color:var(--tx3);line-height:1.9}
 .gateFoot b{color:var(--red-deep)}
 .gateSrv{display:inline-block;color:var(--red-deep);font-weight:600;font-size:12.5px}
+
+/* ---- 登录门 · 注册普通管理员视图 ---- */
+.gOr{display:flex;align-items:center;gap:10px;margin:18px 0 12px;font-size:13px;color:var(--tx3)}
+.gOr::before,.gOr::after{content:'';flex:1;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(200,16,46,.3),transparent)}
+.gateBtn2{width:100%;padding:12px 14px;border-radius:12px;cursor:pointer;font-family:inherit;
+  border:1.5px solid rgba(200,16,46,.4);background:linear-gradient(160deg,#fff,#fff5f7);
+  color:var(--red-deep);font-size:15px;font-weight:800;letter-spacing:.5px;transition:.18s}
+.gateBtn2:hover{border-color:var(--red);background:#fff;transform:translateY(-1px);
+  box-shadow:0 12px 24px -14px rgba(200,16,46,.7)}
+.gateBtn2:disabled{opacity:.6;cursor:default;transform:none;box-shadow:none}
+.gTip{margin-top:14px;padding:11px 13px;border-radius:12px;font-size:13.2px;line-height:1.85;
+  color:var(--tx2);border:1px solid rgba(200,16,46,.18);
+  background:linear-gradient(160deg,rgba(200,16,46,.06),rgba(201,162,39,.055))}
+.gTip b{color:var(--red-deep)}
+.gBack{margin-top:12px;text-align:center}
+.gBack button{background:none;border:0;color:var(--tx3);font-size:14px;cursor:pointer;
+  font-family:inherit;text-decoration:underline;text-underline-offset:3px}
+.gBack button:hover{color:var(--red-deep)}
+.gOK{margin-top:16px;padding:14px;border-radius:13px;text-align:center;display:none;
+  border:1.5px solid rgba(11,138,92,.35);background:linear-gradient(160deg,rgba(11,138,92,.08),rgba(11,138,92,.03))}
+.gOK.on{display:block}
+.gOK .big{font-size:26px;line-height:1.2}
+.gOK h4{font-size:15.5px;color:#0b6b47;margin:6px 0 6px}
+.gOK p{margin:0;font-size:12.5px;color:var(--tx2);line-height:1.8}
+.gOK .u{font-weight:800;color:var(--red-deep);font-family:var(--mono)}
+#g-reg .field{margin-bottom:12px}
+
 /* ---- 设置页右上角退出按钮 ---- */
 .setLogout{position:absolute;right:0;top:4px}
 @media(max-width:700px){ .setLogout{position:static;margin-top:12px} }
@@ -426,6 +461,10 @@ html.localfile .localBar{display:block}
 .admRow .an{font-weight:700;font-size:14.5px;color:var(--red-deep)}
 .admRow .am{font-size:11.5px;color:var(--tx3);line-height:1.7}
 .admRow .ab{display:flex;gap:6px;flex-shrink:0}
+/* 待批准的注册申请：金边高亮，跟普通账号行区分开 */
+.admRow.pend{border-color:rgba(201,162,39,.55);
+  background:linear-gradient(135deg,rgba(201,162,39,.11),rgba(200,16,46,.055))}
+.admRow.pend .an{color:var(--gold2)}
 .pill.ops{background:linear-gradient(135deg,#eef2ff,#e0e7ff);color:#3730a3;border-color:rgba(55,48,163,.28)}
 .pill.dis{background:linear-gradient(135deg,#f4f4f5,#e4e4e7);color:#52525b;border-color:rgba(82,82,91,.28)}
 @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(7px)}
@@ -451,6 +490,32 @@ html.localfile .localBar{display:block}
   box-shadow:0 8px 20px -10px rgba(140,10,32,.9);
 }
 .btn.dgr:hover{background:linear-gradient(135deg,#a30b23,#6d0819)}
+
+/* ---------- 写操作密码确认层（独立遮罩） ----------
+   ⚠️ 必须独立于 #mask：#mask 里的 innerHTML 会被 openModal 整体替换，
+   而「保存」按钮就在表单弹窗里 —— 复用 #mask 会把用户刚填的内容清空。 */
+/* z-index 必须高过 .gate（200）：会话过期时 confirmPass 会 forceRelogin 亮出门，
+   若密码层比门低，用户会看到「门盖住了密码框」而以为点击没反应。toast(600) 再高一层。 */
+.pmask{position:fixed;inset:0;background:rgba(70,10,20,.55);backdrop-filter:blur(7px);
+  z-index:400;display:none;align-items:center;justify-content:center;padding:20px}
+.pmask.on{display:flex}
+.pmask .modal{max-width:472px;padding:24px 24px 20px}
+.pmask .modal h3{font-size:20px}
+.pinfo{
+  background:linear-gradient(160deg,rgba(200,16,46,.07),rgba(200,16,46,.03));
+  border:1.5px solid rgba(200,16,46,.3);border-radius:14px;padding:12px 14px;margin-bottom:14px;
+  font-size:13.5px;color:var(--tx2);line-height:1.78;
+}
+.pinfo .pt{font-size:15px;font-weight:800;color:var(--red-deep);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.pinfo .pi{font-weight:700;color:var(--tx);background:#fff;border-radius:9px;padding:6px 10px;
+  margin:7px 0;border-left:3px solid var(--red);word-break:break-word;font-size:13.5px}
+.pkeep{display:flex;align-items:flex-start;gap:8px;font-size:12.8px;color:var(--tx2);
+  margin:2px 0 13px;cursor:pointer;user-select:none;line-height:1.6}
+/* ⚠️ 文字必须裹在单个 <span> 里：flex 会把每一段文本 / 每个内联元素当成**独立子项**横排，
+   于是「…仍需输入（<b>…</b>）」会被拆成三列挤成一团（括号飘到下一行）。 */
+.pkeep>span{flex:1 1 auto;min-width:0}
+.pkeep input{width:16px;height:16px;accent-color:#c8102e;cursor:pointer;flex:0 0 auto;margin:0;margin-top:1px}
+.pkeep b{color:var(--red-deep)}
 
 /* ---------- 工作计划 ---------- */
 .hzc{
@@ -660,11 +725,14 @@ html.localfile .localBar{display:block}
   border:1px solid rgba(200,16,46,.22);font-size:13.5px;font-family:inherit;outline:none;
   background:#fff;color:#3f2a30}
 .stkPick input[type=text]:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(200,16,46,.1)}
-.stkPick .qs{display:flex;flex-wrap:wrap;gap:6px;width:100%}
-.stkPick .qs .q{font-size:12px;padding:4px 10px;border-radius:999px;cursor:pointer;
+/* ★ 板块快捷标签：导入弹窗（.stkPick 里）与编辑弹窗（普通 .field 里）共用。
+   样式别只挂在 .stkPick 下 —— 否则编辑弹窗那排标签会退化成一串没有底色/间距的裸文字
+   （DOM 断言照样全绿，只有截图能看出来）。 */
+.qs{display:flex;flex-wrap:wrap;gap:6px;width:100%;max-height:106px;overflow:auto}
+.qs .q{font-size:12px;padding:4px 10px;border-radius:999px;cursor:pointer;white-space:nowrap;
   border:1px solid rgba(200,16,46,.18);background:#fff;color:#5d444c;transition:.13s}
-.stkPick .qs .q:hover{background:#fff2f4;border-color:var(--red);color:var(--red-deep)}
-.stkPick .qs .q.on{background:linear-gradient(135deg,#c8102e,#8c0a20);border-color:#8c0a20;color:#fff}
+.qs .q:hover{background:#fff2f4;border-color:var(--red);color:var(--red-deep)}
+.qs .q.on{background:linear-gradient(135deg,#c8102e,#8c0a20);border-color:#8c0a20;color:#fff}
 @keyframes stkSpin{to{transform:rotate(360deg)}}
 .stkSpinning{display:inline-block;animation:stkSpin .9s linear infinite}
 @media(max-width:760px){
@@ -699,22 +767,71 @@ html.localfile .localBar{display:block}
   <div class="gateBox">
     <div class="gateMark">⚒</div>
     <h2>矿产战略工作台</h2>
-    <div class="gsub">SUPER ADMINISTRATOR ACCESS</div>
-    <div class="field">
-      <label>管理员账号</label>
-      <input id="g-user" autocomplete="username" placeholder="请输入账号" onkeydown="if(event.key==='Enter')App.login()">
+    <div class="gsub">ADMINISTRATOR ACCESS</div>
+
+    <!-- ---------- 视图 1：登录 ---------- -->
+    <div id="g-login">
+      <div class="field">
+        <label>管理员账号</label>
+        <input id="g-user" autocomplete="username" placeholder="请输入账号" onkeydown="if(event.key==='Enter')App.login()">
+      </div>
+      <div class="field" style="position:relative">
+        <label>登录密码</label>
+        <input id="g-pass" type="password" autocomplete="current-password" placeholder="请输入密码" onkeydown="if(event.key==='Enter')App.login()">
+        <span class="passEye" id="g-eye" onclick="App.toggleEye('g-pass','g-eye')">👁</span>
+      </div>
+      <label class="gateRemember"><input type="checkbox" id="g-remember" checked> 记住这台设备（7 天内免登录）</label>
+      <button class="gateBtn" id="g-btn" onclick="App.login()">进 入 工 作 台</button>
+      <div class="gateErr" id="g-err"></div>
+      <div class="gOr" id="g-or"><span>还没有账号？</span></div>
+      <button class="gateBtn2" id="g-regbtn" onclick="App.gateToReg()">📝 注册普通管理员（需超级管理员批准）</button>
+      <div class="gateFoot">
+        <span class="gateSrv">🔒 账号与密码保存在云端数据库 · 服务端校验</span><br>
+        <span style="opacity:.8">普通管理员登录后直接进入「投资标的」；账号管理仅超级管理员可用</span>
+      </div>
     </div>
-    <div class="field" style="position:relative">
-      <label>登录密码</label>
-      <input id="g-pass" type="password" autocomplete="current-password" placeholder="请输入密码" onkeydown="if(event.key==='Enter')App.login()">
-      <span class="passEye" id="g-eye" onclick="App.toggleEye('g-pass','g-eye')">👁</span>
-    </div>
-    <label class="gateRemember"><input type="checkbox" id="g-remember" checked> 记住这台设备（7 天内免登录）</label>
-    <button class="gateBtn" id="g-btn" onclick="App.login()">进 入 工 作 台</button>
-    <div class="gateErr" id="g-err"></div>
-    <div class="gateFoot">
-      <span class="gateSrv">🔒 账号与密码保存在云端数据库 · 服务端校验</span><br>
-      <span style="opacity:.8">忘记密码？需要用另一个管理员账号在「数据与设置」中重置</span>
+
+    <!-- ---------- 视图 2：注册普通管理员 ---------- -->
+    <div id="g-reg" style="display:none">
+      <div class="gateRegIntro tiny muted" style="text-align:center;line-height:1.85;margin:-6px 0 16px;font-size:14px">
+        注册的是<b style="color:var(--red-deep)">普通管理员</b>：可以维护投资标的等业务数据，
+        但不能管理其它账号。
+      </div>
+      <div class="field">
+        <label>登录账号</label>
+        <input id="r-user" autocomplete="off" placeholder="3-24 位小写字母 / 数字 / 下划线">
+      </div>
+      <div class="field">
+        <label>姓名 / 昵称</label>
+        <input id="r-name" autocomplete="off" placeholder="例如：王工">
+      </div>
+      <div class="field" style="position:relative">
+        <label>设置密码</label>
+        <input id="r-pass" type="password" autocomplete="new-password" placeholder="至少 6 位">
+        <span class="passEye" id="r-eye" onclick="App.toggleEye('r-pass','r-eye')">👁</span>
+      </div>
+      <div class="field">
+        <label>确认密码</label>
+        <input id="r-pass2" type="password" autocomplete="new-password" placeholder="再输入一次">
+      </div>
+      <div class="field">
+        <label>申请说明（可选）</label>
+        <input id="r-note" autocomplete="off" placeholder="例如：投研部 · 负责行情跟踪">
+      </div>
+      <button class="gateBtn" id="r-btn" onclick="App.doRegister()">提 交 注 册 申 请</button>
+      <div class="gateErr" id="r-err"></div>
+      <div class="gOK" id="r-ok">
+        <div class="big">🕓</div>
+        <h4>注册申请已提交</h4>
+        <p>账号 <span class="u" id="r-ok-user">—</span> 正在等待超级管理员批准。<br>
+           批准后你就能用这个账号登录，登录后直接进入「投资标的」。</p>
+        <button class="btn pri" style="margin-top:12px" onclick="App.gateToLogin()">返回登录</button>
+      </div>
+      <div class="gTip" id="r-tip">
+        提交后<b>不会立即生效</b>：需要超级管理员在「数据与设置 → 管理员与安全」中批准。<br>
+        密码在提交时就以 bcrypt 哈希存入数据库，任何人也读不到明文。
+      </div>
+      <div class="gBack"><button onclick="App.gateToLogin()">← 返回登录</button></div>
     </div>
   </div>
 </div>
@@ -730,6 +847,7 @@ html.localfile .localBar{display:block}
       <h1>矿产战略工作台<em>CAPITAL → RESOURCE → VALUE</em></h1>
     </div>
     <nav class="nav" id="nav"></nav>
+    <div class="opsHint" id="opsHint" style="display:none"></div>
     <div class="sideFoot">
       <div><span class="dot" id="dotCloud"></span><span id="txtCloud">云同步检测中…</span></div>
       <div style="margin-top:6px" id="txtCloudInfo">—</div>
@@ -941,21 +1059,21 @@ html.localfile .localBar{display:block}
     <!-- 设置 -->
     <section class="page" id="pg-set">
       <div class="head" style="position:relative">
-        <div><h2>数据与<span>云端同步</span></h2><p>腾讯云 CloudBase PostgreSQL · 增删改查实时落库</p></div>
+        <div><h2 id="setTitle">数据与<span>云端同步</span></h2><p id="setSub">腾讯云 CloudBase PostgreSQL · 增删改查实时落库</p></div>
         <button class="btn sm red setLogout" onclick="App.logout()">🚪 退出登录</button>
       </div>
       <div class="grid g2">
-        <div class="card">
+        <div class="card" id="cardCloud">
           <b style="font-size:17px">☁️ 云端连接</b>
           <div class="hr"></div>
           <div id="cloudPanel"></div>
         </div>
-        <div class="card">
+        <div class="card" data-sup="1">
           <b style="font-size:17px">⚙️ 战略参数</b>
           <div class="hr"></div>
           <div id="profPanel"></div>
         </div>
-        <div class="card">
+        <div class="card" data-sup="1">
           <b style="font-size:17px">🗄️ 数据管理</b>
           <div class="hr"></div>
           <div class="row" style="gap:9px">
@@ -968,24 +1086,41 @@ html.localfile .localBar{display:block}
           <div class="hr"></div>
           <div class="tiny muted" id="statBox">—</div>
         </div>
-        <div class="card">
+        <div class="card" id="cardAdmin">
           <b style="font-size:17px">🔐 管理员与安全</b>
           <div class="hr"></div>
           <div id="adminPanel">—</div>
         </div>
-        <div class="card">
+        <div class="card" data-sup="1">
           <b style="font-size:17px">📖 使用说明</b>
           <div class="hr"></div>
           <div class="sm muted" style="line-height:2">
-            1. 打开工作台需先登录管理员账号，<b>账号与密码保存在云端数据库</b>（表 <span class="mono">wb_admins</span>，bcrypt 哈希），由服务端校验；勾选「记住这台设备」可 7 天免登录<br>
-            2. <b>所有删除操作都需输入管理员密码</b>，请求会带着密码提交到数据库函数校验，通过后才真正删除；浏览器已无权直接删表<br>
-            3. 密码只存哈希、前端读不到；忘记密码需要用另一个管理员账号登录后在「数据与设置」中重置<br>
-            4. 点任务左侧方块切换状态：待办 → 进行中 → 已完成 → 跳过；悬浮任务可编辑 / 改期 / 删除<br>
-            5. 课表按周折叠，点周标题展开；所有改动先写本机缓存，云端可用时自动同步<br>
-            6. 「工作计划」按今天 / 本周 / 本月 / 本季度 / 本年 / 五年 / 十年 / 二十年八档维度管理，可切「全景看板 / 按周期浏览 / 时间轴」三种视图<br>
-            7. 「申请清单」覆盖境内主体、金融牌照、矿权、境外投资（ODI）、税务外汇、进出口、知产、人才八类<br>
-            8. 想退出登录：本页右上角「🚪 退出登录」，或「管理员与安全」卡片内的同名按钮<br>
-            9. 数据看板每 30 秒自动刷新一次统计
+            1. 登录页分<b>超级管理员</b>与<b>普通管理员</b>两种角色：没有账号的成员可在登录页点「📝 注册普通管理员」自助申请，<b>必须由超级管理员在「数据与设置 → 管理员与安全」中批准</b>后才能登录（未批准前登录会提示等待批准）<br>
+            2. <b>普通管理员登录后直接进入「投资标的」</b>，可维护行情、标的等业务数据；新增 / 停用 / 删除账号与注册审批<b>只有超级管理员能做</b>，服务端函数强制校验角色<br>
+            3. 账号与密码保存在云端数据库（表 <span class="mono">wb_admins</span>，bcrypt 哈希），由服务端校验；勾选「记住这台设备」可 7 天免登录<br>
+            4. <b>任何会改动数据的操作都要输入管理员密码</b>（新增 / 编辑 / 修改 / 保存 / 同步 / 导入 / 删除），请求带着密码提交到数据库函数校验，通过后才真正执行；「保存 / 修改」可勾 15 分钟内免重复输入，<b>删除、审批与覆盖导入每次都需输入</b>；浏览器已无权直接改表<br>
+            5. 密码只存哈希、前端读不到；忘记密码需要用另一个管理员账号登录后在「数据与设置」中重置<br>
+            6. 点任务左侧方块切换状态：待办 → 进行中 → 已完成 → 跳过；悬浮任务可编辑 / 改期 / 删除<br>
+            7. 课表按周折叠，点周标题展开；所有改动先写本机缓存，云端可用时自动同步<br>
+            8. 「工作计划」按今天 / 本周 / 本月 / 本季度 / 本年 / 五年 / 十年 / 二十年八档维度管理，可切「全景看板 / 按周期浏览 / 时间轴」三种视图<br>
+            9. 「申请清单」覆盖境内主体、金融牌照、矿权、境外投资（ODI）、税务外汇、进出口、知产、人才八类<br>
+            10. 想退出登录：本页右上角「🚪 退出登录」，或「管理员与安全」卡片内的同名按钮<br>
+            11. 数据看板每 30 秒自动刷新一次统计<br>
+            12. <b>「📚 研究报告」是独立页面</b>（侧栏点进去，不占工作台的体量）：列出云端全部研报，点卡片打开完整研报；<b>超级管理员与团队成员都能看</b>，也仍可从「投资标的」列表点 📄 图标直接进
+          </div>
+        </div>
+        <!-- ★ 普通管理员（团队成员）专用说明：与上面的超管说明互斥显示 -->
+        <div class="card" id="cardOpsHelp" style="display:none">
+          <b style="font-size:17px">📖 使用说明（团队成员）</b>
+          <div class="hr"></div>
+          <div class="sm muted" style="line-height:2">
+            1. 你的菜单有三项：<b>投资标的</b>（维护股票池与行情）、<b>研究报告</b>（研报库，独立页面）和<b>数据与设置</b>（本页）<br>
+            2. <b>修改自己的密码</b>：下方「🔐 管理员与安全」卡片里点「🔑 修改我的密码」<br>
+            3. <b>退出登录</b>：本页右上角「🚪 退出登录」，或「管理员与安全」卡片内的同名按钮<br>
+            4. 「☁️ 云端连接」可以查看连通状态；数据写入失败时这里会给出原因，点「↻ 立即同步」可重试<br>
+            5. 超级管理员的私人工作区（总览 / 工作计划 / 365 天课表 / 申请与资质 / 标的与人脉 / 复盘日志）以及账号审批不对外开放，不会出现在你的菜单里<br>
+            6. 任何会改动数据的操作都要输入<b>你自己的管理员密码</b>，由数据库函数校验，前端绕不过去<br>
+            7. <b>研究报告</b>：侧栏点「📚 研究报告」进研报库（独立页面），列出全部研报，点卡片打开完整研报；也可以直接在「投资标的」列表里点标的的 📄 图标
           </div>
         </div>
       </div>
@@ -1000,6 +1135,10 @@ html.localfile .localBar{display:block}
 <div class="mask" id="mask" onclick="if(event.target===this)App.closeModal()">
   <div class="modal" id="modal"></div>
 </div>
+<!-- 写操作密码确认层：独立于 #mask，确认时不碰底下正在填的表单 -->
+<div class="pmask" id="pmask" onclick="if(event.target===this)App.cancelDanger()">
+  <div class="modal" id="pmodal"></div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1012,6 +1151,68 @@ var LSKEY = 'wb_strategy_v1';
 var TABLES = {tasks:'wb_tasks',permits:'wb_permits',milestones:'wb_milestones',watch:'wb_watchlist',contacts:'wb_contacts',logs:'wb_logs',works:'wb_works',stocks:'wb_stocks'};
 /* 全部业务表键名 —— 本机持久化 / 云端同步 / 导入导出统一走这里 */
 var KINDS = ['tasks','permits','milestones','watch','contacts','logs','works','stocks'];
+
+/* ==================== 0.1 拼音首字母搜索（构建时注入锚点表） ==================== */
+/* ---------------- 拼音首字母（锚点在下方两个常量里） ----------------
+   为什么长这样：常用字表要 10KB+，两个页面各放一份不划算。
+   换成区间定位 —— 浏览器自带的 zh 排序规则本来就按拼音排，把字与 23 个
+   声母锚点两两比，落在哪个区间就取哪个声母，体积只有两个 23 字字符串。
+   锚点表由 build/_calib_pinyin.py 标定：项目真实数据 1706 字 **0 冲突**。
+   ⚠️ 别手改锚点：它不是「每声母找一个代表字」那么随意 ——
+      必须按拼音顺序**夹紧**取下界，否则区间会互相串（踩过，见该脚本注释）。 */
+var PY_L = "abcdefghjklmnopqrstwxyz";
+var PY_A = "\u963f\u4e37\u5693\u5491\u59b8\u53d1\u65ee\u54c8\u4e0c\u5494\u5783\u5463\u62cf\u5594\u5991\u4e03\u5465\u4ee8\u4ed6\u5c72\u5915\u4e2b\u5e00";
+var PY_EXC = {};
+var PY_OK = false;
+var PY_CACHE = {};
+function pyCh(ch){
+  var e = PY_EXC[ch];
+  if(e) return e;
+  var lo = 0, hi = PY_A.length - 1, hit = '';
+  while(lo <= hi){
+    var mid = (lo + hi) >> 1;
+    if(ch.localeCompare(PY_A.charAt(mid), 'zh') >= 0){ hit = PY_L.charAt(mid); lo = mid + 1; }
+    else hi = mid - 1;
+  }
+  return hit;
+}
+function pyInit(s){
+  s = String(s == null ? '' : s);
+  var out = '';
+  for(var i = 0; i < s.length; i++){
+    var c = s.charAt(i), n = c.charCodeAt(0);
+    if(n < 128){
+      if((n >= 48 && n <= 57) || (n >= 97 && n <= 122) || (n >= 65 && n <= 90)) out += c.toLowerCase();
+      continue;
+    }
+    out += pyCh(c);
+  }
+  return out;
+}
+/* 按原串缓存：同一只标的每次按键都重算会很卡（206 只 × 每字一次二分） */
+function pyInitCached(s){
+  var k = String(s == null ? '' : s);
+  var v = PY_CACHE[k];
+  if(v === undefined){ v = pyInit(k); PY_CACHE[k] = v; }
+  return v;
+}
+/* 查「这段文本的拼音首字母里有没有 q」；q 必须已经是纯小写字母数字 */
+function pyHit(src, q){
+  return PY_OK && q && pyInitCached(src).indexOf(q) >= 0;
+}
+/* 自检：环境不支持 zh 排序时（会回落到码点序）**整体禁用** ——
+   宁可不支持拼音搜索，也不能给出错的拼音把用户带偏。 */
+(function(){
+  try{
+    if(PY_A.length !== PY_L.length) return;
+    var t = '贵g研y铂b业y钛t中z国g恒h邦b鲁l西x新x三s蜀s';
+    for(var i = 0; i < t.length; i += 2){
+      if(pyCh(t.charAt(i)) !== t.charAt(i + 1)) return;
+    }
+    PY_OK = true;
+  }catch(e){ PY_OK = false; }
+})();
+
 
 /* ==================== 工作计划：九档时间维度 ==================== */
 var HORIZONS = [
@@ -1091,8 +1292,13 @@ function enqueue(table, method, q, body){
   setTimeout(flushQueue, 60);
 }
 var flushing=false;
+/* 失败后的冷却截止时间。⚠️ 只用「时间戳」，绝不用 Cloud.state 之类的**状态**做放行条件 ——
+   状态一旦被置坏就再也没有任何回调能把它拨回来，队列会永久卡死（详见下面 catch 的说明）。
+   时间戳一定会过期，所以最多只是慢一点，不可能卡死。 */
+var flushCool = 0;
 function flushQueue(){
-  if(flushing || !REST || Cloud.state!=='on' || !PENDING.length) return;
+  if(flushing || !REST || !PENDING.length) return;
+  if(Date.now() < flushCool) return;        /* 冷却中：已经有一次「自清空重试」在排队，等它 */
   /* 删除已收归服务端函数（anon 无 DELETE 权限），队列里遗留的 DELETE 项直接丢弃 */
   while(PENDING.length && PENDING[0].m === 'DELETE'){ PENDING.shift(); saveLocal(); }
   if(!PENDING.length){ setCloudDot(); return; }
@@ -1102,16 +1308,37 @@ function flushQueue(){
   if(job.b !== undefined){ opt.body = job.b; opt.headers = {'Content-Type':'application/json','Prefer':'return=representation'}; }
   api(job.t, opt).then(function(){
     PENDING.shift(); saveLocal(); flushing=false;
+    flushCool = 0;
+    Cloud.state='on'; Cloud.msg='';                 /* 写成功即证明链路通，把状态拨回来 */
     setCloudDot();
     if(PENDING.length) setTimeout(flushQueue, 40);
   }).catch(function(e){
+    /* ⚠️ 这里曾经是 `Cloud.state='err'; setTimeout(flushQueue, 4000);`，而 flushQueue 开头
+       又写着 `if(... || Cloud.state!=='on' || ...) return;` —— 重试被自己刚设的状态挡掉，
+       队列从此永久卡死。界面照样提示「已更新」，用户以为存上了，其实后面所有改动都安静地
+       躺在本机队列里推不出去：**静默丢数据**（本轮实测踩到）。三处修好：
+         ① 放行条件改成纯时间冷却 flushCool，一定会过期；
+         ② 重试定时器先把冷却清零再调，保证这一枪一定打得出去；
+         ③ 同一个 job 连续失败 5 次就丢弃 —— 毒消息（例如唯一键冲突）不能永远堵在队头，
+            否则它后面的写入全都推不出去。丢弃时明确告知，本机数据没丢，可用「全量推送」补。 */
     flushing=false;
+    job.tries = (job.tries || 0) + 1;
     Cloud.state='err'; Cloud.msg=String(e.message||e).slice(0,120); setCloudDot();
-    setTimeout(flushQueue, 4000);
+    if(job.tries >= 5){
+      PENDING.shift(); saveLocal();
+      toast('有 1 条改动同步失败已跳过：' + String(e.message||e).slice(0,60) +
+            '。本机数据未丢，可用「全量推送」重试', 'bad');
+    }
+    var wait = (job.tries >= 5) ? 300 : Math.min(800 * job.tries, 5000);
+    flushCool = Date.now() + wait;
+    setTimeout(function(){ flushCool = 0; flushQueue(); }, wait);
   });
 }
 /* ==================== 2. 状态 ==================== */
 var S = {tasks:[],permits:[],milestones:[],watch:[],contacts:[],logs:[],works:[],stocks:[],profile:{}};
+/* 本机有、云端没有的记录条数（pullAll 里统计）。>0 就说明有东西没推上去，
+   在「设置」里明确显示出来，不让它悄悄躺着丢。 */
+var ORPHAN_N = 0;
 var UI = {resTab:'watch', weekOpen:{}, phaseFilter:'', msFilter:'', workTab:'dashboard', workHz:'', workCat:'', workOpen:{},
           stockKw:'', stockGrp:'', stockSort:'chg_pct', stockSortDir:'desc',
           stkGKeys:[], stkGrpOpts:[]};   /* stkGKeys：板块标签条上每个标签对应的键（下标安全，避免名字里的引号破坏内联 onclick） */
@@ -1139,7 +1366,12 @@ function defaults(kind, row){
     row.grp = row.grp || ''; row.note = row.note || ''; row.sub_industry = row.sub_industry || '';
     row.region = row.region || ''; row.sort = row.sort || 99;
     row.quote_date = row.quote_date || ''; row.quote_time = row.quote_time || '';
-    row.lock_fields = row.lock_fields || ''; row.info_at = row.info_at || '';
+    row.lock_fields = row.lock_fields || '';
+    /* ⚠️ info_at 在库里是 timestamptz —— 绝不能填 ''。Postgres 对 '' 会直接报
+       `22007 invalid input syntax for type timestamp with time zone`，
+       把**整条** INSERT 打回（不是跳过这一列）。这里务必留 null：
+       cleanRow 会把 null 整个略过，列自然落 NULL。 */
+    row.info_at = row.info_at || null;
   }
   row.t = row.t || t; row.up = t;
   return row;
@@ -1210,7 +1442,9 @@ function sortState(){
 function insertRow(kind, row){
   row = defaults(kind, row); if(!row.id) row.id = uid(kind[0]);
   S[kind].unshift(row); saveLocal();
-  enqueue(TABLES[kind], 'POST', '', row);
+  /* ★ 走 cleanRow：① 只推库里真有的列；② 剔掉非文本列上的空串。
+     直接推整行会带上 info_at:'' 之类的空串 → Postgres 22007 把整条 INSERT 打回。 */
+  enqueue(TABLES[kind], 'POST', '', cleanRow(kind, row));
   return row;
 }
 function updateRow(kind, id, patch){
@@ -1218,6 +1452,7 @@ function updateRow(kind, id, patch){
   if(!row) return;
   for(var k in patch) row[k]=patch[k];
   row.up = nowTs(); saveLocal();
+  dropEmptyNonText(patch);          /* 非文本列上的空串同样会把整条 PATCH 打回 */
   enqueue(TABLES[kind], 'PATCH', '?id=eq.' + encodeURIComponent(id), patch);
   return row;
 }
@@ -1279,7 +1514,7 @@ function setCloudDot(){
   i.textContent = (PENDING.length? '待同步 '+PENDING.length+' 条 · ' : '') + (CFG.envId? Cloud.msg : '未配置环境');
 }
 function openModal(html){ $('modal').innerHTML = html; $('mask').className='mask on'; }
-function closeModal(){ $('mask').className='mask'; DANGER_CB = null; }
+function closeModal(){ $('mask').className='mask'; DANGER_CB = null; tickClear(); }
 
 /* ==================== 5. 导航 ==================== */
 var PAGES = [
@@ -1288,17 +1523,62 @@ var PAGES = [
   {id:'plan', ic:'📅', name:'365 天课表', en:'PLAN'},
   {id:'permit', ic:'📜', name:'申请与资质', en:'PERMITS'},
   {id:'stock', ic:'📈', name:'投资标的', en:'STOCKS'},
+  /* ★ ext = 独立页面：点它不切页内版块，直接跳到 research.html。
+     研报库**不塞进 index**（那是一份 20 多 KB 的独立页面，且要能被两个角色共用），
+     App.go('research') 也会走同一条跳转路径，所以不依赖侧栏点击。 */
+  {id:'research', ic:'📚', name:'研究报告', en:'RESEARCH', ext:'research.html'},
   {id:'res', ic:'🗂', name:'标的与人脉', en:'RESOURCES'},
   {id:'log', ic:'📝', name:'复盘日志', en:'LOG'},
   {id:'set', ic:'⚙️', name:'数据与设置', en:'SETTINGS'}
 ];
+
+/* ============================================================================
+   ★ 角色可见范围
+   「投资标的」是团队工作（团队成员维护行情与个股）；其余版块是超级管理员的
+   私人工作区（总览 / 工作计划 / 课表 / 申请资质 / 标的与人脉 / 复盘日志）。
+   普通管理员（ops）能看到：
+     · 投资标的 —— 团队业务
+     · 研究报告 —— 团队共用的研报库（独立页面 research.html）：超管与成员都能看
+     · 数据与设置 —— ★ **必须给**：那是唯一能「修改密码 / 退出登录」的入口。
+       但页内只保留「我的账号 + 云端连接状态」，私人参数与数据管理整卡不渲染
+       （见 renderSet() 末尾的 applySetScope()）。
+     · 不进侧栏、不进手机底部 tab？→ 仍要进（否则等于没入口）
+     · App.go 也不放行其余版块（防止用 console 或改 hash 直接跳过去）
+     · 本机文件（file://）不限制 —— 那是主人自己电脑上的离线模式
+   注意：这是「界面层」收窄，不是数据权限。见 SKILL §7.5。
+   ============================================================================ */
+var OPS_PAGES = ['stock', 'research', 'set'];
+function pageAllowed(id){
+  if(isLocalFile()) return true;              /* 本机离线模式 = 主人自己用 */
+  if(Auth.role !== 'ops') return true;        /* super / 未登录：不限制 */
+  return OPS_PAGES.indexOf(id) >= 0;
+}
+function visiblePages(){
+  return PAGES.filter(function(p){ return pageAllowed(p.id); });
+}
+function pageName(id){
+  for(var i=0;i<PAGES.length;i++){ if(PAGES[i].id === id) return PAGES[i].name; }
+  return id;
+}
+
 function buildNav(){
   var h='', tb='';
-  PAGES.forEach(function(p){
-    h += '<button data-p="'+p.id+'" onclick="App.go(\''+p.id+'\')"><span class="ic">'+p.ic+'</span><span>'+p.name+'</span><span class="cnt" id="cnt-'+p.id+'"></span></button>';
-    tb += '<button data-tp="'+p.id+'" onclick="App.go(\''+p.id+'\')"><span class="ic">'+p.ic+'</span><span>'+p.name.replace(/\s.*/,'')+'</span></button>';
+  visiblePages().forEach(function(p){
+    /* ext 项 = 独立页面（研报库 research.html）：点击直接跳转，不切页内版块 */
+    var clk = p.ext ? ('App.ext(\'' + p.ext + '\')') : ('App.go(\'' + p.id + '\')');
+    h += '<button data-p="'+p.id+'" onclick="'+clk+'"><span class="ic">'+p.ic+'</span><span>'+p.name+'</span><span class="cnt" id="cnt-'+p.id+'"></span></button>';
+    tb += '<button data-tp="'+p.id+'" onclick="'+clk+'"><span class="ic">'+p.ic+'</span><span>'+p.name.replace(/\s.*/,'')+'</span></button>';
   });
   $('nav').innerHTML = h; $('tabbar').innerHTML = tb;
+  /* 普通管理员：侧栏补一行说明，免得以为「工作台坏了，只剩几个菜单」 */
+  var oh = $('opsHint');
+  if(oh){
+    if(!isLocalFile() && Auth.role === 'ops'){
+      oh.style.display = '';
+      oh.innerHTML = '🔒 <b>团队成员视图</b>　开放「投资标的」「研究报告」「数据与设置」<br>'+
+        '<span style="opacity:.86">改密码 / 退出登录 →「数据与设置」右上角</span>';
+    } else { oh.style.display = 'none'; oh.innerHTML = ''; }
+  }
 }
 function markNav(id){
   [].forEach.call(document.querySelectorAll('#nav button'), function(b){ b.className = b.getAttribute('data-p')===id? 'on':''; });
@@ -1306,17 +1586,21 @@ function markNav(id){
   [].forEach.call(document.querySelectorAll('.page'), function(p){ p.className = 'page' + (p.id==='pg-'+id? ' on':''); });
   window.scrollTo({top:0,behavior:'smooth'});
 }
+/* ⚠️ 计数徽标必须「存在才写」：普通管理员的导航里只有 cnt-stock，
+   其余 $('cnt-xxx') 是 null —— 直接 .textContent = 会抛
+   「Cannot set properties of null」并把整条渲染链打断。 */
+function setCnt(id, v){ var el = $('cnt-' + id); if(el) el.textContent = v; }
 function counts(){
   var t = S.tasks, d = t.filter(function(x){return x.status==='done';}).length;
-  $('cnt-dash').textContent = pct(d,t.length)+'%';
-  $('cnt-plan').textContent = d + '/' + t.length;
+  setCnt('dash', pct(d,t.length)+'%');
+  setCnt('plan', d + '/' + t.length);
   var wd = S.works.filter(function(x){return x.status==='done';}).length;
-  $('cnt-work').textContent = wd + '/' + S.works.length;
-  $('cnt-permit').textContent = S.permits.filter(function(x){return x.status==='已获批';}).length + '/' + S.permits.length;
-  $('cnt-stock').textContent = S.stocks.length;
-  $('cnt-res').textContent = S.watch.length + S.contacts.length;
-  $('cnt-log').textContent = S.logs.length;
-  $('cnt-set').textContent = PENDING.length? '!' : '';
+  setCnt('work', wd + '/' + S.works.length);
+  setCnt('permit', S.permits.filter(function(x){return x.status==='已获批';}).length + '/' + S.permits.length);
+  setCnt('stock', S.stocks.length);
+  setCnt('res', S.watch.length + S.contacts.length);
+  setCnt('log', S.logs.length);
+  setCnt('set', PENDING.length? '!' : '');
 }
 
 /* ==================== 6. 总览 ==================== */
@@ -1458,8 +1742,11 @@ function renderDash(){
       '<span class="track"><i style="width:'+pct(cats[k].d,cats[k].n)+'%;background:linear-gradient(90deg,#c8102e,#f5a3a8)"></i></span>'+
       '<span class="val">'+cats[k].d+'/'+cats[k].n+'</span></div>';
   }).join('');
+  /* 阶段名取「·」前一段（'奠基期 · 建立认知与纪律' → '奠基期'）；先归一化成字符串再 split，
+     别对可能为 null 的字段裸调 —— 见 curPhase() 的注释 */
+  var curName0 = String(cur.name || '').split('·')[0].trim();
   var urgent = S.permits.filter(function(p){
-    var d2 = (p.phase===cur.name.split('·')[0].trim()) || p.priority==='必备';
+    var d2 = (p.phase === curName0) || p.priority==='必备';
     return d2 && p.status==='未启动';
   }).slice(0,5);
   $('permitUrgent').innerHTML = '<div class="tiny muted" style="margin-bottom:7px">当前阶段瓶颈项（必备未启动）</div>' +
@@ -1471,8 +1758,14 @@ function renderDash(){
 }
 function curPhase(){
   var p0 = S.tasks.filter(function(t){return t.task_date<=today();});
-  var last = p0.length? p0[p0.length-1] : S.tasks[0];
-  return {key:last.phase, name:last.phase_name, range:(PHASE_MAP[last.phase]||{}).range||''};
+  var last = (p0.length? p0[p0.length-1] : S.tasks[0]) || {};
+  /* ⚠️ 三个字段都必须归一化成「一定有值」：
+     tasks 为空 / 老数据没写 phase_name 时，`last` 是 {} 或 name 是 null，
+     而总览里 `cur.name.split('·')[0]` 会直接抛
+     「Cannot read properties of null (reading 'split')」→ 整个 renderDash 中断，
+     「当前阶段瓶颈项」那一段永远渲染不出来（2026-09 用真库数据抓栈定位到）。 */
+  return {key:String(last.phase || ''), name:String(last.phase_name || ''),
+          range:(PHASE_MAP[last.phase] || {}).range || ''};
 }
 
 /* ==================== 6.5 工作计划安排 ==================== */
@@ -1900,11 +2193,16 @@ function renderSet(){
       '<span class="sm">当前来源</span><span class="sm muted">'+ (location.protocol==='file:'? '本地文件（离线可用）' : '线上托管') +'</span></div>'+
     '<div class="row" style="justify-content:space-between;margin-bottom:10px">'+
       '<span class="sm">待同步队列</span><span class="sm mono" style="color:'+(PENDING.length?'var(--amber)':'var(--green2)')+'">'+PENDING.length+' 条</span></div>'+
+    (ORPHAN_N ? '<div class="row" style="justify-content:space-between;margin-bottom:10px">'+
+      '<span class="sm">本机有 / 云端没有</span><span class="pill p0">'+ORPHAN_N+' 条</span></div>' : '')+
+    (ORPHAN_N ? '<div class="tiny" style="margin:10px 0;padding:9px 11px;border-radius:10px;background:rgba(200,16,46,.10);color:var(--red);line-height:1.85">'+
+      '⚠️ 本机有 '+ORPHAN_N+' 条记录云端还没有（多半是之前写入没推上去）。'+
+      '点下面的「☁ 全量推送到云端」即可补传，刷新前别忘了。</div>' : '')+
     '<div class="tiny muted" style="margin:10px 0;word-break:break-all">'+(c==='err'? esc(Cloud.msg) : (location.protocol==='file:'? '数据保存在本机浏览器；要写入云端数据库，请打开线上链接使用（桌面文件与线上是两套独立数据，可用「导出/导入 JSON」搬移）。' : '数据表：wb_tasks / wb_permits / wb_milestones / wb_watchlist / wb_contacts / wb_logs / wb_works'))+'</div>'+
     '<div class="row" style="gap:8px">'+
       '<button class="btn sm pri" onclick="App.testCloud()">🔌 测试连接</button>'+
       '<button class="btn sm" onclick="App.flush()">↻ 立即同步 ('+PENDING.length+')</button>'+
-      '<button class="btn sm gold" onclick="App.seedCloud()">⬆ 初始化云端数据</button>'+
+      '<button class="btn sm gold supOnly" onclick="App.seedCloud()">⬆ 初始化云端数据</button>'+
     '</div>';
 
   var p = S.profile||{};
@@ -1922,6 +2220,41 @@ function renderSet(){
   var wdone = S.works.filter(function(x){return x.status==='done';}).length;
   $('statBox').innerHTML = '任务 '+tm+' 条（完成 '+td+'）/ 工作计划 '+S.works.length+' 条（完成 '+wdone+'）/ 申请 '+S.permits.length+' 条 / 里程碑 '+S.milestones.length+' 条 / 投资标的 '+S.stocks.length+' 条 / 标的 '+S.watch.length+' 条 / 人脉 '+S.contacts.length+' 条 / 日志 '+S.logs.length+' 条<br>'+
     '本机缓存：'+ (localStorage.getItem(LSKEY)? (localStorage.getItem(LSKEY).length/1024).toFixed(1)+' KB':'无') +'　·　云端待同步：'+PENDING.length+' 条';
+
+  applySetScope();          /* ★ 必须最后调：ops 裁剪要盖在刚生成的内容上 */
+}
+
+/* ============================================================================
+   ★ 设置页的角色裁剪（ops 也要能用「数据与设置」，否则改不了密码、退不出去）
+   ops 保留：🔐 管理员与安全（改密码 / 退出登录）、☁️ 云端连接（状态 + 测试 + 立即同步）
+   ops 隐藏：⚙️ 战略参数、🗄️ 数据管理（导出 / 覆盖导入 / 全量推拉 / 重置本机）、
+             超管版使用说明，以及「初始化云端数据」按钮
+   ⚠️ 隐藏不是删元素 —— 私人面板的 innerHTML 要**清空**，否则懂行的能直接从 DOM 读出来。
+   ⚠️ 每次 renderSet() 之后都要重跑一遍：导航重建、云端面板重绘都会把旧属性冲掉。
+   ============================================================================ */
+function applySetScope(){
+  var sup = isSuper() || isLocalFile();
+  [].forEach.call(document.querySelectorAll('#pg-set [data-sup]'), function(el){
+    el.style.display = sup ? '' : 'none';
+  });
+  [].forEach.call(document.querySelectorAll('#pg-set .supOnly'), function(el){
+    el.style.display = sup ? '' : 'none';
+  });
+  var oh = $('cardOpsHelp'); if(oh) oh.style.display = sup ? 'none' : '';
+  /* ops 的第一屏要能立刻看到「改密码 / 退出登录」→ 用 order 把它提到云端连接前面 */
+  var cc = $('cardCloud'), ca = $('cardAdmin');
+  if(cc) cc.style.order = sup ? '' : '2';
+  if(ca) ca.style.order = sup ? '' : '1';
+  if(oh) oh.style.order = '3';
+  if(!sup){
+    var pp = $('profPanel'); if(pp) pp.innerHTML = '';      /* 私人参数：清空 DOM */
+    var sb = $('statBox');   if(sb) sb.innerHTML = '';       /* 全库条数：清空 DOM */
+  }
+  var h2 = $('setTitle'), sub = $('setSub');
+  if(h2 && sub){
+    if(sup){ h2.innerHTML = '数据与<span>云端同步</span>'; sub.textContent = '腾讯云 CloudBase PostgreSQL · 增删改查实时落库'; }
+    else   { h2.innerHTML = '我的<span>账号</span>';        sub.textContent = '修改登录密码、退出登录，以及云端连接状态'; }
+  }
 }
 
 /* ---- 管理员面板：数据全部来自服务端 wb_admin_list ---- */
@@ -1943,50 +2276,109 @@ function renderAdminPanel(){
     return;
   }
 
+  var sup = isSuper();
   ap.innerHTML =
     '<div class="row" style="justify-content:space-between;margin-bottom:10px">'+
       '<span class="sm">当前登录</span><span class="sm mono" style="color:var(--red-deep);font-weight:700">'+ esc(Auth.user) +'</span></div>'+
     '<div class="row" style="justify-content:space-between;margin-bottom:10px">'+
-      '<span class="sm">角色</span><span class="pill '+(Auth.role==='super'?'p0':'ops')+'">'+(Auth.role==='super'?'超级管理员':'运维')+'</span></div>'+
+      '<span class="sm">角色</span><span class="pill '+(sup?'p0':'ops')+'">'+ esc(roleLabel(Auth.role)) +'</span></div>'+
     '<div class="row" style="justify-content:space-between;margin-bottom:10px">'+
       '<span class="sm">凭证有效期至</span><span class="sm muted">'+ esc(Auth.expire||'—') +'</span></div>'+
     '<div class="row" style="justify-content:space-between;margin-bottom:12px">'+
       '<span class="sm">认证方式</span><span class="pill done">服务端校验</span></div>'+
     '<div class="row" style="gap:8px;margin-bottom:14px">'+
       '<button class="btn sm pri" onclick="App.openChangePass()">🔑 修改我的密码</button>'+
-      '<button class="btn sm gold" onclick="App.openAdmCreate()">＋ 新增管理员</button>'+
+      (sup? '<button class="btn sm gold" onclick="App.openAdmCreate()">＋ 新增管理员</button>' : '')+
       '<button class="btn sm red" onclick="App.logout()">🚪 退出登录</button>'+
     '</div>'+
+    (sup? '' :
+      '<div class="tiny muted" style="margin-bottom:12px;line-height:1.85">'+
+        '普通管理员（团队成员）开放<b>「投资标的」</b>（维护股票池与行情）、<b>「研究报告」</b>（研报库，独立页面）和本页<b>「数据与设置」</b>（改密码 / 退出登录）。<br>'+
+        '总览 / 工作计划 / 365 天课表 / 申请与资质 / 标的与人脉 / 复盘日志，以及本页的「战略参数」「数据管理」'+
+        '属于超级管理员的私人工作区，不会出现在你的菜单里。<br>'+
+        '注册审批与账号管理仅超级管理员可用；你自己的登录密码可以随时修改。'+
+      '</div>')+
     '<div class="hr"></div>'+
+    (sup? '<div id="admPending"><div class="tiny muted">正在读取待批准申请…</div></div><div class="hr"></div>' : '')+
     '<div id="admList"><div class="tiny muted">正在读取管理员列表…</div></div>';
+
+  /* ---- 待批准申请：只有超级管理员会走这一支 ---- */
+  if(sup){
+    rpc('wb_admin_pending_list', {p_token:Auth.token}).then(function(r){
+      var pb = $('admPending'); if(!pb) return;
+      if(!r || !r.ok){ pb.innerHTML = '<div class="tiny muted">'+ esc((r && r.msg) || '读取失败') +'</div>'; return; }
+      renderPendingRows(pb, r.rows || []);
+    }).catch(function(e){
+      var pb = $('admPending');
+      if(pb) pb.innerHTML = '<div class="tiny muted">读取失败：'+ esc(String(e.message||e).slice(0,80)) +'</div>';
+    });
+  }
 
   rpc('wb_admin_list', {p_token:Auth.token}).then(function(r){
     var box = $('admList'); if(!box) return;
     if(!r || !r.ok){ box.innerHTML = '<div class="tiny muted">'+ esc((r && r.msg) || '读取失败') +'</div>'; return; }
     var rows = r.rows || [], h = '';
     if(!rows.length){ box.innerHTML = '<div class="tiny muted">暂无管理员记录。</div>'; return; }
+    h += '<div class="sm" style="font-weight:800;margin-bottom:10px">'+
+         (sup? '全部账号（'+rows.length+'）' : '我的账号')+'</div>';
     rows.forEach(function(x){
       var me = x.user_name === Auth.user;
-      h += '<div class="admRow'+(me?' me':'')+'">'+
+      var st = x.status || 'active';
+      h += '<div class="admRow'+ (me? ' me':'') + (st==='pending'? ' pend' : '') +'">'+
         '<div><div class="an">'+ esc(x.display_name||x.user_name) +
           (me? ' <span class="tiny" style="color:var(--gold2)">（你）</span>' : '') +'</div>'+
-        '<div class="am">@'+ escq(x.user_name) +' · '+(x.role==='super'?'超级管理员':'运维')+
-          ' · 累计登录 '+ x.login_count +' 次'+(x.last_login? ' · 最近 '+ esc(x.last_login) : '')+'</div></div>'+
+        '<div class="am">@'+ escq(x.user_name) +' · '+ esc(roleLabel(x.role)) +
+          (st!=='active'? ' · <b style="color:var(--red-deep)">'+ esc(statusLabel(st)) +'</b>' : '') +
+          ' · 累计登录 '+ x.login_count +' 次'+(x.last_login? ' · 最近 '+ esc(x.last_login) : '') +'</div></div>'+
         '<div class="ab">'+
-          (x.status!=='active'? '<span class="pill dis">已停用</span>' : '')+
-          (me? '' :
-            '<button class="btn sm" onclick="App.admToggle(\''+ escq(x.user_name) +'\',\''+(x.status==='active'?'disabled':'active')+'\')">'+(x.status==='active'?'停用':'启用')+'</button>'+
-            '<button class="btn sm red" onclick="App.admDelete(\''+ escq(x.user_name) +'\')">删除</button>')+
+          /* 账号操作仅超级管理员可见；自己那一行永远不给操作按钮 */
+          (sup && !me ?
+            (st==='rejected'
+              ? '<button class="btn sm" onclick="App.admReview(\''+ escq(x.user_name) +'\',\'approve\')">重新批准</button>'
+              : (st==='active'
+                  ? '<button class="btn sm" onclick="App.admToggle(\''+ escq(x.user_name) +'\',\'disabled\')">停用</button>'
+                  : '<button class="btn sm" onclick="App.admToggle(\''+ escq(x.user_name) +'\',\'active\')">启用</button>'))+
+            '<button class="btn sm red" onclick="App.admDelete(\''+ escq(x.user_name) +'\')">'+
+              (st==='pending'||st==='rejected'? '删除申请' : '删除')+'</button>'
+            : '')+
         '</div></div>';
     });
     h += '<div class="tiny muted" style="margin-top:10px;line-height:1.85">'+
       '账号与密码存放在数据库表 <b>wb_admins</b>（bcrypt 哈希），浏览器读不到密码；'+
-      '删除由数据库函数 <b>wb_admin_delete_row</b> 强制校验 token + 密码，前端绕不过去。</div>';
+      (sup? '新增 / 停用 / 删除 / 审批都由数据库函数强制校验「有效会话 + 超级管理员 + 密码」，前端绕不过去。'
+          : '「修改我的密码」要再输一次当前密码，由数据库函数校验；别人看不到也改不了你的密码。')+'</div>';
     box.innerHTML = h;
   }).catch(function(e){
     var box = $('admList');
     if(box) box.innerHTML = '<div class="tiny muted">读取失败：'+ esc(String(e.message||e).slice(0,90)) +'</div>';
   });
+}
+
+/* ---- 待批准注册申请：批准 / 驳回 ---- */
+function renderPendingRows(box, rows){
+  if(!rows.length){
+    box.innerHTML =
+      '<div class="sm" style="font-weight:800;margin-bottom:8px">待批准的注册申请</div>'+
+      '<div class="tiny muted">当前没有待批准的注册申请。成员可在登录页点「注册普通管理员」自助提交。</div>';
+    return;
+  }
+  var h = '<div class="sm" style="font-weight:800;margin-bottom:10px">'+
+          '⏳ 待批准的注册申请（'+rows.length+'）</div>';
+  rows.forEach(function(x){
+    h += '<div class="admRow pend">'+
+      '<div><div class="an">'+ esc(x.display_name || x.user_name) +'</div>'+
+      '<div class="am">@'+ escq(x.user_name) +
+        (x.reg_note? ' · '+ esc(x.reg_note) : '') +
+        (x.reg_at? ' · 申请于 '+ esc(x.reg_at) : '') +'</div></div>'+
+      '<div class="ab">'+
+        '<button class="btn sm pri" onclick="App.admReview(\''+ escq(x.user_name) +'\',\'approve\')">✓ 批准</button>'+
+        '<button class="btn sm red" onclick="App.admReview(\''+ escq(x.user_name) +'\',\'reject\')">✕ 驳回</button>'+
+      '</div></div>';
+  });
+  h += '<div class="tiny muted" style="margin-top:10px;line-height:1.85">'+
+    '批准后该账号立即可登录，<b>登录后直接进入「投资标的」</b>；批准 / 驳回都需要再输一次管理员密码，'+
+    '由服务端函数 <b>wb_admin_review</b> 复核。</div>';
+  box.innerHTML = h;
 }
 
 /* ---- 课表周次工具：把任意日期归入 52 周课表 ---- */
@@ -2053,6 +2445,16 @@ var DANGER_CB = null;                  // 待执行的删除回调
 
 var Auth = { token:'', user:'', name:'', role:'', expire:'', remember:true };
 
+/* 登录后的落脚页：超级管理员看总览；普通管理员直接进「投资标的」
+   —— 团队成员日常就是维护行情与标的，不必每次都自己点。 */
+function homePage(){ return (Auth.role && Auth.role !== 'super') ? 'stock' : 'dash'; }
+function goHome(){ try{ App.go(homePage()); }catch(e){} }
+function isSuper(){ return Auth.role === 'super'; }
+function roleLabel(r){ return r === 'super' ? '超级管理员' : '普通管理员'; }
+function statusLabel(s){
+  return ({ pending:'待批准', rejected:'已驳回', disabled:'已停用', active:'正常' })[s] || s || '正常';
+}
+
 function isLocalFile(){ return location.protocol === 'file:'; }
 function authPersist(){
   var o = {t:Auth.token, u:Auth.user, n:Auth.name, r:Auth.role, e:Auth.expire, ts:Date.now()};
@@ -2075,6 +2477,9 @@ function authRestore(){
 function authClear(){
   Auth.token = ''; Auth.user = ''; Auth.name = ''; Auth.role = ''; Auth.expire = '';
   try{ localStorage.removeItem(AUTH_SEEN_KEY); sessionStorage.removeItem(AUTH_SEEN_KEY); }catch(e){}
+  passStamp(false);                       /* 退出登录即清掉「免重复输入」的放行窗口 */
+  tickClear();                            /* 编辑会话票据也一并作废 */
+  try{ buildNav(); }catch(e){}             /* 角色已清空 → 导航恢复完整（下一个人重新登录时再收窄） */
 }
 function isAuthed(){ return isLocalFile() || !!Auth.token; }
 function adminUser(){ return Auth.user || ''; }
@@ -2095,9 +2500,18 @@ function gateShow(){
   document.documentElement.classList.remove('authed');
   document.documentElement.classList.add('gating');
   g.className = 'gate on';
+  App.gateToLogin();                       /* 每次亮门都回到「登录」视图，而不是停在上次的注册表单 */
   var u = $('g-user'); if(u && !u.value){ try{ u.value = localStorage.getItem(AUTH_LAST_USER) || ''; }catch(e){} }
   var r = $('g-remember'); if(r) r.checked = true;
-  setTimeout(function(){ var i=$('g-user'); if(i && !i.value) i.focus(); else { var p=$('g-pass'); if(p) p.focus(); } }, 220);
+  /* 注册要走云端函数（wb_admin_register），没配置云环境时不给入口 */
+  var rb = $('g-regbtn'), ro = $('g-or');
+  if(rb) rb.style.display = REST ? '' : 'none';
+  if(ro) ro.style.display = REST ? '' : 'none';
+  setTimeout(function(){
+    var reg = $('g-reg');
+    if(reg && reg.style.display !== 'none'){ var x = $('r-user'); if(x) x.focus(); return; }
+    var i = $('g-user'); if(i && !i.value) i.focus(); else { var p = $('g-pass'); if(p) p.focus(); }
+  }, 220);
 }
 function gateHide(){
   var g = $('loginGate'); if(!g) return;
@@ -2111,31 +2525,128 @@ function gateErr(msg){
   clearTimeout(gateErr._t);
   gateErr._t = setTimeout(function(){ e.className = 'gateErr'; }, 4200);
 }
-/* ---- 危险操作二次确认（密码交由数据库校验） ---- */
-function requireAdmin(label, onOk){
+/* ============ 12.0 写操作统一门禁 ============
+   凡是「新增 / 编辑 / 修改 / 保存 / 同步 / 导入 / 重置 / 删除」都必须先过这里。
+   设计要点：
+   1) 弹窗渲染在独立遮罩 #pmask 上 —— 用 openModal 会清空 #modal，
+      而「保存」按钮就在 #modal 的表单里，复用会把用户刚填的内容抹掉；
+   2) 密码由服务端 wb_admin_verify 校验（只校验、不消费）；没有会话时
+      用「账号 + 密码」走 wb_admin_login 现场换取；
+   3) 纯离线（桌面文件版且连不上云端）：退化为本机哈希校验，只存哈希不存明文；
+   4) 高频「保存 / 修改」可在弹窗里勾「15 分钟内免重复输入」；
+      删除、覆盖导入这类不可逆操作**永远要输**；
+   5) 只认 `danger` 语义，不做任何「记住密码」。 */
+var PASS_ACT = '删除';                       // 当前待确认动作，决定标题/按钮文案
+var PASS_FRESH_KEY = 'wb_pass_fresh_v1';     // 15 分钟免重复输入（sessionStorage，关标签即失效）
+var PASS_HASH_KEY  = 'wb_pass_h_v1';         // 离线模式的本机校验值
+var PASS_FRESH_MS  = 15 * 60 * 1000;
+
+function passFresh(){
+  try{ return (parseInt(sessionStorage.getItem(PASS_FRESH_KEY) || '0', 10) || 0) > Date.now(); }
+  catch(e){ return false; }
+}
+function passStamp(on){
+  try{
+    if(on) sessionStorage.setItem(PASS_FRESH_KEY, String(Date.now() + PASS_FRESH_MS));
+    else sessionStorage.removeItem(PASS_FRESH_KEY);
+  }catch(e){}
+}
+/* 离线模式：只比较哈希，明文永不落盘 */
+function hashPass(p){
+  var s = 'wb-pass|' + String(p);
+  if(window.crypto && crypto.subtle && crypto.subtle.digest && window.TextEncoder){
+    try{
+      return crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)).then(function(buf){
+        var b = new Uint8Array(buf), h = '';
+        for(var i = 0; i < b.length; i++) h += (b[i] < 16 ? '0' : '') + b[i].toString(16);
+        return h;
+      });
+    }catch(e){}
+  }
+  var h2 = 5381;
+  for(var j = 0; j < s.length; j++) h2 = ((h2 * 33) ^ s.charCodeAt(j)) >>> 0;
+  return Promise.resolve('d' + h2.toString(16));
+}
+function localPassCheck(pass, onOk, onBad){
+  var has = null;
+  try{ has = localStorage.getItem(PASS_HASH_KEY); }catch(e){}
+  hashPass(pass).then(function(h){
+    if(!has){                                  /* 本机首次：本次输入成为本机校验密码 */
+      try{ localStorage.setItem(PASS_HASH_KEY, h); }catch(e){}
+      toast('已把本次密码记为本机校验密码（仅存哈希）', 'ok');
+      onOk(); return;
+    }
+    if(h === has){ onOk(); return; }
+    onBad('本机密码不正确，操作已取消');
+  }).catch(function(){ onBad('本机校验失败，操作已取消'); });
+}
+
+/* 门禁入口：label 是「要动什么」，opts = {act, danger} */
+function requireAdmin(label, onOk, opts){
+  opts = opts || {};
+  var act = opts.act || '删除';
+  var danger = (opts.danger !== undefined) ? !!opts.danger : (act === '删除');
+  PASS_ACT = act;
   DANGER_CB = onOk || null;
-  var offline = !REST;
-  openModal(
-    '<h3>🔒 管理员验证</h3>'+
-    '<div class="sub">删除属于高风险操作，请输入管理员密码由服务端校验</div>'+
-    '<div class="dangerBox" id="dangerBox">'+
-      '<div class="dt">⚠️ 此操作不可撤销</div>'+
-      '<div class="ditem">'+esc(label)+'</div>'+
-      (offline? '本机离线模式：删除只影响本机缓存，云端数据库不受影响。'
-              : '删除请求会带上密码提交到云端函数校验，通过后才会真正删除数据库中的记录。')+
+
+  /* 15 分钟免重复输入：只放行可逆的写入，删除/覆盖永远要输 */
+  if(!danger && passFresh()){
+    DANGER_CB = null;
+    if(onOk) onOk('');
+    return;
+  }
+  var offline = !REST || isLocalFile();
+  var hasTok = !!Auth.token;
+  var sub = opts.form
+    ? ('接下来要打开的是' + (act === '新增' ? '新增' : '编辑') + '表单。密码验过之后才给进，'
+       + '在这张表单里点「保存」凭本次验证直接放行，不用再输一次。')
+    : (({
+    '删除': '删除不可撤销，请输入管理员密码由服务端校验',
+    '保存': '保存会写入云端数据库，请输入管理员密码确认',
+    '新增': '新增会写入云端数据库，请输入管理员密码确认',
+    '修改': '修改会写入云端数据库，请输入管理员密码确认',
+    '同步': '同步会把最新数据写回数据库，请输入管理员密码确认',
+    '导入': '导入会覆盖本机数据，请输入管理员密码确认',
+    '重置': '重置会清空本机改动，请输入管理员密码确认',
+    '批准': '批准后该账号立即可以登录工作台，请输入管理员密码确认',
+    '驳回': '驳回后该账号将无法登录，请输入管理员密码确认'
+  })[act] || '请输入管理员密码确认');
+  var last = '';
+  try{ last = localStorage.getItem(AUTH_LAST_USER) || ''; }catch(e){}
+
+  $('pmodal').innerHTML =
+    '<h3>🔒 管理员密码确认</h3>'+
+    '<div class="sub">'+esc(sub)+'</div>'+
+    '<div class="pinfo" id="dangerBox">'+
+      '<div class="pt">'+(danger? (act==='删除'? '⚠️ 此操作不可撤销' : '⚠️ 此操作需要管理员确认') : '✍️ 写入确认')+'</div>'+
+      '<div class="pi">'+esc(label)+'</div>'+
+      (offline
+        ? '本机离线模式：连不上云端，密码只在本机校验。'+
+          '<b>第一次输入的密码会成为本机管理密码</b>（只存哈希），之后必须一致；建议直接输入云端的管理员密码。'
+        : (hasTok ? ('密码会提交到云端函数校验，' + (danger ? ('通过后才真正执行「'+esc(act)+'」。')
+                                              : (opts.form ? '通过后才打开表单。' : '通过后才真正写入数据库。')))
+                  : (opts.form ? '当前没有有效会话，将用「账号 + 密码」现场登录校验，通过后才打开表单。'
+                               : '当前没有有效会话，将用「账号 + 密码」现场登录校验。')))+
     '</div>'+
+    ((offline || hasTok) ? '' :
+      '<div class="field"><label>管理员账号</label>'+
+        '<input id="pv-user" autocomplete="off" value="'+esc(last)+'" placeholder="luoshui"></div>')+
     '<div class="field" style="position:relative">'+
       '<label>管理员密码</label>'+
-      '<input id="del-pass" type="password" autocomplete="off" placeholder="请输入密码" '+
-        'onkeydown="if(event.key===\'Enter\')App.confirmDelete()">'+
+      '<input id="del-pass" type="password" autocomplete="off" placeholder="请输入管理员密码" '+
+        'onkeydown="if(event.key===\'Enter\')App.confirmPass()">'+
       '<span class="passEye" onclick="App.toggleEye(\'del-pass\',this)">👁</span>'+
     '</div>'+
+    (danger ? '' :
+      '<label class="pkeep"><input type="checkbox" id="pv-keep">'+
+      '<span>15 分钟内「保存 / 修改」免重复输入（<b>删除、覆盖导入仍需输入</b>）</span></label>')+
     '<div class="row" style="justify-content:flex-end;margin-top:4px">'+
       '<button class="btn gh" onclick="App.cancelDanger()">取消</button>'+
-      '<button class="btn dgr" id="dangerGo" onclick="App.confirmDelete()">确认删除</button>'+
-    '</div>'
-  );
-  setTimeout(function(){ var i=$('del-pass'); if(i) i.focus(); }, 70);
+      '<button class="btn '+(danger? 'dgr':'pri')+'" id="dangerGo" onclick="App.confirmPass()">'+
+        (opts.form ? '确认并打开' : '确认'+esc(act))+'</button>'+
+    '</div>';
+  $('pmask').className = 'pmask on';
+  setTimeout(function(){ var i = $('del-pass'); if(i) i.focus(); }, 70);
 }
 
 /* ==================== 12.6 投资标的（行情） ==================== */
@@ -2266,7 +2777,13 @@ function fetchQuotes(rows, onProgress){
    只发送本机实际有的字段；分组 / 备注 等纯人工字段不进 payload，
    以免把云端上别处改过的值覆盖掉。locked 字段的值是人工填的，照原样回写。 */
 function pushQuotes(rows){
-  if(!REST || isLocalFile() || Cloud.state !== 'on' || !rows.length) return Promise.resolve(null);
+  /* ⚠️ 这里曾经还有一条 `Cloud.state !== 'on'` 放行条件，已删除。
+     Cloud.state 只在两处被置成 'err'（bootCloud 的 catch、flushQueue 的 catch），
+     而只有 flushQueue 写成功那一条回调会把它拨回 'on'。也就是说：只要启动时
+     `wb_admin_check` 赶上一次网络抖动，或者行情回写自己失败一次，本次会话的
+     行情回写就**永久静默失效**—— 恰好和 flushQueue 当年的死锁同一个病根。
+     ★ 铁律：放行条件里不能有任何「只能靠成功回调去修」的状态；重试交给时间戳。 */
+  if(!REST || isLocalFile() || !rows.length) return Promise.resolve(null);
   var payload = rows.map(function(r){
     var p = {
       id: 'st_' + r.code, code: r.code, exchange: r.exchange || txPrefix(r.code), name: r.name || '',
@@ -2287,14 +2804,40 @@ function pushQuotes(rows){
     if(r.info_at)               p.info_at = r.info_at;
     return p;
   });
-  return api(TABLES.stocks + '?on_conflict=code', {
-    method:'POST',
-    headers:{'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},
-    body: payload
-  }).catch(function(e){
-    Cloud.msg = '行情回写失败：' + String(e.message || e).slice(0, 80);
-    setCloudDot();
-    return null;
+  /* ★★ PostgREST 的批量写入要求**同一批里的对象 key 完全一致**，否则整批 400：
+       DATABASE_PGRST102 "All object keys must match"。
+     而上面是刻意「有值才写」基本面字段的（免得把云端已有值抹成 null）→ 每行 key 天然不同
+     → 只要池子里有一行缺 info_at / ind_pe / region，**整批行情都写不进云端**。
+     2026-09 实测复现：key 一致的两行 → 通过（走到唯一键 409）；key 不一致的两行 → 400 object keys must match。
+     修法：按 key 签名分组，每组各发一次 POST。语义不变（仍然只发本机实际有的字段），
+     只是把「一次大 POST」拆成「几次形状统一的 POST」。 */
+  var sigs = [], bySig = {};
+  payload.forEach(function(p){
+    var sig = Object.keys(p).sort().join(',');
+    if(!bySig[sig]){ bySig[sig] = []; sigs.push(sig); }
+    bySig[sig].push(p);
+  });
+  var failed = null;
+  var chain = Promise.resolve();
+  sigs.forEach(function(sig){
+    chain = chain.then(function(){
+      return api(TABLES.stocks + '?on_conflict=code', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},
+        body: bySig[sig]
+      }).catch(function(e){ if(!failed) failed = e; });
+    });
+  });
+  return chain.then(function(){
+    if(failed){
+      /* 回写失败要让人看得见（顶部圆点变红 + 设置页里显示原因）。
+         ⚠️ 但绝不能把它当成「下次别写了」的开关 —— state 已经不是放行条件。 */
+      Cloud.state = 'err';
+      Cloud.msg = '行情回写失败：' + String(failed.message || failed).slice(0, 80);
+      setCloudDot();
+      return null;
+    }
+    return {ok: payload.length, groups: sigs.length};
   });
 }
 
@@ -2585,7 +3128,15 @@ function dedupeStocks(){
     var c = String(r.code || '').replace(/[^0-9]/g, '');
     if(!/^\d{6}$/.test(c)) continue;
     if(!best[c]){ best[c] = r; order.push(c); }
-    else if(stamp(r) > stamp(best[c])){ best[c] = r; }   /* 保留最新的那条 */
+    else{
+      /* 保留最新的那条；★ 但板块要「并集」—— 两条重复记录可能各自挂在不同的板块上，
+         直接丢掉其中一条会把它独有的板块一起丢掉（多板块版必修）。 */
+      var keep = stamp(r) > stamp(best[c]) ? r : best[c];
+      var drop = keep === r ? best[c] : r;
+      var u = stkGrpSet(stkGrpsOf(keep).concat(stkGrpsOf(drop)));
+      if(u !== stkGrpSet(stkGrpsOf(keep))) keep.grp = u;
+      best[c] = keep;
+    }
   }
   var kept = order.map(function(c){ return best[c]; });
   var removed = S.stocks.length - kept.length;
@@ -2642,9 +3193,11 @@ var STK_COLS = [
   {k:'total_assets', t:'总资产(亿)',    fmt:function(r){ return fmtDec(r.total_assets, 2); }},
   {k:'net_assets',   t:'净资产(亿)',    fmt:function(r){ return fmtDec(r.net_assets, 2); }},
   {k:'region',       t:'地区',      l:1, fmt:function(r){ return r.region ? esc(r.region) : STK_DASH; }},
-  /* 板块是人工标的（导入时指定 / 编辑弹窗手填），放最后一列，不打乱上面 19 项的既有顺序 */
+  /* 板块是人工标的（导入时指定 / 编辑弹窗手填），放最后一列，不打乱上面 19 项的既有顺序；
+     一只标的可同时属于多个板块 → 逐个渲染成标签 */
   {k:'grp',          t:'板块',      l:1, fmt:function(r){
-      return r.grp ? '<span class="tagg">🏷 ' + esc(r.grp) + '</span>' : STK_DASH; }}
+      var a = stkGrpsOf(r);
+      return a.length ? a.map(function(g){ return '<span class="tagg">🏷 ' + esc(g) + '</span>'; }).join(' ') : STK_DASH; }}
 ];
 
 /* 研报页链接：名称 / 代码点进去就是这只标的的深度研究报告（独立页面，见 report.html） */
@@ -2658,6 +3211,18 @@ function loadReportCodes(cb){
     (rows || []).forEach(function(x){ RPT_CODES[String(x.code)] = 1; });
     if(cb) cb();
   }).catch(function(){ _rptCodesLoaded = false; });
+}
+
+/* ★ 「研究报告」侧栏徽标的份数，**故意不复用 loadReportCodes**：
+   那货是「已加载就 return、不执行回调」的幂等函数（表格渲染就靠它这次回调），
+   在 boot 里预热一次，后面 renderStockTable 那次回调就被丢掉了 ——
+   表格还是画出来了，但「已有研报」的 has 样式全不亮（跳转探针 5 项直接挂）。
+   所以徽标单独发一次极轻的请求，谁都不打扰。 */
+function loadReportCount(){
+  if(!REST) return;
+  api('wb_reports?select=code').then(function(rows){
+    setCnt('research', (rows || []).length || '');
+  }).catch(function(){});
 }
 
 /* 视图排序：文本列按拼音，数值列按大小，空值永远沉底 */
@@ -2678,18 +3243,70 @@ function stockSortRows(rows){
     return (nx - ny) * dir;
   });
 }
-/* 板块名归一化：压空白、限 24 字（入库 / 比较 / 展示统一走它） */
+/* 板块名归一化：压空白、剔除分隔符、限 24 字（入库 / 比较 / 展示统一走它） */
 var STK_GRP_NONE = '__none__';            /* 「未分组」筛选的哨兵键（空串已被「全部」占用） */
-function stkGrpName(v){ return String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, 24); }
+var STK_GRP_SEP = '|';                    /* ★ 一只标的可同时属于多个板块：grp 字段里用 | 拼多个板块名 */
+var STK_GRP_SPLIT = /[|，,、;；\/\r\n]+/;  /* 输入解析的分隔符（空格不算 —— 板块名里可能有空格） */
+function stkGrpName(v){
+  return String(v == null ? '' : v).replace(/[|，,、;；\/]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 24);
+}
+/* grp 字段 → 板块名数组（拆 |、归一化、去空、去重，保持书写顺序） */
+function stkGrpsOf(r){
+  var raw = String((r && r.grp) || '').split(STK_GRP_SEP), out = [], i, g;
+  for(i = 0; i < raw.length; i++){
+    g = stkGrpName(raw[i]);
+    if(g && out.indexOf(g) < 0) out.push(g);
+  }
+  return out;
+}
+/* 板块名数组 → grp 字段值 */
+function stkGrpSet(a){
+  var src = (a || []), out = [], i, g;
+  for(i = 0; i < src.length; i++){ g = stkGrpName(src[i]); if(g && out.indexOf(g) < 0) out.push(g); }
+  return out.join(STK_GRP_SEP);
+}
+/* 一段用户输入 → 板块名数组（支持 | ， 、 ; 换行分隔，可一次挂多个板块）
+   ⚠️ 返回数组、stkGrpSet 返回字符串 —— 二者别混用（混错过一次：调完直接 .push 会抛
+   「cur.push is not a function」，而且 doImport 里 `cur.concat(grpsNew)` 会变成字符串拼接）。 */
+function stkGrpParse(v){
+  var parts = String(v == null ? '' : v).split(STK_GRP_SPLIT), out = [], i, g;
+  for(i = 0; i < parts.length; i++){
+    g = stkGrpName(parts[i]);
+    if(g && out.indexOf(g) < 0) out.push(g);
+  }
+  return out;
+}
+function stkGrpHas(r, g){ return stkGrpsOf(r).indexOf(g) >= 0; }
+/* 板块快捷标签：点一下把这个板块挂上 / 再点摘掉（输入框里多个板块名用 | 分隔） */
+function grpChipHtml(g, on, fn, i){
+  return '<span class="q' + (on ? ' on' : '') + '" data-g="' + esc(g) + '" onclick="' + fn + '(' + i + ')">' + esc(g) + '</span>';
+}
+function grpToggleIn(tid, name){
+  var inp = $(tid); if(!inp) return null;
+  var cur = stkGrpParse(inp.value), k = stkGrpName(name), j = cur.indexOf(k);
+  if(j >= 0) cur.splice(j, 1); else cur.push(k);
+  inp.value = cur.join(' | ');
+  return cur;
+}
+function grpChipsRefresh(boxId, cur){
+  var qs = $(boxId); if(!qs || !cur) return;
+  var kids = qs.getElementsByTagName('span'), i;
+  for(i = 0; i < kids.length; i++){
+    var g = stkGrpName(kids[i].getAttribute('data-g'));
+    kids[i].className = 'q' + (g && cur.indexOf(g) >= 0 ? ' on' : '');
+  }
+}
 
 /* 当前实际用到的自定义板块 → [{g, n}]，按标的数量倒序，同数量按拼音 */
 function stkGroupList(){
-  var m = {}, order = [], i, g;
+  var m = {}, order = [], i, j, g, a;
   for(i = 0; i < S.stocks.length; i++){
-    g = stkGrpName(S.stocks[i].grp);
-    if(!g) continue;
-    if(m[g] === undefined){ m[g] = 0; order.push(g); }
-    m[g]++;
+    a = stkGrpsOf(S.stocks[i]);      /* ★ 多板块：同一只标的在每个所属板块里各计一次 */
+    for(j = 0; j < a.length; j++){
+      g = a[j];
+      if(m[g] === undefined){ m[g] = 0; order.push(g); }
+      m[g]++;
+    }
   }
   order.sort(function(a, b){ return (m[b] - m[a]) || a.localeCompare(b, 'zh'); });
   return order.map(function(x){ return {g:x, n:m[x]}; });
@@ -2697,19 +3314,23 @@ function stkGroupList(){
 function stkGroupNames(){ return stkGroupList().map(function(x){ return x.g; }); }
 /* 一只标的是否命中当前板块筛选（key 为 ''=全部 / STK_GRP_NONE=未分组 / 其余=板块名） */
 function stkGrpMatch(r, key){
-  var g = stkGrpName(r.grp);
   if(!key) return true;
-  if(key === STK_GRP_NONE) return !g;
-  return g === key;
+  var a = stkGrpsOf(r);
+  if(key === STK_GRP_NONE) return !a.length;
+  return a.indexOf(key) >= 0;
 }
 function stockRows(){
   var kw = String(UI.stockKw || '').trim().toLowerCase();
+  /* 拼音首字母：查询里没有汉字时才用它（纯英文/数字）→ gyby 命中「贵研铂业」。
+     只在必要时才算，配合 pyInitCached 的缓存，206 只标的不会卡输入。 */
+  var pq = (kw && !/[\u4e00-\u9fa5]/.test(kw)) ? kw.replace(/[^a-z0-9]/g, '') : '';
   var rows = S.stocks.filter(function(r){
     if(!stkGrpMatch(r, UI.stockGrp)) return false;
     if(kw){
-      var hay = ((r.code||'') + ' ' + (r.name||'') + ' ' + (r.sub_industry||'') + ' ' +
-                 (r.region||'') + ' ' + (r.grp||'') + ' ' + (r.note||'')).toLowerCase();
-      if(hay.indexOf(kw) < 0) return false;
+      var name = r.name||'', ind = r.sub_industry||'', reg = r.region||'', grp = r.grp||'';
+      var hay = ((r.code||'') + ' ' + name + ' ' + ind + ' ' + reg + ' ' + grp + ' ' +
+                 (r.note||'')).toLowerCase();
+      if(hay.indexOf(kw) < 0 && !pyHit(name + ind + reg + grp, pq)) return false;
     }
     return true;
   });
@@ -2748,7 +3369,7 @@ function renderStockGrps(){
   if(!S.stocks.length){ box.innerHTML = ''; box.style.display = 'none'; UI.stockGrp = ''; return; }
   box.style.display = '';
   var gl = stkGroupList();
-  var noGrp = S.stocks.filter(function(r){ return !stkGrpName(r.grp); }).length;
+  var noGrp = S.stocks.filter(function(r){ return !stkGrpsOf(r).length; }).length;
   /* 先定键序（下标即 onclick 参数，天然免疫板块名里的引号/尖括号） */
   var keys = [''], i;
   for(i = 0; i < gl.length; i++) keys.push(gl[i].g);
@@ -2770,7 +3391,7 @@ function renderStockGrps(){
   }
   if(noGrp) h += chip('未分组', noGrp, keys.length - 1, false, 'gn0');
   h += '<span class="hint">' + (gl.length
-        ? '点板块名筛选 · 点 × 解散该板块（' + gl.length + ' 个自定义板块）'
+        ? '点板块名筛选 · 点 × 解散该板块（' + gl.length + ' 个自定义板块 · 一只标的可同时属于多个板块）'
         : '还没有自定义板块 —— 批量导入时填一个板块名就能建；已在池里但没分组的标的也会一起补归（把同一份清单再导一次即可）') + '</span>';
   box.innerHTML = h;
 }
@@ -2778,7 +3399,7 @@ function renderStockBar(){
   var bar = $('stockBar'); if(!bar) return;
   if(!S.stocks.length){ bar.innerHTML = ''; return; }
   bar.innerHTML =
-    '<input type="search" id="stockKw" placeholder="🔍 搜索代码 / 名称 / 行业 / 地区 / 板块" value="' + esc(UI.stockKw) + '" ' +
+    '<input type="search" id="stockKw" placeholder="🔍 搜索代码 / 名称 / 行业 / 地区 / 板块（支持拼音首字母，如 gyby）" value="' + esc(UI.stockKw) + '" ' +
       'oninput="App.stockKw(this.value)" style="min-width:240px">' +
     '<span class="sp2"></span>' +
     '<span class="tiny muted" id="stockCnt"></span>';
@@ -2837,7 +3458,7 @@ function renderStock(){
       .filter(Boolean).sort().pop() || '';
     sub.textContent = S.stocks.length
       ? ('股票池 · ' + S.stocks.length + ' 只标的 · 19 项行情与基本面字段' +
-         (stkGroupNames().length ? ' · ' + stkGroupNames().length + ' 个自定义板块' : '') +
+         (stkGroupNames().length ? ' · ' + stkGroupNames().length + ' 个自定义板块（一只标的可同时属于多个）' : '') +
          (latest ? ' · 行情日期 ' + latest : '') +
          ' · 4 项基本面（行业PE/细分行业/总资产/地区）' + (infoDay ? ' 更新于 ' + infoDay : ' 待同步') +
          ' · 点标的名称即可打开它的深度研究报告（独立页面） · 每交易日收盘后云端自动更新')
@@ -2852,6 +3473,17 @@ function renderStock(){
 /* ==================== 13. 交互控制器 ==================== */
 var App = {
   go:function(id){
+    /* ★ 「研究报告」是独立页面（不占 index 的体量）：不管从侧栏还是 console 调，
+       都走同一条跳转路径，不做页内切换。 */
+    for(var pi=0; pi<PAGES.length; pi++){
+      if(PAGES[pi].id === id && PAGES[pi].ext){ App.ext(PAGES[pi].ext); return; }
+    }
+    /* ★ 普通管理员只能进「投资标的」「研究报告」「数据与设置」：侧栏已经没有了别的入口，
+       这里再兜一层，防止 console 里直接 App.go('dash') / 手改 hash 跳进私人工作区 */
+    if(!pageAllowed(id)){
+      toast('「' + pageName(id) + '」仅超级管理员可见', 'bad');
+      id = 'stock';
+    }
     markNav(id);
     if(id==='dash') renderDash();
     if(id==='work') renderWork();
@@ -2862,6 +3494,8 @@ var App = {
     if(id==='log') renderLog();
     if(id==='set') renderSet();
   },
+  /* 打开独立页面（研报库 research.html 等）—— 与 index 同目录，相对路径即可 */
+  ext:function(u){ location.href = String(u || ''); },
   /* ---- 投资标的（行情） ---- */
   syncQuotes:function(){ syncQuotes(); },
   stockKw:function(v){ UI.stockKw = v; renderStockTable(); },
@@ -2873,47 +3507,51 @@ var App = {
     UI.stockGrp = (UI.stockGrp === k) ? '' : k;      /* 再点一次 = 取消筛选 */
     renderStockGrps(); renderStockTable();
   },
-  /* 解散板块：标的不删，只把它们移出板块（回到未分组） */
+  /* 解散板块：标的不删，只把它们从该板块移出（还挂在别的板块上的，其它板块保留） */
   stockGrpDel:function(idx){
     var k = (UI.stkGKeys || [])[idx];
     if(!k || k === STK_GRP_NONE){ toast('「全部 / 未分组」不是自定义板块', 'bad'); return; }
-    var rows = S.stocks.filter(function(r){ return stkGrpName(r.grp) === k; });
+    var rows = S.stocks.filter(function(r){ return stkGrpHas(r, k); });
     if(!rows.length){ toast('板块「' + k + '」下已经没有标的了', 'bad'); return; }
     var ids = rows.map(function(r){ return r.id; });
-    requireAdmin('解散板块「' + k + '」的归组（' + rows.length + ' 只标的会移出板块，标的本身不会被删除）', function(pass){
-      var i, r;
-      for(i = 0; i < ids.length; i++){
-        r = findRow('stocks', ids[i]);
-        if(r) updateRow('stocks', ids[i], {grp:''});   /* 本地立即生效 + 排队 PATCH 到云端 */
-      }
-      if(UI.stockGrp === k) UI.stockGrp = '';
-      sortState(); renderStock(); counts();
-      toast('已解散板块「' + k + '」，' + ids.length + ' 只标的已移到「未分组」', 'ok');
-    });
+    var both = rows.filter(function(r){ return stkGrpsOf(r).length > 1; }).length;   /* 还属于别的板块的只数 */
+    var extra = both ? ('，其中 ' + both + ' 只还属于别的板块（只摘掉这个板块，别的保留）') : '';
+    requireAdmin('解散板块「' + k + '」的归组（' + rows.length + ' 只标的会移出该板块' + extra + '，标的本身不会被删除）',
+      function(pass){
+        var i, r, rest;
+        for(i = 0; i < ids.length; i++){
+          r = findRow('stocks', ids[i]);
+          if(!r) continue;
+          rest = stkGrpsOf(r).filter(function(g){ return g !== k; });
+          updateRow('stocks', ids[i], {grp: stkGrpSet(rest)});   /* 本地立即生效 + 排队 PATCH 到云端 */
+        }
+        if(UI.stockGrp === k) UI.stockGrp = '';
+        sortState(); renderStock(); counts();
+        toast('已解散板块「' + k + '」，' + ids.length + ' 只标的' +
+              (both ? '已从该板块移出（别的板块保留）' : '已移到「未分组」'), 'ok');
+      });
   },
-  /* 导入弹窗里点已有板块 → 填进输入框 */
+  /* 导入弹窗里点已有板块：挂上 / 再点摘掉（可多选，多个板块名用 | 拼） */
   stockGrpFill:function(idx){
     var opt = (UI.stkGrpOpts || [])[idx];
     if(opt === undefined) return;
-    var i = $('s-grp-new');
-    if(i){ i.value = (i.value === opt ? '' : opt); }
+    grpToggleIn('s-grp-new', opt);
     this.stockImportCount();
   },
-  /* 导入弹窗底部：实时显示「识别到几个代码 · 将归入哪个板块」 */
+  /* 编辑弹窗里点已有板块：同上，作用于 #s-grp */
+  stockGrpChip:function(idx){
+    var opt = (UI.stkEditOpts || [])[idx];
+    if(opt === undefined) return;
+    grpChipsRefresh('s-grp-qs', grpToggleIn('s-grp', opt));
+  },
+  /* 导入弹窗底部：实时显示「识别到几个代码 · 将归入哪些板块」 */
   stockImportCount:function(){
     var box = $('s-count'); if(!box) return;
     var n = parseStockBlob(String(($('s-bulk') || {}).value || '')).length;
-    var g = stkGrpName(($('s-grp-new') || {}).value);
+    var gl = stkGrpParse(($('s-grp-new') || {}).value);
     box.innerHTML = n ? ('✅ 已识别 <b>' + n + '</b> 个代码' +
-                         (g ? ' · 将全部归入板块「<b>' + esc(g) + '</b>」' : ' · 未指定板块')) : '';
-    var qs = $('s-grp-qs');
-    if(qs){
-      var kids = qs.getElementsByTagName('span');
-      for(var i = 0; i < kids.length; i++){
-        var on = kids[i].getAttribute('data-g') === g && !!g;
-        kids[i].className = 'q' + (on ? ' on' : '');
-      }
-    }
+                         (gl.length ? ' · 将全部归入板块「<b>' + esc(gl.join('、')) + '</b>」' : ' · 未指定板块')) : '';
+    grpChipsRefresh('s-grp-qs', gl);
   },
   stockSortBy:function(k){
     if(UI.stockSort === k) UI.stockSortDir = (UI.stockSortDir === 'desc' ? 'asc' : 'desc');
@@ -2927,10 +3565,16 @@ var App = {
   },
   openStock:function(id){
     var r = id ? findRow('stocks', id) : null;
-    var curGrp = stkGrpName(r ? r.grp : '');
+    var curGrps = stkGrpsOf(r);                 /* ★ 一只标的可能同时属于多个板块 */
     /* 建议列表 = 常用板块 + 已用过的板块 + 当前值，去重；用 datalist 所以既可选也能自己敲新名字 */
-    var grpList = uniq(STK_GROUPS.concat(stkGroupNames()).concat(curGrp ? [curGrp] : []));
+    var grpList = uniq(STK_GROUPS.concat(stkGroupNames()).concat(curGrps));
     var grpOpts = grpList.map(function(g){ return '<option value="' + esc(g) + '"></option>'; }).join('');
+    UI.stkEditOpts = grpList;
+    var grpChipRow = grpList.length
+      ? '<div class="qs" id="s-grp-qs">' + grpList.map(function(g, i){
+          return grpChipHtml(g, curGrps.indexOf(g) >= 0, 'App.stockGrpChip', i);
+        }).join('') + '</div>'
+      : '';
     /* 记下打开时的原值：保存时据此判断哪些字段被人工改过 → 自动登记为「锁定」 */
     STK_EDIT_BASE = r ? {
       ind_pe: r.ind_pe, sub_industry: r.sub_industry, total_assets: r.total_assets,
@@ -2954,9 +3598,10 @@ var App = {
         '<div class="field"><label>名称</label><input id="s-name" value="' + esc(r ? r.name : '') + '" placeholder="同步后自动填充"></div>' +
       '</div>' +
       '<div class="grid g2">' +
-        '<div class="field"><label>分组 / 自定义板块</label>' +
-          '<input id="s-grp" list="s-grp-dl" value="' + esc(curGrp) + '" placeholder="留空 = 未分组；可直接输入新板块名">' +
-          '<datalist id="s-grp-dl">' + grpOpts + '</datalist></div>' +
+        '<div class="field" style="grid-column:1/-1"><label>分组 / 自定义板块 <span class="tiny muted">可多个 · 点下面的标签可直接加/减</span></label>' +
+          '<input id="s-grp" list="s-grp-dl" maxlength="160" value="' + esc(curGrps.join(' | ')) + '" ' +
+            'placeholder="留空 = 未分组；多个板块用 | 或逗号分隔，如 贵金属 | 稀土永磁">' +
+          '<datalist id="s-grp-dl">' + grpOpts + '</datalist>' + grpChipRow + '</div>' +
         '<div class="field"><label>🤖 细分行业</label><input id="s-sub" value="' + esc(r ? r.sub_industry : '') + '" placeholder="自动取东财三级行业，如 铝 / 黄金 / 稀土"></div>' +
       '</div>' +
       '<div class="grid g3">' +
@@ -2995,7 +3640,7 @@ var App = {
       code: code,
       exchange: txPrefix(code),
       name: val('s-name'),
-      grp: stkGrpName(($('s-grp') || {}).value),
+      grp: stkGrpSet(stkGrpParse(($('s-grp') || {}).value)),
       sub_industry: val('s-sub'),
       region: val('s-region'),
       ind_pe: fnum('s-indpe'),
@@ -3080,8 +3725,8 @@ var App = {
       /* —— 自定义板块：本次导入的代码全部归入这里 —— */
       '<div class="stkPick" style="margin-top:12px">' +
         '<label>🏷️ 自定义板块</label>' +
-        '<input type="text" id="s-grp-new" list="s-grp-new-dl" maxlength="24" ' +
-          'placeholder="留空 = 不分组；也可直接输入新板块名，如 稀土永磁" oninput="App.stockImportCount()">' +
+        '<input type="text" id="s-grp-new" list="s-grp-new-dl" maxlength="160" ' +
+          'placeholder="留空 = 不分组；可填多个（用 | 或逗号分隔），如 稀土永磁 | 磁材材料" oninput="App.stockImportCount()">' +
         '<datalist id="s-grp-new-dl">' +
           uniq(STK_GROUPS.concat(UI.stkGrpOpts)).map(function(g){
             return '<option value="' + esc(g) + '"></option>';
@@ -3095,7 +3740,9 @@ var App = {
           '通达信 .ebk 的 7 位写法（如 <code>1600459</code>）会自动只取后 6 位。<br>' +
         '· <b>重复的只保留一条</b>：文件里重复的取最后一条；已在标的池里的不会新建，' +
           '只把读到的新名称补进去。<br>' +
-        '· 填了板块：新标的一律归入该板块；已有的标的<b>只在原本没分组时</b>才归入（不会挪动已有分组）。<br>' +
+        '· 填了板块：新标的一律归入该板块；已有的标的<b>会「同时」挂进这个板块</b>，' +
+          '原来的板块照样保留 —— 所以同一只标的可以在多个板块里都出现。<br>' +
+        '· 一个标的可同时属于多个板块：输入框里用 <code>|</code> 或逗号分隔写多个板块名即可。<br>' +
         '· 导入后自动拉取行情 + 行业PE / 细分行业 / 总资产 / 地区。' +
       '</div>' +
       '<div class="row" style="justify-content:flex-end;margin-top:14px">' +
@@ -3159,39 +3806,54 @@ var App = {
   doImport:function(){
     var parsed = parseStockBlob(String(($('s-bulk') || {}).value || ''));
     if(!parsed.length){ toast('没识别到有效的 6 位股票代码', 'bad'); return; }
-    var grpNew = stkGrpName(($('s-grp-new') || {}).value);     /* 本次导入要归入的自定义板块（可留空） */
-    var dup = dedupeStocks();                 /* 先把本地已有的重复记录合掉 */
+    var grpsNew = stkGrpParse(($('s-grp-new') || {}).value);   /* 本次导入要挂的板块（可留空，可多个） */
+    var dup = dedupeStocks();                 /* 先把本地已有的重复记录合掉（同一代码只保留一条记录） */
     var byCode = {};
     S.stocks.forEach(function(x){ byCode[String(x.code)] = x; });
-    var fresh = 0, named = 0, grouped = 0, kept = 0, i, code, nm, old, row;
+    var fresh = 0, named = 0, grouped = 0, shared = 0, reused = 0, i, code, nm, old, row, cur, next;
     for(i = 0; i < parsed.length; i++){
       code = parsed[i].code; nm = parsed[i].name;
       old = byCode[code];
-      if(old){                                 /* 已存在：不新建，只补名称 / 补空板块 */
-        if(nm && !old.name){ old.name = nm; named++; }
-        if(grpNew){
-          if(!stkGrpName(old.grp)){ updateRow('stocks', old.id, {grp:grpNew}); grouped++; }
-          else if(stkGrpName(old.grp) !== grpNew) kept++;      /* 已有别的分组 → 不擅自挪动 */
+      if(old){                                 /* 已存在：不新建，只补名称 / 追加板块（★ 原板块保留） */
+        /* ⚠️ 补名称也必须走 updateRow（它会 enqueue 一条 PATCH）。
+           直接 `old.name = nm` 只改内存，云端那条记录的名称永远补不上。 */
+        if(nm && !old.name){ updateRow('stocks', old.id, {name:nm}); named++; }
+        if(grpsNew.length){
+          cur = stkGrpsOf(old);
+          next = stkGrpSet(cur.concat(grpsNew));
+          if(next !== stkGrpSet(cur)){
+            updateRow('stocks', old.id, {grp:next});     /* 挂进本次板块，原来在的板块不动 */
+            grouped++;
+            if(cur.length) shared++;                     /* 本来就属于别的板块 → 现在同时出现在多个板块 */
+          } else reused++;                               /* 已经在这个板块里了，不用重复挂 */
         }
         continue;
       }
+      /* ★★★ 新增标的一律走 insertRow —— 它负责 unshift + enqueue('POST') 推云端。
+         这里曾经直接写 `S.stocks.push(row);`，只把记录塞进内存数组 + localStorage，
+         从不入队：界面照样弹出「新增 N 只 · 正在拉取数据…」的成功提示，
+         刷新页面 / 换设备就全没了，数据库里也永远查不到。
+         ★ 判据：凡是「按主键新建记录」的地方，都必须经过 insertRow；
+           只有它同时保证「落本地」和「排队推云端」两件事。 */
       row = defaults('stocks', {id:'st_' + code, code:code, exchange:txPrefix(code), name:nm || ''});
-      if(grpNew) row.grp = grpNew;
-      row.up = nowTs();
-      S.stocks.push(row);
+      if(grpsNew.length) row.grp = stkGrpSet(grpsNew);
+      insertRow('stocks', row);
       byCode[code] = row;
       fresh++;
     }
     sortState(); saveLocal();
     this.closeModal(); renderStock(); counts();
     if(!fresh && !named && !grouped){
-      toast(dup ? ('没有新增，已合并 ' + dup + ' 条重复记录') : '这些代码都已经在标的池里了', 'bad');
+      toast(dup ? ('没有新增，已合并 ' + dup + ' 条重复记录')
+                : (reused ? '这些代码已经都在所选板块里了' : '这些代码都已经在标的池里了'), 'bad');
       return;
     }
     var msg = '新增 ' + fresh + ' 只';
-    if(grpNew) msg += ' · 归入板块「' + grpNew + '」' + grouped + ' 只';
+    if(grpsNew.length){
+      msg += ' · 归入板块「' + grpsNew.join('、') + '」' + grouped + ' 只';
+      if(shared) msg += '（其中 ' + shared + ' 只同时在别的板块）';
+    }
     if(named) msg += ' · 补名称 ' + named + ' 只';
-    if(kept)  msg += ' · ' + kept + ' 只已在别的板块（未改动）';
     if(dup)   msg += ' · 合并重复 ' + dup + ' 条';
     toast(msg + '，正在拉取数据…', 'ok');
     syncQuotes({silent:false});
@@ -3575,13 +4237,13 @@ var App = {
     Cloud.ping().then(function(ok){
       setCloudDot(); renderSet();
       toast(ok? '云端连接正常':'云端连接失败：'+(Cloud.msg||''), ok?'ok':'bad');
-      if(ok) App.pullAll(true);
+      if(ok) RAW.pullAll(true);          /* 自动刷新，不是用户手点的 → 直通 */
     });
   },
   flush:function(){ flushQueue(); setTimeout(function(){ setCloudDot(); renderSet(); },600); },
   seedCloud:function(){
     if(!REST){ toast('未配置云环境','bad'); return; }
-    App.pushAll();
+    RAW.pushAll();                       /* 已经过一次密码确认 → 直通，别再弹第二次 */
   },
   exportJSON:function(){
     /* 按 KINDS 展开 —— 以后加表不用再改这里（历史上漏过 stocks） */
@@ -3603,7 +4265,7 @@ var App = {
           var o = JSON.parse(r.result);
           KINDS.forEach(function(k){ if(o[k]) S[k]=o[k]; });
           if(o.profile) S.profile = o.profile;
-          sortState(); saveLocal(); App.go('dash'); counts(); toast('导入成功','ok');
+          sortState(); saveLocal(); App.go(homePage()); counts(); toast('导入成功','ok');
         }catch(e){ toast('导入失败：文件格式错误','bad'); }
       };
       r.readAsText(f);
@@ -3647,11 +4309,28 @@ var App = {
       var qq = '?' + (ORD[k] ? ('order=' + ORD[k] + '&') : '') + 'limit=2000';
       return api(TABLES[k], {q:qq}).then(function(rows){ res[k] = rows||[]; }).catch(function(){ res[k]=null; });
     })).then(function(){
-      var n = 0;
-      ks.forEach(function(k){ if(res[k] && res[k].length){ S[k] = res[k]; n += res[k].length; } });
+      var n = 0, orphan = 0;
+      ks.forEach(function(k){
+        var remote = res[k];
+        /* 拉取失败的类目（res[k] 不是数组）→ 本机数据原样留着，绝不当成「云端空」 */
+        if(!(remote instanceof Array)) return;
+        var seen = {};
+        remote.forEach(function(r){ if(r && r.id) seen[r.id] = 1; });
+        /* ★ 本机有、云端没有的记录必须保留下来。
+           以前这里直接 `S[k] = res[k]` 整体替换 —— 碰上「写入没推上去」的历史数据
+           （导入成功但没落库的标的），一刷新就**连带本机副本一起被抹掉**，
+           用户看到的就是「我加的东西自己消失了」。改为：保留 + 在设置页提示补传，
+           由用户点「全量推送到云端」决定要不要真的推上去（不自动写，避免误推演示数据）。 */
+        var keep = S[k].filter(function(r){ return r && r.id && !seen[r.id]; });
+        orphan += keep.length;
+        S[k] = remote.concat(keep);
+        n += remote.length;
+      });
+      ORPHAN_N = orphan;
       sortState();
-      saveLocal(); App.go('dash'); counts();
-      if(!quiet) toast(n? ('已从云端拉取 '+n+' 条'):'云端暂无数据', n?'ok':'');
+      saveLocal(); App.go(homePage()); counts();
+      if(orphan) toast('本机有 ' + orphan + ' 条记录还没上云，可在「设置」里点「☁ 全量推送到云端」补传', 'bad');
+      else if(!quiet) toast(n? ('已从云端拉取 '+n+' 条'):'云端暂无数据', n?'ok':'');
       return n;
     });
   },
@@ -3686,18 +4365,83 @@ var App = {
           return;
         }
         Auth.token = r.token; Auth.user = r.user; Auth.name = r.name || r.user;
-        Auth.role = r.role || 'super'; Auth.expire = r.expire || ''; Auth.remember = rm;
+        /* 角色以服务端为准；取不到时按权限小的算，不能默认成 super */
+        Auth.role = r.role || 'ops'; Auth.expire = r.expire || ''; Auth.remember = rm;
         authPersist();
+        buildNav();                              /* ★ 角色已定，导航按可见范围重建 */
         try{ localStorage.setItem(AUTH_LAST_USER, r.user); }catch(e){}
         gateHide(); pEl.value = '';
+        App.gateToLogin();                       /* 复位登录门视图，下次打开不再是注册表单 */
         var e = $('g-err'); if(e) e.className = 'gateErr';
-        toast('欢迎回来，' + Auth.name, 'ok');
-        renderSet();
+        toast(isSuper() ? ('欢迎回来，' + Auth.name)
+                        : ('欢迎，' + Auth.name + '（普通管理员）· 投资标的 / 研究报告'), 'ok');
+        if(pageAllowed('set')) renderSet();
+        goHome();                                /* ★ 普通管理员直接落在「投资标的」 */
         bootCloud();
       })
       .catch(function(err){
         if(btn){ btn.disabled = false; btn.textContent = '进 入 工 作 台'; }
         gateErr('无法连接云端：' + String(err.message||err).slice(0,60));
+      });
+  },
+  /* ---- 登录门：登录 / 注册 两个视图的切换 ---- */
+  gateToLogin:function(){
+    var a = $('g-login'), b = $('g-reg');
+    if(a) a.style.display = '';
+    if(b) b.style.display = 'none';
+    var ok = $('r-ok'); if(ok) ok.className = 'gOK';
+    var tp = $('r-tip'); if(tp) tp.style.display = '';
+    var e = $('r-err'); if(e) e.className = 'gateErr';
+  },
+  gateToReg:function(){
+    if(!REST){ gateErr('未配置云环境，暂不支持在线注册'); return; }
+    var a = $('g-login'), b = $('g-reg');
+    if(a) a.style.display = 'none';
+    if(b) b.style.display = '';
+    var e = $('g-err'); if(e) e.className = 'gateErr';
+    var re = $('r-err'); if(re) re.className = 'gateErr';
+    setTimeout(function(){ var i = $('r-user'); if(i) i.focus(); }, 120);
+  },
+  gateRegErr:function(msg){
+    var e = $('r-err'); if(!e) return;
+    e.textContent = msg; e.className = 'gateErr on';
+    /* ⚠️ 这里必须走 App.gateRegErr 而不是裸名 gateRegErr —— 它是对象属性，不是全局函数 */
+    clearTimeout(App.gateRegErr._t);
+    App.gateRegErr._t = setTimeout(function(){ e.className = 'gateErr'; }, 5200);
+  },
+  /* 注册普通管理员：落库为待批准，由超级管理员在设置页批准后才可登录 */
+  doRegister:function(){
+    var uEl = $('r-user'), nEl = $('r-name'), pEl = $('r-pass'), p2El = $('r-pass2'),
+        noteEl = $('r-note'), btn = $('r-btn');
+    var u = String(uEl.value||'').trim().toLowerCase();
+    var nm = String(nEl.value||'').trim();
+    var p = String(pEl.value||''), p2 = String(p2El.value||'');
+    var note = String(noteEl.value||'').trim();
+
+    if(!/^[a-z0-9_]{3,24}$/.test(u)){ this.gateRegErr('账号需为 3-24 位小写字母 / 数字 / 下划线'); uEl.focus(); return; }
+    if(!nm){ this.gateRegErr('请填写姓名或昵称'); nEl.focus(); return; }
+    if(p.length < 6){ this.gateRegErr('密码至少 6 位'); pEl.focus(); return; }
+    if(p !== p2){ this.gateRegErr('两次输入的密码不一致'); p2El.value = ''; p2El.focus(); return; }
+    if(!REST){ this.gateRegErr('未配置云环境，无法提交注册'); return; }
+
+    if(btn){ btn.disabled = true; btn.textContent = '提 交 中…'; }
+    var self = this;
+    rpc('wb_admin_register', {p_user:u, p_pass:p, p_name:nm, p_note:note})
+      .then(function(r){
+        if(btn){ btn.disabled = false; btn.textContent = '提 交 注 册 申 请'; }
+        if(!r || !r.ok){ self.gateRegErr((r && r.msg) || '注册失败，请稍后再试'); return; }
+        /* 成功：清空表单、隐藏说明、显示等待批准的提示块 */
+        pEl.value = ''; p2El.value = '';
+        var ou = $('r-ok-user'); if(ou) ou.textContent = u;
+        var ok = $('r-ok'); if(ok) ok.className = 'gOK on';
+        var tp = $('r-tip'); if(tp) tp.style.display = 'none';
+        var ee = $('r-err'); if(ee) ee.className = 'gateErr';
+        try{ localStorage.setItem(AUTH_LAST_USER, u); }catch(e){}
+        toast('注册申请已提交，等待超级管理员批准', 'ok');
+      })
+      .catch(function(e){
+        if(btn){ btn.disabled = false; btn.textContent = '提 交 注 册 申 请'; }
+        self.gateRegErr('提交失败：' + String(e.message||e).slice(0,70));
       });
   },
   logout:function(){
@@ -3741,7 +4485,7 @@ var App = {
   openAdmCreate:function(){
     if(!REST){ toast('本机离线模式无法管理云端管理员','bad'); return; }
     openModal(
-      '<h3>＋ 新增管理员</h3><div class="sub">新账号为「运维」角色：可登录、可删除，但不能管理其它管理员</div>'+
+      '<h3>＋ 新增管理员</h3><div class="sub">新账号为「普通管理员」：可登录、可维护投资标的等业务数据，但不能管理其它账号；该账号登录后直接进入「投资标的」</div>'+
       '<div class="field"><label>登录账号</label><input id="na-user" autocomplete="off" placeholder="至少 3 个字符"></div>'+
       '<div class="field"><label>显示名称</label><input id="na-name" autocomplete="off" placeholder="例如 张三（可留空）"></div>'+
       '<div class="field" style="position:relative"><label>初始密码</label>'+
@@ -3766,6 +4510,7 @@ var App = {
     }).catch(function(e){ toast('创建失败：'+String(e.message||e).slice(0,70),'bad'); });
   },
   admToggle:function(user, status){
+    if(!this.needSuper()) return;
     var act = status === 'disabled' ? '停用' : '启用';
     requireAdmin(act + '管理员账号「' + user + '」', function(){
       rpc('wb_admin_set_status', {p_token:Auth.token, p_user:user, p_status:status}).then(function(r){
@@ -3775,6 +4520,7 @@ var App = {
     });
   },
   admDelete:function(user){
+    if(!this.needSuper()) return;
     requireAdmin('删除管理员账号「' + user + '」（该账号的登录会立即失效）', function(){
       rpc('wb_admin_delete', {p_token:Auth.token, p_user:user}).then(function(r){
         if(!r || !r.ok){ toast((r && r.msg) || '删除失败','bad'); return; }
@@ -3782,41 +4528,114 @@ var App = {
       }).catch(function(e){ toast('删除失败：'+String(e.message||e).slice(0,70),'bad'); });
     });
   },
-  confirmDelete:function(){
-    var i = $('del-pass');
+  /* 前端先挡一道，给成员看得懂的提示；服务端 wb_admin_is_super 才是真正的闸门 */
+  needSuper:function(){
+    if(isSuper()) return true;
+    toast('仅超级管理员可以管理账号（普通管理员可维护投资标的等业务数据）','bad');
+    return false;
+  },
+  /* 批准 / 驳回自助注册申请：仅超级管理员，且必须再输一次管理员密码 */
+  admReview:function(user, action){
+    if(!this.needSuper()) return;
+    var ok = (action === 'approve');
+    var act = ok ? '批准' : '驳回';
+    requireAdmin(
+      act + '注册申请「' + user + '」' +
+      (ok ? '（通过后该账号可立即登录，登录后直接进入「投资标的」）' : '（该账号将无法登录）'),
+      function(pass){
+        rpc('wb_admin_review', {p_token:Auth.token, p_user:user, p_action:action, p_pass:pass})
+          .then(function(r){
+            if(!r || !r.ok){ toast((r && r.msg) || (act + '失败'), 'bad'); return; }
+            toast(r.msg || ('已' + act), 'ok');
+            renderSet();
+          }).catch(function(e){ toast(act + '失败：' + String(e.message||e).slice(0,70), 'bad'); });
+      }, {act: act, danger: true});
+  },
+  /* 密码确认：校验通过后执行挂起的写操作。
+     服务端可达 → wb_admin_verify（无 token 时先用账号+密码换会话）；
+     桌面文件版 / 未配置云环境 → 本机哈希校验（明文不落盘）。 */
+  confirmPass:function(){
+    var i = $('del-pass'), go = $('dangerGo');
     var v = i ? String(i.value||'').trim() : '';
     var self = this, fn = DANGER_CB;
+    var keep = $('pv-keep') ? !!$('pv-keep').checked : false;
+    var act = PASS_ACT;
     if(!v){ toast('请输入管理员密码','bad'); this.dangerShake(); return; }
-    if(!REST || isLocalFile()){                 // 本机离线：只删本机缓存
-      DANGER_CB = null; closeModal();
-      if(fn) fn('');
-      return;
+
+    function run(){
+      if(keep) passStamp(true);
+      DANGER_CB = null;
+      $('pmask').className = 'pmask';
+      if(fn) fn(v);
     }
-    if(!Auth.token){ forceRelogin('登录已失效，请重新登录'); return; }
-    var btn = $('dangerGo');
-    if(btn){ btn.disabled = true; btn.textContent = '验 证 中…'; }
-    rpc('wb_admin_verify', {p_token:Auth.token, p_pass:v}).then(function(r){
-      if(btn){ btn.disabled = false; btn.textContent = '确认删除'; }
+    function fail(msg){
+      if(go){ go.disabled = false; go.textContent = '确认' + act; }
+      if(i) i.value = '';
+      toast(msg, 'bad'); self.dangerShake();
+    }
+
+    if(!REST || isLocalFile()){ localPassCheck(v, run, fail); return; }
+
+    if(go){ go.disabled = true; go.textContent = '验 证 中…'; }
+    var req;
+    if(Auth.token){
+      req = rpc('wb_admin_verify', {p_token:Auth.token, p_pass:v});
+    } else {
+      var uEl = $('pv-user');
+      var u = uEl ? String(uEl.value||'').trim() : '';
+      if(!u){
+        if(go){ go.disabled = false; go.textContent = '确认' + act; }
+        toast('请输入管理员账号','bad'); self.dangerShake(); return;
+      }
+      req = rpc('wb_admin_login', {p_user:u, p_pass:v, p_device:(navigator.userAgent||'').slice(0,80), p_days:1})
+        .then(function(r){
+          if(r && r.ok){
+            Auth.token = r.token; Auth.user = r.user; Auth.name = r.name || r.user;
+            Auth.role = r.role || 'ops'; Auth.expire = r.expire || ''; Auth.remember = false;
+            authPersist();
+            try{ localStorage.setItem(AUTH_LAST_USER, r.user); }catch(e){}
+            gateHide(); renderSet();
+          }
+          return r;
+        });
+    }
+    req.then(function(r){
       if(!r || !r.ok){
-        if(i) i.value = '';
-        toast((r && r.msg) || '密码错误，删除已取消','bad');
-        self.dangerShake();
+        if(r && (r.code === 'NOSESSION' || r.code === 'EXPIRED' || r.code === 'REVOKED')){
+          DANGER_CB = null; $('pmask').className = 'pmask';
+          forceRelogin(r.msg || '登录已失效，请重新登录');
+          return;
+        }
+        fail((r && r.msg) || '密码错误，操作已取消');
         return;
       }
-      DANGER_CB = null; closeModal();
-      if(fn) fn(v);
-    }).catch(function(e){
-      if(btn){ btn.disabled = false; btn.textContent = '确认删除'; }
-      toast('验证失败：'+String(e.message||e).slice(0,70),'bad');
-    });
+      run();
+    }).catch(function(e){ fail('验证失败：' + String(e.message||e).slice(0,70)); });
   },
+  /* 兼容旧调用点（历史上按钮绑的是 confirmDelete） */
+  confirmDelete:function(){ return this.confirmPass(); },
   dangerShake:function(){
     var b = $('dangerBox');
     if(b){ b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); }
     var i = $('del-pass'); if(i) i.focus();
   },
-  cancelDanger:function(){ DANGER_CB = null; closeModal(); }
+  cancelDanger:function(){ DANGER_CB = null; $('pmask').className = 'pmask'; }
 };
+/* ★ 非文本列不能收空串 —— wb_stocks 的 info_at / sync_at 是 timestamptz，其余是 numeric，
+   wb_works 等的 progress / sort / seq / week_no / minutes 是整型。
+   空串会让 Postgres 直接 `22007 invalid input syntax for type ...` 把**整条** INSERT/PATCH
+   打回（不是只跳过那一列）。历史上「批量导入 + 新增标的」全部推不上云端就是这个原因：
+   界面提示成功、刷新后全没，只有队列里那句「有 1 条改动同步失败已跳过」的 toast 一闪而过。
+   统一口径：空串一律当「没填」，整键删掉，让列走默认值/NULL。 */
+var NON_TEXT_COLS = ['info_at', 'sync_at',
+                     'chg_pct', 'price', 'amount', 'ind_pe', 'pe_fwd', 'pe_ttm', 'pb',
+                     'div_yield', 'mkt_cap', 'chg_ytd', 'chg_10d', 'chg_20d', 'chg_60d',
+                     'total_assets', 'net_assets',
+                     'minutes', 'progress', 'seq', 'week_no', 'sort'];
+function dropEmptyNonText(o){
+  NON_TEXT_COLS.forEach(function(k){ if(o[k] === '') delete o[k]; });
+  return o;
+}
 function cleanRow(kind, r){
   var o = {};
   ['id','seq','task_date','weekday','week_no','week_theme','week_goal','phase','phase_name','category','title','detail','deliverable','minutes','priority','status','note',
@@ -3834,8 +4653,185 @@ function cleanRow(kind, r){
   if(typeof o.seq === 'number') o.seq = Math.round(o.seq);
   if(typeof o.week_no === 'number') o.week_no = Math.round(o.week_no);
   if(typeof o.sort === 'number') o.sort = Math.round(o.sort);
-  return o;
+  return dropEmptyNonText(o);
 }
+
+/* ==================== 13.5 写操作门禁装配 ====================
+   把 App 上所有「会改数据」的方法统一包一层密码确认。
+   协议：包装层先弹密码框；校验通过后把私有哨兵 PASS_OK 追加为最后一个参数
+   再调原方法 —— 原方法看到哨兵就直通，内部重入不会弹第二次。
+   ⚠️ 已经在内部调用 requireAdmin 的方法（删除类、解散板块、重置本机、
+      管理员停用/删除）**不要**放进这张表，否则会连弹两次。
+   ⚠️ 由启动流程 / 后台自动触发的同步必须走 RAW 直通，否则一进页面就弹窗。 */
+/* —— 编辑会话票据 ——
+   入口（13.6 的 openXxx）验过密码后开一张单子，同一张表单里的「保存 / 修改」凭单直通，
+   用户只输一次。表单一关（closeModal）或退出登录就整张作废 ——
+   所以下次再点「＋ 新增」，照样要重新输密码。 */
+var PASS_TICK = {};
+var PASS_TICK_MS = 30 * 60 * 1000;
+function tickIssue(k){ PASS_TICK[k] = Date.now(); }
+function tickHas(k){
+  var t = PASS_TICK[k];
+  if(!t) return false;
+  if(Date.now() - t > PASS_TICK_MS){ delete PASS_TICK[k]; return false; }
+  return true;
+}
+function tickClear(){ if(!PASS_TICK) return; for(var k in PASS_TICK){ delete PASS_TICK[k]; } }
+
+var PASS_OK = {__wbPassOk:true};
+var RAW = {pullAll:App.pullAll, pushAll:App.pushAll};   /* 自动流程用的原始实现 */
+
+var WRITE_GUARD = [
+  /* [方法, 动作, 不可逆, 目标描述（弹窗前读表单，此时表单还在）] */
+  ['saveTask','保存',false,function(id){
+      var t = id ? findRow('tasks', id) : null;
+      var v = ($('f-title') || {}).value || (t && t.title) || '';
+      return (t ? '修改任务：' : '新增任务：') + String(v).slice(0, 48); }],
+  ['saveWork','保存',false,function(id){
+      var w = id ? findRow('works', id) : null;
+      var v = ($('w-title') || {}).value || (w && w.title) || '';
+      return (w ? '修改计划：' : '新增计划：') + String(v).slice(0, 48); }],
+  ['savePermit','保存',false,function(id){
+      var p = id ? findRow('permits', id) : null;
+      var v = ($('p-name') || {}).value || (p && p.name) || '';
+      return (p ? '修改申请项：' : '新增申请项：') + String(v).slice(0, 48); }],
+  ['saveRes','保存',false,function(id){
+      var v = ($('r-name') || {}).value || ($('c-role') || {}).value || '';
+      return (UI.resTab === 'watch' ? (id ? '修改标的：' : '新增标的：') : (id ? '修改人脉：' : '新增人脉：'))
+             + String(v).slice(0, 48); }],
+  ['saveLog','保存',false,function(id){
+      return (id ? '修改复盘日志：' : '新增复盘日志：')
+             + String(($('l-title') || {}).value || '').slice(0, 48); }],
+  ['saveStock','保存',false,function(id){
+      var c = String(($('s-code') || {}).value || ''), n = String(($('s-name') || {}).value || '');
+      return (id ? '修改标的：' : '添加标的：') + c + (n ? ' ' + n : ''); }],
+  ['stockUnlock','修改',false,function(id){
+      var r = findRow('stocks', id) || {};
+      return '解锁「' + (r.code || '') + ' ' + (r.name || '') + '」被人工锁定的字段（随后重新同步）'; }],
+  ['cycleTask','修改',false,function(id){
+      var t = findRow('tasks', id) || {};
+      return '切换任务状态：' + String(t.title || '').slice(0, 40); }],
+  ['workCycle','修改',false,function(id){
+      var w = findRow('works', id) || {};
+      return '切换计划状态：' + String(w.title || '').slice(0, 40); }],
+  ['recalcAll','修改',false,function(){
+      return '重算全部申请项与里程碑的进度（按状态自动对齐）'; }],
+  ['saveProfile','保存',false,function(){
+      return '战略参数（启动资金 / 目标 / 起始日 / 备注）'; }],
+  ['doImport','新增',false,function(){
+      var n = parseStockBlob(String(($('s-bulk') || {}).value || '')).length;
+      var g = stkGrpParse(($('s-grp-new') || {}).value);
+      return '批量导入 ' + n + ' 个标的代码' + (g.length ? '，归入板块「' + g.join('、') + '」' : '，不分组'); }],
+  ['syncQuotes','同步',false,function(){
+      return '同步 ' + S.stocks.length + ' 只标的的行情与基本面，并写回数据库'; }],
+  ['flush','同步',false,function(){
+      return '立即把本机待推送的 ' + PENDING.length + ' 条改动同步到云端'; }],
+  ['saveAdmCreate','新增',false,function(){
+      return '创建管理员账号「' + String(($('na-user') || {}).value || '') + '」'; }],
+  ['saveChangePass','修改',false,function(){
+      return '修改我的登录密码（其它设备上的登录会全部失效）'; }],
+  /* —— 以下为不可逆操作：无论有没有勾「免重复输入」都必须输密码 —— */
+  ['importJSON','导入',true,function(){
+      return '从 JSON 文件导入，并覆盖本机 ' + KINDS.length + ' 张表的数据'; }],
+  ['pushAll','导入',true,function(){
+      return '全量推送到云端（按 id 覆盖同 id 记录）'; }],
+  ['pullAll','导入',true,function(){
+      return '从云端拉取，并覆盖本机数据'; }],
+  ['seedCloud','导入',true,function(){
+      return '初始化云端数据（把本机全部数据推送到云端）'; }]
+];
+
+WRITE_GUARD.forEach(function(spec){
+  var name = spec[0], act = spec[1], danger = !!spec[2], label = spec[3];
+  var raw = App[name];
+  if(typeof raw !== 'function') return;
+  App[name] = function(){
+    var args = [].slice.call(arguments);
+    if(args.length && args[args.length - 1] === PASS_OK){
+      args.pop();
+      return raw.apply(App, args);
+    }
+    /* 表单是刚验过密码才打开的（票据未作废）→ 凭单直通，别让用户在同一张表单里输第二次 */
+    if(tickHas(name)){ return raw.apply(App, args); }
+    var txt;
+    try{ txt = label.apply(App, args); }catch(e){ txt = name; }
+    var run = function(){ args.push(PASS_OK); return raw.apply(App, args); };
+    requireAdmin(txt, run, {act:act, danger:danger});
+  };
+  /* 给验收探针留的标记：可断言「这个方法确实被门禁包过」 */
+  App[name].__gated = true;
+  App[name].__act = act;
+  App[name].__danger = danger;
+  App[name].__raw = raw;
+});
+
+/* ==================== 13.6 表单入口门禁装配 ====================
+   13.5 拦的是「保存」，这一节拦的是**打开表单的那一下**：
+   点「＋ 新增任务 / ＋ 新增计划 / ＋ 新增申请项 / ＋ 新增 / ＋ 写一篇 / ＋ 添加标的 /
+       ＋ 新增管理员 / 🔑 修改我的密码」以及行内「✏️ / 改」编辑按钮，先输密码才给进。
+   验过之后给对应的保存方法开一张票据（见 tickIssue），所以同一张表单里点「保存」
+   不会再弹第二次；表单一关票据作废，下次再点入口仍要重新输。
+   ⚠️ openReport 是跳到研报页（只读），**不要**放进来。 */
+var FORM_GUARD = [
+  /* [入口方法, 给它开票的保存方法, 目标描述(id, 是否新增)] */
+  ['openWork','saveWork',function(id,isNew){
+      if(isNew) return '新增工作计划（九档时间维度：今天 / 本周 / 本月 / 本季 / 本年 / 五年 / 十年 / 二十年）';
+      var w = findRow('works', id) || {};
+      return '编辑计划：' + String(w.title || '').slice(0, 44); }],
+  ['openTask','saveTask',function(id,isNew){
+      if(isNew) return '新增任务（按日期自动归入对应的周）';
+      var t = findRow('tasks', id) || {};
+      return '编辑任务：' + String(t.title || '').slice(0, 44); }],
+  ['openPermit','savePermit',function(id,isNew){
+      if(isNew) return '新增申请项（记录从准备到获批的全过程）';
+      var p = findRow('permits', id) || {};
+      return '编辑申请项：' + String(p.name || '').slice(0, 44); }],
+  ['openRes','saveRes',function(id,isNew){
+      var isW = (UI.resTab === 'watch');
+      var r = id ? (findRow(isW ? 'watch' : 'contacts', id) || {}) : {};
+      var nm = isW ? (r.variety || r.name) : (r.role_name || r.name);
+      return (isNew ? '新增' : '编辑') + (isW ? '投资标的' : '人脉') + '记录'
+             + (nm ? '：' + String(nm).slice(0, 40) : ''); }],
+  ['openStock','saveStock',function(id,isNew){
+      if(isNew) return '手动添加一只投资标的';
+      var r = findRow('stocks', id) || {};
+      return '修改标的：' + String(r.code || '') + ' ' + String(r.name || ''); }],
+  ['openLog','saveLog',function(id,isNew){
+      if(isNew) return '写一篇复盘（日复盘 / 周复盘 / 月复盘 / 决策记录）';
+      var l = findRow('logs', id) || {};
+      return '编辑复盘日志：' + String(l.title || '').slice(0, 44); }],
+  ['openChangePass','saveChangePass',function(){
+      return '修改我的登录密码（改完其它设备上的登录会全部失效）'; }],
+  ['openAdmCreate','saveAdmCreate',function(){
+      return '新增一个普通管理员账号（可登录、可维护业务数据，登录后直接进入「投资标的」）'; }]
+];
+
+FORM_GUARD.forEach(function(sp){
+  var name = sp[0], saveFn = sp[1], label = sp[2];
+  var raw = App[name];
+  if(typeof raw !== 'function') return;
+  App[name] = function(){
+    var args = [].slice.call(arguments);
+    if(args.length && args[args.length - 1] === PASS_OK){
+      args.pop();
+      return raw.apply(App, args);
+    }
+    var idArg = args[0];
+    var isNew = (idArg === null || idArg === undefined || idArg === '');
+    var txt;
+    try{ txt = label(idArg, isNew); }catch(e){ txt = name; }
+    var run = function(){
+      if(saveFn) tickIssue(saveFn);   /* 开票：这张表单里的「保存」凭票直通 */
+      args.push(PASS_OK);
+      return raw.apply(App, args);
+    };
+    requireAdmin(txt, run, {act: isNew ? '新增' : '修改', danger:false, form:true});
+  };
+  App[name].__gated = true;
+  App[name].__act = '表单';
+  App[name].__danger = false;
+  App[name].__raw = raw;
+});
 
 /* ==================== 14. 启动 ==================== */
 /* 云端引导：只有通过服务端登录校验后才会执行同步 */
@@ -3848,10 +4844,10 @@ function bootCloud(){
     if(!ok){ toast('云端未连接，已启用本机缓存模式'); autoSyncIfStale(); return; }
     api(TABLES.tasks, {q:'?limit=1'}).then(function(rows){
       if(rows && rows.length){
-        App.pullAll(true).then(function(){ renderSet(); autoSyncIfStale(); });
+        RAW.pullAll(true).then(function(){ renderSet(); autoSyncIfStale(); });
       } else {
         toast('云端为空，正在初始化课表数据…');
-        App.pushAll();
+        RAW.pushAll();
         autoSyncIfStale();
       }
     }).catch(function(){ autoSyncIfStale(); });
@@ -3859,23 +4855,39 @@ function bootCloud(){
 }
 
 (function boot(){
+  /* ★ 会话必须在「建导航 + 画首屏」之前恢复：角色决定可见范围与落脚页。
+     否则普通管理员会先渲染一次总览（私人工作区）再被跳走 —— 留下一帧内容闪现。 */
+  var hadSession = false;
+  try{ hadSession = authRestore(); }catch(e){ hadSession = false; }
   buildNav();
   loadLocal();
   /* 历史数据里可能有同代码重复（早期导入未去重），启动时先合并一次，保留最新的一条 */
   try{ dedupeStocks(); }catch(e){}
   /* 上次行情同步时间 —— 「打开即刷」的节流依据 */
   try{ stockSyncAt = parseInt(localStorage.getItem(STOCK_SYNC_KEY) || '0', 10) || 0; }catch(e){ stockSyncAt = 0; }
-  markNav('dash');
-  renderDash(); counts(); setCloudDot();
+  var bootHome = hadSession ? homePage() : 'dash';
+  markNav(bootHome);
+  if(bootHome === 'dash'){ renderDash(); }              /* 超级管理员 / 本机离线：照旧 */
+  else { try{ App.go(bootHome); }catch(e){} }           /* 普通管理员：首屏直接是投资标的 */
+  counts(); setCloudDot();
+  /* 「研究报告」的份数徽标：研报库是独立页面，工作台这边只要一个数字。
+     徽标必须「存在才写」（ops 看不到总览时 cnt-dash 是 null），setCnt 已经兜住。
+     ⚠️ 不要在这里调 loadReportCodes 预热 —— 见该函数下面的注释。 */
+  try{ loadReportCount(); }catch(e){}
 
   setInterval(function(){
     if(document.visibilityState !== 'visible') return;
-    renderDash(); counts();
+    if(pageAllowed('dash')) renderDash();   /* 普通管理员没有总览，别去渲染它 */
+    counts();
     autoSyncIfStale();                 /* 距上次同步超 8 小时 ⇒ 静默刷新行情 */
   }, 30000);
   setInterval(function(){ if(document.visibilityState==='visible'){ flushQueue(); setCloudDot(); } }, 12000);
   window.addEventListener('online', function(){ Cloud.ping().then(function(){ setCloudDot(); flushQueue(); }); });
-  document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeModal(); });
+  document.addEventListener('keydown', function(e){
+    if(e.key !== 'Escape') return;
+    if($('pmask') && $('pmask').className.indexOf('on') >= 0){ App.cancelDanger(); return; }
+    closeModal();
+  });
 
   /* 桌面文件模式：无云端连接，但行情接口是公开的（带 CORS），仍可刷新 */
   if(isLocalFile()){
@@ -3892,18 +4904,32 @@ function bootCloud(){
     return;
   }
   gateHide();
-  renderSet();
-  rpc('wb_admin_check', {p_token:Auth.token}).then(function(r){
+  buildNav();                     /* ★ 角色已恢复，重建导航（ops 只剩「投资标的」） */
+  if(pageAllowed('set')) renderSet();   /* ops 看不到设置页，也就没必要渲染它 */
+  goHome();                       /* ★ 刷新页面时普通管理员也直接落在「投资标的」 */
+  /* ★★ 这次校验针对的是「当时那个 token」。异步回来时如果会话已经换过
+     （最典型：本机残留了一个失效 token → 先显示登录门 → 用户重新登录拿到新 token），
+     这次结果就已经过期，**绝不能用它去 forceRelogin** —— 否则会把刚建立的新会话
+     就地踢掉，用户看到的现象是「刚登录成功又被登出」「密码怎么输都说无效」。
+     实测踩到：探针里表现为 tick 不开票、supUser 为空、成片假失败（见 SKILL §7.6）。 */
+  var chkTok = Auth.token;
+  rpc('wb_admin_check', {p_token:chkTok}).then(function(r){
+    if(Auth.token !== chkTok) return;             /* 会话已更换，本次结果作废 */
     if(!r || !r.ok){
       forceRelogin((r && r.msg) || '登录已失效，请重新登录');
       return;
     }
     Auth.user = r.user || Auth.user;
     Auth.expire = r.expire || Auth.expire;
+    /* 服务端才是角色的权威来源：被降级/提权都能立刻反映到界面上 */
+    if(r.role) Auth.role = r.role;
     authPersist();
-    renderSet();
+    buildNav();                   /* ★ 服务端角色可能不同于本机缓存，再重建一次导航 */
+    if(pageAllowed('set')) renderSet();
+    goHome();
     bootCloud();
   }).catch(function(e){
+    if(Auth.token !== chkTok) return;             /* 同上：别拿过期的失败结果覆盖新会话 */
     Cloud.state = 'err';
     Cloud.msg = '登录状态未能在服务端校验（网络异常），已按离线使用';
     setCloudDot(); renderSet();

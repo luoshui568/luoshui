@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>研究报告库 · 矿产战略工作台</title>
+<script>
+/* 最早注入错误钩子：脚本块语法错之外的运行时错误都能抓到（探针用） */
+window.__LIB_ERR = [];
+window.onerror = function(m, s, l, c){ window.__LIB_ERR.push(String(m) + ' @' + l + ':' + c); };
+window.addEventListener('unhandledrejection', function(e){ window.__LIB_ERR.push('unhandled: ' + String(e.reason && e.reason.message || e.reason)); });
+</script>
+<style>
+/* ============================================================================
+   研究报告库 · 独立页面（不塞进 index.html）
+   主题：正红 #c8102e · 深红 #8c0a20 · 亮红 #e63946 · 鎏金 #c9a227
+   底色：暖白 → 浅粉（禁深色）
+   ============================================================================ */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --brand:#c8102e; --brand-deep:#8c0a20; --brand-bright:#e63946;
+  --brand-soft:#fdecee; --brand-line:rgba(200,16,46,.18);
+  --gold:#c9a227; --gold-deep:#8a6d10; --gold-soft:#fdf7e6;
+  --ink:#3a2a2e; --ink2:#5d444c; --muted:#8b7378;
+  --up:#c8102e; --down:#0b8a5c;
+  --card:#ffffff;
+  --shadow:0 6px 22px rgba(140,10,32,.07);
+  --shadow2:0 14px 38px rgba(140,10,32,.14);
+}
+html,body{margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:16.5px;line-height:1.7;color:var(--ink);
+  background:
+    radial-gradient(circle at 10% -4%, #fff6f1 0%, transparent 52%),
+    radial-gradient(circle at 92% 4%, #fdeef0 0%, transparent 46%),
+    linear-gradient(176deg,#fffaf7 0%,#fdf1f2 58%,#fbeef0 100%);
+  background-attachment:fixed;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+/* 浮动光斑 */
+.bg-orbs{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.bg-orbs i{position:absolute;border-radius:50%;filter:blur(46px);opacity:.42;
+  animation:orbF 22s ease-in-out infinite}
+.bg-orbs i:nth-child(1){width:340px;height:340px;left:-90px;top:6%;background:#ffd9de}
+.bg-orbs i:nth-child(2){width:280px;height:280px;right:-70px;top:24%;background:#fbe6b8;animation-delay:-6s}
+.bg-orbs i:nth-child(3){width:300px;height:300px;left:38%;bottom:-120px;background:#ffd2d8;animation-delay:-11s}
+.bg-orbs i:nth-child(4){width:200px;height:200px;right:16%;bottom:8%;background:#f9e2c6;animation-delay:-16s}
+@keyframes orbF{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(16px,-22px) scale(1.08)}}
+
+.wrap{position:relative;z-index:1;max-width:1360px;margin:0 auto;padding:16px 22px 70px}
+
+/* ---------------- 顶部操作条 ---------------- */
+.lbar{
+  position:sticky;top:10px;z-index:60;display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+  padding:9px 13px;margin:0 0 20px;border-radius:15px;
+  background:rgba(255,255,255,.94);
+  backdrop-filter:saturate(180%) blur(12px);-webkit-backdrop-filter:saturate(180%) blur(12px);
+  border:1px solid var(--brand-line);box-shadow:var(--shadow);
+}
+.lbar .brand{font-weight:800;color:var(--brand-deep);font-size:15px;letter-spacing:.2px;white-space:nowrap}
+.lbar .brand em{font-style:normal;color:var(--brand)}
+.lbar .tag{font-size:12px;padding:2.5px 10px;border-radius:999px;background:var(--brand-soft);
+  color:var(--brand-deep);border:1px solid var(--brand-line);white-space:nowrap;font-weight:600}
+.lbar .tag.ok{background:#eefaf3;color:var(--down);border-color:rgba(11,138,92,.25)}
+.lbar .tag.warn{background:var(--gold-soft);color:var(--gold-deep);border-color:rgba(201,162,39,.38)}
+.lbar .sp{flex:1;min-width:8px}
+.rbtn{font:inherit;font-size:13px;line-height:1;padding:8px 13px;border-radius:10px;cursor:pointer;
+  border:1px solid var(--brand-line);background:#fff;color:var(--brand-deep);transition:.16s;white-space:nowrap;font-weight:600}
+.rbtn:hover{background:var(--brand-soft);border-color:var(--brand);transform:translateY(-1px)}
+.rbtn.pri{background:linear-gradient(135deg,var(--brand),var(--brand-deep));color:#fff;border-color:transparent;
+  box-shadow:0 4px 14px rgba(200,16,46,.26)}
+.rbtn.pri:hover{filter:brightness(1.08)}
+.rbtn.gh{background:transparent;border-color:rgba(140,10,32,.2);color:#7d5b60}
+.rbtn.gh:hover{background:#fff}
+
+/* ---------------- Hero ---------------- */
+.hero{position:relative;padding:20px 4px 22px;animation:up .5s cubic-bezier(.22,.8,.36,1) both}
+.hero .kick{display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:800;
+  letter-spacing:1.6px;color:var(--gold-deep);text-transform:uppercase;
+  background:linear-gradient(135deg,#fdf7e6,#fbeecd);border:1px solid rgba(201,162,39,.35);
+  padding:5px 13px;border-radius:999px;margin-bottom:14px}
+.hero .kick::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--gold);
+  box-shadow:0 0 0 4px rgba(201,162,39,.2)}
+.hero h1{margin:0 0 10px;font-size:40px;line-height:1.22;letter-spacing:-.5px;font-weight:900;color:#2b1a1e}
+.hero h1 span{background:linear-gradient(135deg,#e63946,#c8102e 45%,#8c0a20);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero h1::after{content:'';display:block;width:76px;height:4px;margin-top:14px;border-radius:3px;
+  background:linear-gradient(90deg,var(--brand),var(--gold))}
+.hero .sub{margin:14px 0 0;font-size:15.5px;color:var(--ink2);max-width:900px;line-height:1.9}
+.hero .sub b{color:var(--brand-deep)}
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* ---------------- 统计条 ---------------- */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin:6px 0 20px}
+.st{position:relative;background:var(--card);border:1px solid rgba(200,16,46,.1);border-radius:16px;
+  padding:15px 17px 15px 20px;box-shadow:var(--shadow);overflow:hidden;
+  animation:up .5s cubic-bezier(.22,.8,.36,1) both;transition:.18s}
+.st:hover{transform:translateY(-3px);box-shadow:var(--shadow2)}
+.st::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
+  background:linear-gradient(180deg,var(--brand),var(--gold))}
+.st .lb{font-size:12.5px;color:var(--muted);font-weight:700;letter-spacing:.3px}
+.st .vl{font-size:33px;font-weight:900;line-height:1.25;color:var(--brand-deep);
+  font-variant-numeric:tabular-nums;letter-spacing:-.5px;margin-top:2px}
+.st .vl small{font-size:13px;font-weight:700;color:var(--muted);margin-left:3px}
+.st .nt{font-size:11.5px;color:var(--muted);margin-top:2px}
+.st.gold::before{background:linear-gradient(180deg,var(--gold),#e6c558)}
+.st.gold .vl{color:var(--gold-deep)}
+
+/* ---------------- 工具栏 ---------------- */
+.bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 18px}
+.sbox{display:flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--brand-line);
+  border-radius:12px;padding:0 12px;height:42px;min-width:280px;flex:1;max-width:420px;
+  box-shadow:var(--shadow);transition:.16s}
+.sbox:focus-within{border-color:var(--brand);box-shadow:0 0 0 4px rgba(200,16,46,.08)}
+.sbox span{font-size:14px;opacity:.6}
+.sbox input{flex:1;border:0;outline:0;font:inherit;font-size:14.5px;background:transparent;color:var(--ink)}
+.sbox input::placeholder{color:#bda8ac}
+.chips{display:flex;gap:7px;flex-wrap:wrap}
+.chip{font:inherit;font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:999px;cursor:pointer;
+  border:1px solid var(--brand-line);background:#fff;color:var(--ink2);transition:.15s;white-space:nowrap}
+.chip:hover{border-color:var(--brand);color:var(--brand)}
+.chip.on{background:linear-gradient(135deg,var(--brand),var(--brand-deep));border-color:transparent;color:#fff;
+  box-shadow:0 4px 12px rgba(200,16,46,.24)}
+.chip i{font-style:normal;opacity:.72;margin-left:4px;font-size:11.5px}
+.sel{font:inherit;font-size:13.5px;padding:0 10px;height:42px;border-radius:12px;border:1px solid var(--brand-line);
+  background:#fff;color:var(--brand-deep);cursor:pointer;box-shadow:var(--shadow);font-weight:600}
+
+/* ---------------- 卡片网格 ---------------- */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(410px,1fr));gap:15px}
+.card{position:relative;display:flex;flex-direction:column;background:var(--card);border-radius:18px;
+  border:1px solid rgba(200,16,46,.11);box-shadow:var(--shadow);overflow:hidden;text-decoration:none;color:inherit;
+  transition:.22s cubic-bezier(.22,.8,.36,1);animation:up .45s cubic-bezier(.22,.8,.36,1) both}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--brand),var(--brand-bright) 40%,var(--gold));
+  opacity:.85;transition:.22s}
+.card:hover{transform:translateY(-5px);box-shadow:var(--shadow2);border-color:rgba(200,16,46,.28)}
+.card:hover::before{height:4px;opacity:1}
+.card .in{padding:17px 19px 0;flex:1;display:flex;flex-direction:column}
+.ctop{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:9px}
+.ctop .code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12.5px;font-weight:700;
+  letter-spacing:.6px;padding:3px 9px;border-radius:8px;color:#fff;
+  background:linear-gradient(135deg,var(--brand),var(--brand-deep));box-shadow:0 3px 9px rgba(200,16,46,.22)}
+.ctop .nm{font-size:19px;font-weight:900;color:#2b1a1e;letter-spacing:-.2px}
+.ctop .kind{margin-left:auto;font-size:11.5px;font-weight:800;padding:3px 10px;border-radius:999px;
+  background:var(--brand-soft);color:var(--brand-deep);border:1px solid var(--brand-line);white-space:nowrap}
+.ctop .kind.g{background:var(--gold-soft);color:var(--gold-deep);border-color:rgba(201,162,39,.36)}
+.kick{font-size:11px;font-weight:700;letter-spacing:.9px;color:var(--gold-deep);text-transform:uppercase;
+  margin-bottom:7px;line-height:1.6}
+.ti{margin:0 0 8px;font-size:16px;font-weight:800;line-height:1.5;color:#2b1a1e}
+.sb{margin:0 0 11px;font-size:13.5px;color:var(--ink2);line-height:1.85;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.bdg{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.bdg span{font-size:11.5px;padding:3px 9px;border-radius:7px;background:#faf6f7;color:#7d6369;
+  border:1px solid rgba(140,10,32,.09);white-space:nowrap}
+.sum{margin:0;padding:12px 14px;border-radius:12px;font-size:13.5px;line-height:1.9;color:var(--ink2);
+  background:linear-gradient(135deg,#fff8f9,#fdf1f3);border-left:3px solid var(--brand);
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;flex:1}
+.cfoot{display:flex;align-items:center;gap:10px;padding:13px 19px;margin-top:14px;
+  border-top:1px dashed rgba(200,16,46,.14);background:linear-gradient(180deg,#fffdfd,#fff8f9)}
+.cfoot .go{font-size:13.5px;font-weight:800;color:var(--brand);transition:.18s}
+.card:hover .cfoot .go{letter-spacing:.4px}
+.cfoot .ts{margin-left:auto;font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* ---------------- 骨架 / 空态 / 错误 ---------------- */
+.sk{background:#fff;border-radius:18px;border:1px solid rgba(200,16,46,.08);padding:19px;box-shadow:var(--shadow)}
+.sk i{display:block;height:13px;border-radius:7px;margin-bottom:11px;
+  background:linear-gradient(90deg,#f6ecee 25%,#fdf5f6 37%,#f6ecee 63%);background-size:400% 100%;
+  animation:shim 1.3s ease-in-out infinite}
+.sk i:nth-child(1){width:34%;height:22px}
+.sk i:nth-child(2){width:82%}
+.sk i:nth-child(3){width:66%}
+.sk i:nth-child(4){width:92%;height:52px;border-radius:12px}
+@keyframes shim{0%{background-position:100% 0}100%{background-position:0 0}}
+.empty{background:#fff;border:1px dashed var(--brand-line);border-radius:18px;padding:52px 26px;
+  text-align:center;color:var(--ink2);box-shadow:var(--shadow)}
+.empty .big{font-size:44px;line-height:1;margin-bottom:14px}
+.empty h3{font-size:20px;color:var(--brand-deep);margin:0 0 10px;font-weight:900}
+.empty p{font-size:14px;line-height:2;max-width:640px;margin:0 auto;color:var(--muted)}
+.empty code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12.5px;
+  background:var(--brand-soft);color:var(--brand-deep);padding:2px 7px;border-radius:6px}
+
+/* ---------------- 页脚 ---------------- */
+.lfoot{margin-top:38px;padding-top:20px;border-top:1px solid rgba(200,16,46,.13);
+  font-size:12.5px;color:var(--muted);line-height:2}
+.lfoot b{color:var(--brand-deep)}
+.lfoot .dl{margin-top:10px;padding:14px 16px;border-radius:13px;background:rgba(255,255,255,.72);
+  border:1px solid rgba(200,16,46,.1)}
+
+/* ---------------- toast ---------------- */
+.toast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,20px);z-index:600;
+  padding:11px 20px;border-radius:12px;font-size:14px;font-weight:600;color:#fff;
+  background:linear-gradient(135deg,#3a2a2e,#5d444c);box-shadow:0 12px 34px rgba(58,42,46,.3);
+  opacity:0;pointer-events:none;transition:.24s}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.toast.bad{background:linear-gradient(135deg,#c8102e,#8c0a20);box-shadow:0 12px 34px rgba(200,16,46,.34)}
+.toast.ok{background:linear-gradient(135deg,#0b8a5c,#076b46)}
+
+/* ---------------- 响应式 ---------------- */
+@media (max-width:1080px){ .stats{grid-template-columns:repeat(2,1fr)} }
+@media (max-width:860px){
+  body{font-size:16px}
+  .wrap{padding:12px 14px 60px}
+  .hero h1{font-size:31px}
+  .hero .sub{font-size:14.5px}
+  .grid{grid-template-columns:1fr}
+  .sbox{min-width:100%;max-width:none;order:3}
+  .card .in{padding:15px 15px 0}
+  .cfoot{padding:12px 15px}
+  .lbar .tag{display:none}
+  .st .vl{font-size:28px}
+}
+@media print{
+  .lbar,.bar,.bg-orbs,.toast{display:none!important}
+  .card{break-inside:avoid;box-shadow:none}
+}
+</style>
+</head>
+<body>
+<div class="bg-orbs"><i></i><i></i><i></i><i></i></div>
+
+<div class="wrap">
+  <div class="lbar" id="lbar"></div>
+
+  <header class="hero">
+    <div class="kick">Research Library · 超管与团队成员共享</div>
+    <h1>研究<span>报告库</span></h1>
+    <p class="sub">
+      每一份深度研究都沉淀在这里 —— <b>工作台里的「投资标的」页面点 📄 图标</b>，
+      或在本页点任意卡片，都会打开同一份研报。研报正文存放在云端数据库，
+      可随时修改，无需改代码。
+    </p>
+  </header>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="bar">
+    <div class="sbox">
+      <span>🔍</span>
+      <input id="q" type="search" placeholder="搜索代码 / 名称 / 标题 / 结论关键词…（支持拼音首字母，如 gyby）" autocomplete="off">
+    </div>
+    <div class="chips" id="chips"></div>
+    <span class="sp" style="flex:1"></span>
+    <select class="sel" id="sortBy">
+      <option value="t">按更新时间（新 → 旧）</option>
+      <option value="code">按代码</option>
+      <option value="name">按名称（拼音）</option>
+    </select>
+    <button class="rbtn" onclick="Lib.load(true)">↻ 刷新</button>
+  </div>
+
+  <div class="grid" id="grid"></div>
+  <div id="empty" style="display:none"></div>
+
+  <div class="lfoot">
+    <div><b>矿产战略工作台 · 研究报告库</b>　研报数据来自云端数据库 <code>wb_reports</code>（正文与图表同表分列存放）。</div>
+    <div class="dl">
+      <b>免责声明</b>：本页所有研究内容基于公开数据与量化分析，仅供内部研究参考，不构成任何投资建议。
+      市场有风险，决策需谨慎；数据可能存在延迟或误差，请以官方披露为准。
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>window.WB_CFG = {"envId": "fdels568-d7g1d8o3y90a80cd7", "key": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjU2ZDE5NDk3LTY2OWEtNGNhZi05YTExLTEyMTBmNTIzYzU3MiJ9.eyJpc3MiOiJodHRwczovL2ZkZWxzNTY4LWQ3ZzFkOG8zeTkwYTgwY2Q3LmFwLXNoYW5naGFpLnRjYi1hcGkudGVuY2VudGNsb3VkYXBpLmNvbSIsInN1YiI6ImFub24iLCJhdWQiOiJmZGVsczU2OC1kN2cxZDhvM3k5MGE4MGNkNyIsImV4cCI6NDA5MjU0OTgxNywiaWF0IjoxNzg4ODY2NjE3LCJub25jZSI6IlF0WXFpUUg5VDltMFh4ZTFQVHI2NXciLCJhdF9oYXNoIjoiUXRZcWlRSDlUOW0wWHhlMVBUcjY1dyIsIm5hbWUiOiJBbm9ueW1vdXMiLCJzY29wZSI6ImFub255bW91cyIsInByb2plY3RfaWQiOiJmZGVsczU2OC1kN2cxZDhvM3k5MGE4MGNkNyIsIm1ldGEiOnsicGxhdGZvcm0iOiJQdWJsaXNoYWJsZUtleSJ9LCJyb2xlIjoiYW5vbiIsImlzX2Fub255bW91cyI6dHJ1ZSwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiYW5vbnltb3VzIiwicHJvdmlkZXJzIjpbImFub255bW91cyJdfSwidXNlcl9tZXRhZGF0YSI6eyJuYW1lIjoiQW5vbnltb3VzIn0sInVzZXJfdHlwZSI6IiIsImNsaWVudF90eXBlIjoiY2xpZW50X3VzZXIiLCJpc19zeXN0ZW1fYWRtaW4iOmZhbHNlfQ.AXqVQslECfJHZ7F7qxf52rmrYIjSFcsh_SPOBp_CiTXh8ROxwex0F6-iObaVGMXGYqmZI3X9TXROqAkRARTKcm6nycTCoTr0TdXkooTZLt9adJuLdc_ev75sN2R8Rs5-E9IXoWfaTJyzC2o0sV0YQ9MHOG0_n6TJBPqBHzTXwsrMUP83TosR3PUfCOpFg8dwPwVMwjrWfg85yYdPaDkSlQOFlI5HXRI-Yzos4z-sPwunD6zv7aUr7u-Qlt7CDcjvIwXoQFMmiCO6VsiVnUqBO09iGmGCsABrN3f5llf_wbWkU938azmxJ-lAnuHM5eloJUDhok2j6R48Z5WxoTy73Q"};</script>
+<script>
+/* ============================================================================
+   研究报告库 · 独立页面核心
+   —— 数据全部来自数据库 wb_reports（正文/图表在 wb_report_mods / wb_report_charts）
+   —— 只读列表页：点卡片进 report.html?code=xxx 打开完整研报
+   —— 登录态与工作台共用同一个 localStorage key，所以「谁在看」能直接显示
+   —— 鉴权与研报页保持一致：**只读不拦**（未登录也能看，但不能改）
+   ============================================================================ */
+var CFG  = window.WB_CFG || {envId:'', key:''};
+var REST = CFG.envId ? ('https://' + CFG.envId + '.api.tcloudbasegateway.com/v1/rdb/rest/') : '';
+var COLS = 'id,code,name,kicker,title,subtitle,badges,verdict_html,t,theme,sort';
+var AUTH_KEY = 'wb_auth_v1';
+
+/* ---------------- 拼音首字母搜索（构建时注入锚点表） ---------------- */
+/* ---------------- 拼音首字母（锚点在下方两个常量里） ----------------
+   为什么长这样：常用字表要 10KB+，两个页面各放一份不划算。
+   换成区间定位 —— 浏览器自带的 zh 排序规则本来就按拼音排，把字与 23 个
+   声母锚点两两比，落在哪个区间就取哪个声母，体积只有两个 23 字字符串。
+   锚点表由 build/_calib_pinyin.py 标定：项目真实数据 1706 字 **0 冲突**。
+   ⚠️ 别手改锚点：它不是「每声母找一个代表字」那么随意 ——
+      必须按拼音顺序**夹紧**取下界，否则区间会互相串（踩过，见该脚本注释）。 */
+var PY_L = "abcdefghjklmnopqrstwxyz";
+var PY_A = "\u963f\u4e37\u5693\u5491\u59b8\u53d1\u65ee\u54c8\u4e0c\u5494\u5783\u5463\u62cf\u5594\u5991\u4e03\u5465\u4ee8\u4ed6\u5c72\u5915\u4e2b\u5e00";
+var PY_EXC = {};
+var PY_OK = false;
+var PY_CACHE = {};
+function pyCh(ch){
+  var e = PY_EXC[ch];
+  if(e) return e;
+  var lo = 0, hi = PY_A.length - 1, hit = '';
+  while(lo <= hi){
+    var mid = (lo + hi) >> 1;
+    if(ch.localeCompare(PY_A.charAt(mid), 'zh') >= 0){ hit = PY_L.charAt(mid); lo = mid + 1; }
+    else hi = mid - 1;
+  }
+  return hit;
+}
+function pyInit(s){
+  s = String(s == null ? '' : s);
+  var out = '';
+  for(var i = 0; i < s.length; i++){
+    var c = s.charAt(i), n = c.charCodeAt(0);
+    if(n < 128){
+      if((n >= 48 && n <= 57) || (n >= 97 && n <= 122) || (n >= 65 && n <= 90)) out += c.toLowerCase();
+      continue;
+    }
+    out += pyCh(c);
+  }
+  return out;
+}
+/* 按原串缓存：同一只标的每次按键都重算会很卡（206 只 × 每字一次二分） */
+function pyInitCached(s){
+  var k = String(s == null ? '' : s);
+  var v = PY_CACHE[k];
+  if(v === undefined){ v = pyInit(k); PY_CACHE[k] = v; }
+  return v;
+}
+/* 查「这段文本的拼音首字母里有没有 q」；q 必须已经是纯小写字母数字 */
+function pyHit(src, q){
+  return PY_OK && q && pyInitCached(src).indexOf(q) >= 0;
+}
+/* 自检：环境不支持 zh 排序时（会回落到码点序）**整体禁用** ——
+   宁可不支持拼音搜索，也不能给出错的拼音把用户带偏。 */
+(function(){
+  try{
+    if(PY_A.length !== PY_L.length) return;
+    var t = '贵g研y铂b业y钛t中z国g恒h邦b鲁l西x新x三s蜀s';
+    for(var i = 0; i < t.length; i += 2){
+      if(pyCh(t.charAt(i)) !== t.charAt(i + 1)) return;
+    }
+    PY_OK = true;
+  }catch(e){ PY_OK = false; }
+})();
+
+
+var L = { rows:[], q:'', kind:'', kindIdx:-1, kinds:[], sort:'t',
+          loading:false, err:'', src:'', fromCache:false };
+
+/* ---------------------------------------------------------------- 小工具 */
+function $(id){ return document.getElementById(id); }
+function esc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+/* jsonb 列经 PostgREST 回来通常是数组，但历史上出现过字符串形态 → 一律兜住 */
+function asArr(v){
+  if(v == null) return [];
+  if(Object.prototype.toString.call(v) === '[object Array]') return v;
+  if(typeof v === 'string'){
+    try{ var a = JSON.parse(v); return Object.prototype.toString.call(a) === '[object Array]' ? a : []; }
+    catch(e){ return []; }
+  }
+  return [];
+}
+/* 把 verdict_html 变成一行纯文本摘要（不执行脚本、不残留换行与缩进） */
+function stripHtml(h){
+  if(!h) return '';
+  var d = document.createElement('div');
+  d.innerHTML = String(h);
+  return String(d.textContent || '').replace(/\s+/g, ' ').trim();
+}
+function fdate(s){
+  var t = Date.parse(String(s == null ? '' : s));
+  if(isNaN(t)) return '—';
+  var d = new Date(t);
+  function p(n){ return (n < 10 ? '0' : '') + n; }
+  return p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+function fday(s){
+  var t = Date.parse(String(s == null ? '' : s));
+  if(isNaN(t)) return '—';
+  var d = new Date(t);
+  function p(n){ return (n < 10 ? '0' : '') + n; }
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+}
+function toast(msg, cls){
+  var el = $('toast');
+  el.textContent = msg;
+  el.className = 'toast on' + (cls ? ' ' + cls : '');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(function(){ el.className = 'toast' + (cls ? ' ' + cls : ''); }, 2200);
+}
+
+/* ---------------------------------------------------------------- 登录态（与工作台共用） */
+function authLoad(){
+  var a = null;
+  try{
+    a = JSON.parse(localStorage.getItem(AUTH_KEY) || sessionStorage.getItem(AUTH_KEY) || 'null');
+  }catch(e){ a = null; }
+  if(!a || !a.token) return null;
+  if(a.expire){
+    var t = Date.parse(String(a.expire));
+    if(!isNaN(t) && Date.now() > t) return null;      /* 过期当作未登录 */
+  }
+  return a;
+}
+function roleLabel(r){ return r === 'super' ? '超级管理员' : (r === 'ops' ? '普通管理员' : '成员'); }
+
+/* ---------------------------------------------------------------- 研报分类 */
+/* 类型从标题/kicker 里认，认不出来就统一叫「研究报告」——
+   改文案不用动代码，多一份新类型的研报也能自动多出一个筛选项 */
+function repKind(r){
+  var s = String((r.title || '') + ' ' + (r.kicker || ''));
+  if(/半年报/.test(s))   return {k:'半年报追踪', g:false};
+  if(/一季报|三季报|季报/.test(s)) return {k:'季报追踪', g:true};
+  if(/年报/.test(s))     return {k:'年报追踪', g:true};
+  if(/深度研究/.test(s)) return {k:'深度研究', g:false};
+  return {k:'研究报告', g:true};
+}
+
+/* ---------------------------------------------------------------- 顶部操作条 */
+function renderBar(){
+  var a = authLoad();
+  var userTag = a
+    ? '<span class="tag ok">👤 ' + esc(a.name || a.user || '') + ' · ' + roleLabel(a.role) + '</span>'
+    : '<span class="tag warn">未登录 · 只读浏览</span>';
+  var srcTag = L.err
+    ? '<span class="tag warn">⚠️ 读取失败</span>'
+    : (L.rows.length ? '<span class="tag ok">☁️ 云端数据库</span>' : '<span class="tag">…</span>');
+  var h = '';
+  h += '<span class="brand">矿产战略 · <em>研究报告库</em></span>';
+  h += '<span class="tag" id="lbCnt">' + L.rows.length + ' 份研报</span>';
+  h += srcTag + userTag;
+  h += '<span class="sp"></span>';
+  h += '<button class="rbtn gh" onclick="Lib.back()">← 返回工作台</button>';
+  h += '<button class="rbtn pri" onclick="Lib.load(true)">↻ 刷新数据</button>';
+  $('lbar').innerHTML = h;
+}
+
+/* ---------------------------------------------------------------- 统计条 */
+function renderStats(){
+  var deep = 0, half = 0, latest = '';
+  L.rows.forEach(function(r){
+    var k = repKind(r).k;
+    if(k === '深度研究') deep++;
+    if(k === '半年报追踪') half++;
+    var d = fday(r.t);
+    if(d !== '—' && d > latest) latest = d;
+  });
+  var cards = [
+    {lb:'研报总数',  vl:L.rows.length, u:'份',  nt:'云端数据库实时读取', cls:''},
+    {lb:'深度研究',  vl:deep,          u:'份',  nt:'全维度公司基本面拆解', cls:''},
+    {lb:'半年报追踪',vl:half,          u:'份',  nt:'业绩披露后的跟踪研究', cls:'gold'},
+    {lb:'最近更新',  vl:latest || '—', u:'',    nt:'随时可维护正文与图表', cls:'gold', small:true}
+  ];
+  $('stats').innerHTML = cards.map(function(c, i){
+    return '<div class="st ' + c.cls + '" style="animation-delay:' + (i * 60) + 'ms">' +
+      '<div class="lb">' + c.lb + '</div>' +
+      '<div class="vl"' + (c.small ? ' style="font-size:24px"' : '') + '>' + esc(c.vl) +
+        (c.u ? ' <small>' + c.u + '</small>' : '') + '</div>' +
+      '<div class="nt">' + esc(c.nt) + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+/* ---------------------------------------------------------------- 筛选标签 */
+function renderChips(){
+  L.kinds = [];
+  L.rows.forEach(function(r){
+    var k = repKind(r).k;
+    if(L.kinds.indexOf(k) < 0) L.kinds.push(k);
+  });
+  var h = '<button class="chip' + (L.kind ? '' : ' on') + '" onclick="Lib.setKindIdx(-1)">' +
+          '全部<i>' + L.rows.length + '</i></button>';
+  L.kinds.forEach(function(k, i){
+    var n = L.rows.filter(function(r){ return repKind(r).k === k; }).length;
+    /* ⚠️ 内联 onclick 传**下标**不传名字：板块/类型名里一旦有引号就会破坏属性 */
+    h += '<button class="chip' + (L.kind === k ? ' on' : '') + '" onclick="Lib.setKindIdx(' + i + ')">' +
+         esc(k) + '<i>' + n + '</i></button>';
+  });
+  $('chips').innerHTML = h;
+}
+
+/* ---------------------------------------------------------------- 卡片 */
+function visibleRows(){
+  var q = String(L.q || '').trim().toLowerCase();
+  /* 拼音首字母：查询里没有汉字时才用它（纯英文/数字）→ gyby 命中「贵研铂业」。 */
+  var pq = (q && !/[\u4e00-\u9fa5]/.test(q)) ? q.replace(/[^a-z0-9]/g, '') : '';
+  var rows = L.rows.filter(function(r){
+    if(L.kind && repKind(r).k !== L.kind) return false;
+    if(!q) return true;
+    var fields = [r.code, r.id, r.name, r.title, r.subtitle, r.kicker, stripHtml(r.verdict_html)];
+    var hay = fields.map(function(x){ return String(x == null ? '' : x).toLowerCase(); }).join(' ');
+    if(hay.indexOf(q) >= 0) return true;
+    return pyHit([r.name, r.title, r.subtitle, r.kicker, stripHtml(r.verdict_html)].join(' '), pq);
+  });
+  var dir = 1;
+  if(L.sort === 't'){
+    rows.sort(function(a, b){
+      return (Date.parse(String(b.t || '')) || 0) - (Date.parse(String(a.t || '')) || 0);
+    });
+  } else if(L.sort === 'name'){
+    rows.sort(function(a, b){
+      return String(a.name || '').localeCompare(String(b.name || ''), 'zh');
+    });
+  } else {
+    rows.sort(function(a, b){
+      return String(a.code || a.id || '').localeCompare(String(b.code || b.id || ''));
+    });
+  }
+  return rows;
+}
+function cardHtml(r){
+  var k = repKind(r);
+  var bd = asArr(r.badges).slice(0, 5);
+  var sum = stripHtml(r.verdict_html);
+  var code = String(r.code || r.id || '');
+  return '<a class="card" href="report.html?code=' + encodeURIComponent(code) + '" target="_blank" rel="noopener"' +
+      ' title="打开 ' + esc(code + ' ' + (r.name || '')) + ' 的完整研究报告">' +
+    '<div class="in">' +
+      '<div class="ctop">' +
+        '<span class="code">' + esc(code || '—') + '</span>' +
+        '<span class="nm">' + esc(r.name || '(未命名)') + '</span>' +
+        '<span class="kind' + (k.g ? ' g' : '') + '">' + esc(k.k) + '</span>' +
+      '</div>' +
+      (r.kicker ? '<div class="kick">' + esc(r.kicker) + '</div>' : '') +
+      '<h3 class="ti">' + esc(r.title || '') + '</h3>' +
+      (r.subtitle ? '<p class="sb">' + esc(r.subtitle) + '</p>' : '') +
+      (bd.length ? '<div class="bdg">' + bd.map(function(x){
+          return '<span>' + esc(x) + '</span>';
+        }).join('') + '</div>' : '') +
+      (sum ? '<p class="sum">' + esc(sum) + '</p>' : '') +
+    '</div>' +
+    '<div class="cfoot">' +
+      '<span class="go">打开研报 →</span>' +
+      '<span class="ts">更新于 ' + esc(fdate(r.t)) + '</span>' +
+    '</div>' +
+  '</a>';
+}
+function emptyHtml(){
+  if(L.err){
+    return '<div class="empty"><div class="big">⚠️</div><h3>没能读到研报列表</h3><p>' +
+      esc(L.err) + '<br>可以点右上角「↻ 刷新数据」重试；若在桌面用 file:// 打开，请改用线上链接。</p></div>';
+  }
+  if(L.q || L.kind){
+    return '<div class="empty"><div class="big">🔍</div><h3>没有匹配的研报</h3><p>' +
+      '换个关键词，或点「全部」清掉筛选。</p></div>';
+  }
+  return '<div class="empty"><div class="big">📚</div><h3>还没有研究报告</h3><p>' +
+    '在任一研报页点「＋ 新建研报」，或运行 <code>python extract_report.py</code> ' +
+    '从 PPTX / PDF 生成后推送入库。</p></div>';
+}
+function renderGrid(){
+  var rows = visibleRows();
+  if(!rows.length){
+    $('grid').innerHTML = '';
+    var e = $('empty');
+    e.innerHTML = emptyHtml();
+    e.style.display = '';
+    return;
+  }
+  $('empty').style.display = 'none';
+  $('grid').innerHTML = rows.map(function(r, i){
+    return cardHtml(r).replace('<a class="card"',
+      '<a class="card" style="animation-delay:' + Math.min(i * 40, 320) + 'ms"');
+  }).join('');
+}
+function renderSkel(n){
+  var h = '';
+  for(var i = 0; i < (n || 3); i++) h += '<div class="sk"><i></i><i></i><i></i><i></i></div>';
+  $('grid').innerHTML = h;
+  $('empty').style.display = 'none';
+}
+
+/* ---------------------------------------------------------------- 控制器 */
+var Lib = {
+  back:function(){ location.href = 'index.html'; },
+  setQ:function(v){ L.q = v; renderGrid(); },
+  setKindIdx:function(idx){
+    L.kindIdx = idx;
+    L.kind = (idx < 0 || idx >= L.kinds.length) ? '' : L.kinds[idx];
+    renderChips(); renderGrid();
+  },
+  setSort:function(v){ L.sort = v || 't'; renderGrid(); },
+  load:function(isRetry){
+    if(L.loading) return;
+    L.loading = true; L.err = ''; L.src = '';
+    if(!L.rows.length) renderSkel(3);
+    if(!REST){
+      L.loading = false;
+      L.err = '本机离线模式：页面里没有可用的云端配置，无法读取研报列表。';
+      renderBar(); renderStats(); renderChips(); renderGrid();
+      return;
+    }
+    fetch(REST + 'wb_reports?select=' + COLS + '&order=code.asc',
+          { headers:{ 'Authorization':'Bearer ' + CFG.key }, cache:'no-store' })
+      .then(function(res){
+        if(!res.ok) throw new Error('HTTP ' + res.status + ' ' + res.statusText);
+        return res.json();
+      })
+      .then(function(rows){
+        L.loading = false;
+        L.rows = (rows || []).filter(function(r){ return r && (r.code || r.id); });
+        L.src = 'cloud';
+        /* 类型集合可能变了（新研报、标题改过）→ 旧筛选值若已不存在就退回「全部」 */
+        var ks = [];
+        L.rows.forEach(function(r){ var kk = repKind(r).k; if(ks.indexOf(kk) < 0) ks.push(kk); });
+        if(L.kind && ks.indexOf(L.kind) < 0){ L.kind = ''; L.kindIdx = -1; }
+        renderBar(); renderStats(); renderChips(); renderGrid();
+        if(isRetry) toast('已刷新 · ' + L.rows.length + ' 份研报', 'ok');
+      })
+      .catch(function(e){
+        L.loading = false;
+        L.err = String(e && e.message || e);
+        renderBar(); renderStats(); renderChips(); renderGrid();
+        toast('读取研报列表失败：' + L.err, 'bad');
+      });
+    }
+};
+
+/* ---------------------------------------------------------------- 启动 */
+(function boot(){
+  renderBar();
+  renderStats();
+  renderChips();
+  renderSkel(3);
+  var q = $('q');
+  if(q){
+    q.addEventListener('input', function(){ Lib.setQ(this.value); });
+    q.addEventListener('keydown', function(e){ if(e.key === 'Enter') Lib.setQ(this.value); });
+  }
+  var s = $('sortBy');
+  if(s) s.addEventListener('change', function(){ Lib.setSort(this.value); });
+  Lib.load(false);
+})();
+</script>
+</body>
+</html>

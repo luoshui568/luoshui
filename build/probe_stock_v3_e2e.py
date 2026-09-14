@@ -156,7 +156,7 @@ PROBE = r'''
       R.dlgAccept = (document.getElementById('s-file')||{}).accept || '';
       document.getElementById('s-bulk').value =
         '1600459\n600459 贵研铂业\n600459\n002532 天山铝业\n002532\n601677 明泰铝业\n';
-      App.doImport();
+      App.doImport(window.PASS_OK||{});
       R.importCodes = S.stocks.map(function(x){ return x.code; });
       R.importUniq = R.importCodes.length === (function(a){
         var s={},n=0; a.forEach(function(c){ if(!s[c]){s[c]=1;n++;} }); return n; })(R.importCodes);
@@ -199,7 +199,7 @@ PROBE = r'''
         R.formIndPE = (document.getElementById('s-indpe')||{}).value;
         document.getElementById('s-indpe').value = '99.99';
         document.getElementById('s-region').value = '昆明市';
-        App.saveStock('st_600459');
+        App.saveStock('st_600459', window.PASS_OK||{});
         var r459 = findRow('stocks', 'st_600459');
         R.lockFields = r459.lock_fields;
         R.lockIndPE = r459.ind_pe;
@@ -269,7 +269,9 @@ assert edge, '找不到 msedge.exe'
 print('[3] Edge：%s' % edge)
 
 prof = os.path.join(BASE, 'build', '_probe_profile3')
-shutil.rmtree(prof, ignore_errors=True)
+# ★ 复用固定 profile：不删目录——Edge profile 有 300+ 文件，
+#   rmtree 会触发环境的 safe-delete 批量删除拦截；探针自己会重置状态
+os.makedirs(prof, exist_ok=True)
 url = 'http://127.0.0.1:%d/_probe_stock3.html' % PORT
 cmd = [edge, '--headless=new', '--disable-gpu', '--no-sandbox', '--hide-scrollbars',
        '--user-data-dir=' + prof, '--virtual-time-budget=45000', '--dump-dom', url]
@@ -437,7 +439,9 @@ print('通过 %d 项 · 失败 %d 项' % (ok, fail))
 print('=' * 74)
 
 httpd.shutdown()
-shutil.rmtree(prof, ignore_errors=True)
+# ★ 复用固定 profile：不删目录——Edge profile 有 300+ 文件，
+#   rmtree 会触发环境的 safe-delete 批量删除拦截；探针自己会重置状态
+os.makedirs(prof, exist_ok=True)
 try:
     os.remove(OUT)
 except Exception:

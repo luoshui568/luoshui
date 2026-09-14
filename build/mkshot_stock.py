@@ -89,7 +89,9 @@ shots = [
 for mode, htmlname, png, w, h, budget in shots:
     build_probe(mode)
     prof = os.path.join(OUTDIR, '_shot_prof_%s' % mode)
-    shutil.rmtree(prof, ignore_errors=True)
+    # ★ 复用固定 profile：不删目录——Edge profile 有 300+ 文件，
+    #   rmtree 会触发环境的 safe-delete 批量删除拦截；探针自己会重置状态
+    os.makedirs(prof, exist_ok=True)
     out = os.path.join(OUTDIR, png)
     if os.path.exists(out):
         os.remove(out)
@@ -98,7 +100,9 @@ for mode, htmlname, png, w, h, budget in shots:
            '--virtual-time-budget=%d' % budget, '--screenshot=' + out,
            'http://127.0.0.1:%d/%s' % (PORT, htmlname)]
     subprocess.run(cmd, capture_output=True, timeout=180)
-    shutil.rmtree(prof, ignore_errors=True)
+    # ★ 复用固定 profile：不删目录——Edge profile 有 300+ 文件，
+    #   rmtree 会触发环境的 safe-delete 批量删除拦截；探针自己会重置状态
+    os.makedirs(prof, exist_ok=True)
     print('%-22s -> %s   %s' % (mode, png, ('%d KB' % (os.path.getsize(out)//1024)) if os.path.exists(out) else '失败'))
 
 httpd.shutdown()

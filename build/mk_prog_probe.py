@@ -133,4 +133,6 @@ try:
     print('全部通过' if ok else '存在失败项')
     print('=' * 46)
 finally:
-    shutil.rmtree(prof, ignore_errors=True)
+    # ★ 复用固定 profile：不删目录——Edge profile 有 300+ 文件，
+    #   rmtree 会触发环境的 safe-delete 批量删除拦截；探针自己会重置状态
+    os.makedirs(prof, exist_ok=True)

@@ -1,6 +1,24 @@
 # -*- coding: utf-8 -*-
-"""真实环境端到端：起本地 http 服务 → headless 浏览器跑完整登录/删除/退出链路"""
+"""真实环境端到端：起本地 http 服务 → headless 浏览器跑完整登录/删除/退出链路
+
+⚠️ **已被取代（2026-09-14 复跑发现失效），保留仅作历史参照。**
+   失效点在前半段之后：`App.openAdmCreate()` 现在挂了**写操作门禁**
+   （`FORM_GUARD` 名单里有它），调用时先弹密码层、真正的表单还没渲染，
+   于是 `document.getElementById('na-user')` 是 null → 探针在 E5 阶段报
+   `Cannot set properties of null`。这不是功能坏了，是**旧探针没带哨兵**。
+   登录 / 新增任务 / 错误密码被拒 / 正确密码删除这几段仍然有效（本轮已复跑确认）。
+   写操作门禁的完整验收请用 `build/probe_gate_e2e.py`（115 项，含「入口层」与「提交层」两层）。
+"""
 import io, os, json, subprocess, threading, http.server, socketserver, functools, shutil, re, sys
+
+# ── 管理员口令不入库：优先 build/_secret.py（已 gitignore），其次环境变量 WB_PW ──
+import os as _os
+try:
+    from _secret import PW
+except Exception:
+    PW = _os.environ.get('WB_PW', '')
+if not PW:
+    raise SystemExit('缺少管理员口令：请创建 build/_secret.py（PW = "…"）或设 WB_PW 环境变量')
 
 BUILD = os.path.dirname(os.path.abspath(__file__))
 DEPLOY = os.path.abspath(os.path.join(BUILD, '..', 'deploy'))
@@ -23,7 +41,7 @@ setTimeout(function(){
     __out.authedAtStart = !!Auth.token;
     __out.localBarShown = getComputedStyle(document.getElementById('localBar')).display !== 'none';
     document.getElementById('g-user').value = 'luoshui';
-    document.getElementById('g-pass').value = '981208';
+    document.getElementById('g-pass').value = '__PW__';
     App.login();
     setTimeout(__s2, 3500);
   }catch(e){ document.title = 'E1|'+e.message; }
@@ -62,7 +80,7 @@ function __s4(){
   try{
     __out.wrongPassModalStillOpen = document.getElementById('mask').className.indexOf('on')>=0;
     __out.worksAfterWrongPass = S.works.length;
-    document.getElementById('del-pass').value = '981208';
+    document.getElementById('del-pass').value = '__PW__';
     App.confirmDelete();
     setTimeout(__s5, 3500);
   }catch(e){ document.title='E4|'+e.message+'@@'+JSON.stringify(__out); }
@@ -77,7 +95,7 @@ function __s5(){
     document.getElementById('na-user').value = 'zz_ops_probe';
     document.getElementById('na-name').value = '探针账号';
     document.getElementById('na-pass').value = 'probe-123456';
-    App.saveAdmCreate();
+    App.saveAdmCreate(window.PASS_OK||{});
     setTimeout(__s6, 3000);
   }catch(e){ document.title='E5|'+e.message+'@@'+JSON.stringify(__out); }
 }
@@ -87,7 +105,7 @@ function __s6(){
     __out.admRows = document.querySelectorAll('#admList .admRow').length;
     __out.hasProbeAcct = document.getElementById('admList').textContent.indexOf('zz_ops_probe')>=0;
     App.admDelete('zz_ops_probe');
-    document.getElementById('del-pass').value = '981208';
+    document.getElementById('del-pass').value = '__PW__';
     App.confirmDelete();
     setTimeout(__s7, 3000);
   }catch(e){ document.title='E6|'+e.message+'@@'+JSON.stringify(__out); }
@@ -111,7 +129,7 @@ function __s8(){
 }
 </script>'''
 
-io.open(PROBE, 'w', encoding='utf-8').write(s.replace('</body>', PROBE_JS + '\n</body>'))
+io.open(PROBE, 'w', encoding='utf-8').write(s.replace('</body>', PROBE_JS.replace('__PW__', PW) + '\n</body>'))
 
 Handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=DEPLOY)
 class Q(socketserver.TCPServer):
@@ -122,7 +140,9 @@ print('本地服务已启动: http://127.0.0.1:%d/' % PORT)
 
 prof = os.path.join(BUILD, '_prof_auth')
 if os.path.isdir(prof):
-    shutil.rmtree(prof, ignore_errors=True)
+    # ★ 复用固定 profile：不删目录——Edge profile 有 300+ 文件，
+    #   rmtree 会触发环境的 safe-delete 批量删除拦截；探针自己会重置状态
+    os.makedirs(prof, exist_ok=True)
 edge = r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
 cmd = [edge, '--headless=new', '--disable-gpu', '--no-sandbox',
        '--user-data-dir=' + prof, '--virtual-time-budget=40000', '--dump-dom',

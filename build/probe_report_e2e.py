@@ -12,6 +12,12 @@
   H. 工作台投资标的表格：名称/代码是 report.html?code=… 链接、操作列有 📄 按钮、App.openReport 能开
   I. 两页 JS 错误必须为 0
 
+⚠️ 写操作一律要带「已通过密码」哨兵：`Rpt.xxx(RPASS_OK)`。
+   模板末尾的 RGATE 会给 toggleEdit / svMod / svHead / svChart 等包一层密码框，
+   裸调 `Rpt.svMod()` 只会弹出 #rptPMask 然后什么都不做 —— 表现为
+   「编辑模式没开、5 条保存类断言一起假失败」（2026-09 踩过，改回去就复发）。
+   哨兵 `RPASS_OK` 是模板里的全局对象，探针脚本在页面里跑，能直接引用。
+
 用法：python build/probe_report_e2e.py
 """
 import http.server
@@ -80,7 +86,8 @@ RPT_PROBE = r'''
      回归：openMod/openChart 先设 UI.selX 再调 openDrawer，而 openDrawer 会清空 selX →
      以前点「✏️ 编辑本模块 / 图表数据」只会看到列表（表现为按钮点了没反应）。 */
   function editStage(){
-    Rpt.toggleEdit();
+    /* ⚠️ 带哨兵 = 视为「密码已通过」；裸调会弹 #rptPMask 什么都不做（见文件头注释） */
+    Rpt.toggleEdit(RPASS_OK);
     R.editing = document.documentElement.className;
     R.opsBtns = document.querySelectorAll('#mods .rpt-ops').length;
     /* ⚠️ .rpt-cops 是 renderCharts() 里挂的，而 renderCharts 在 setTimeout(…,40) 之后才跑，
@@ -132,7 +139,7 @@ RPT_PROBE = r'''
       R.editChartCols = [].map.call(document.querySelectorAll('.rpt-grid thead th'), function(e){
         return e.textContent.trim(); });
       Rpt.closeDrawer();
-      Rpt.toggleEdit();
+      Rpt.toggleEdit(RPASS_OK);
       R.editingOff = document.documentElement.className;
     });
   }
@@ -154,7 +161,7 @@ RPT_PROBE = r'''
       /* (1) 打开编辑器 → 什么都不改直接保存 → 库里必须逐字不变（防「打开-保存」洗排版） */
       Rpt.openMod(MID);
       R.rte.opened = !!$('m-edit');
-      Rpt.svMod();
+      Rpt.svMod(RPASS_OK);
       return wait(900);
     }).then(function(){ return getModHtml(MID); })
       .then(function(h){
@@ -170,7 +177,7 @@ RPT_PROBE = r'''
         try{ box.dispatchEvent(new Event('input', {bubbles:true})); }
         catch(e){ UI.rteDirty['m-edit'] = 1; }
         R.rte.dirtyFlag = UI.rteDirty['m-edit'] === 1;
-        Rpt.svMod();
+        Rpt.svMod(RPASS_OK);
         return wait(900);
       })
       .then(function(){ return getModHtml(MID); })
@@ -388,7 +395,10 @@ RPT_PROBE = r'''
     var origTitle = orig.title;
     var origKpi = (orig.kpis || [])[0] || {};
     var NEWT = String(origTitle) + ' 【探针】';
-    R.hw = {origTitle: origTitle, newTitle: NEWT, origKpiVal: origKpi.val};
+    R.hw = {origTitle: origTitle, newTitle: NEWT, origKpiVal: origKpi.val,
+            /* 无关字段快照：保存链路只该改标题 + KPI，别的字段被动过就必须报出来
+               —— 曾经把 kpi_note 静默写成别的字符串，靠 verify_report_db.py 才发现 */
+            origNote: orig.kpi_note, origKicker: orig.kicker, origSub: orig.subtitle};
 
     Rpt.openDrawer('head');
     R.hw.maskOn = ($('rptMask').className || '').indexOf('on') >= 0;
@@ -402,10 +412,10 @@ RPT_PROBE = r'''
 
     $('h-title').value = NEWT;
     if(kval) kval.value = '27.99';
-    Rpt.svHead();
+    Rpt.svHead(RPASS_OK);
 
     return wait(1800).then(function(){
-      return api('wb_reports?id=eq.' + CD + '&select=title,kpis,up');
+      return api('wb_reports?id=eq.' + CD + '&select=title,kpis,kpi_note,kicker,subtitle,up');
     }).then(function(rows){
       var r0 = (rows && rows[0]) || {};
       R.hw.dbTitle = r0.title;
@@ -415,15 +425,19 @@ RPT_PROBE = r'''
       var t2 = $('h-title'); if(t2) t2.value = origTitle;
       var k2 = document.querySelector('#kpiEdit tr[data-k] [data-f="val"]');
       if(k2) k2.value = origKpi.val;
-      Rpt.svHead();
+      Rpt.svHead(RPASS_OK);
       return wait(1800);
     }).then(function(){
-      return api('wb_reports?id=eq.' + CD + '&select=title,kpis');
+      return api('wb_reports?id=eq.' + CD + '&select=title,kpis,kpi_note,kicker,subtitle');
     }).then(function(rows){
       var r0 = (rows && rows[0]) || {};
       R.hw.dbTitleBack = r0.title;
       R.hw.dbKpiBack = r0.kpis && r0.kpis[0] ? r0.kpis[0].val : null;
       R.hw.restoredOk = (r0.title === origTitle) && (String(R.hw.dbKpiBack) === String(origKpi.val));
+      /* 无关字段必须一字未动 */
+      R.hw.noteAfter = r0.kpi_note;
+      R.hw.untouched = (r0.kpi_note === R.hw.origNote) && (r0.kicker === R.hw.origKicker) &&
+                       (r0.subtitle === R.hw.origSub);
       Rpt.closeDrawer();
     });
   }
@@ -449,7 +463,7 @@ RPT_PROBE = r'''
     if(!cell){ Rpt.closeDrawer(); return Promise.resolve(); }
     R.cw.cellOld = cell.value;
     cell.value = newV;
-    Rpt.svChart();
+    Rpt.svChart(RPASS_OK);
 
     return wait(2000).then(function(){
       return api('wb_report_charts?id=eq.' + CD + '_' + key + '&select=opt,name');
@@ -460,7 +474,7 @@ RPT_PROBE = r'''
       /* 还原 1：把格子改回原值 → 走界面保存 */
       var c2 = document.querySelector('.rpt-grid input[data-r="0"][data-c="1"]');
       if(c2) c2.value = R.cw.cellOld;
-      Rpt.svChart();
+      Rpt.svChart(RPASS_OK);
       return wait(2000);
     }).then(function(){
       return api('wb_report_charts?id=eq.' + CD + '_' + key + '&select=opt');
@@ -644,7 +658,9 @@ def edge_path():
 
 
 def run_probe(edge, url, tag, prof):
-    shutil.rmtree(prof, ignore_errors=True)
+    # ★ 复用固定 profile：不删目录——Edge profile 有 300+ 文件，
+    #   rmtree 会触发环境的 safe-delete 批量删除拦截；探针自己会重置状态
+    os.makedirs(prof, exist_ok=True)
     cmd = [edge, '--headless=new', '--disable-gpu', '--no-sandbox', '--hide-scrollbars',
            '--window-size=1680,1050',
            '--user-data-dir=' + prof, '--virtual-time-budget=90000', '--dump-dom', url]
@@ -881,6 +897,8 @@ chk('表单回填了数据库里的原值', str(hw.get('kValFromForm')) == str(h
     '%r vs %r' % (hw.get('kValFromForm'), hw.get('origKpiVal')))
 chk('改标题 + 改 KPI → 保存后数据库真的变了', hw.get('savedOk') is True, hw)
 chk('还原后数据库与改动前一致', hw.get('restoredOk') is True, hw)
+chk('保存链路没有波及无关字段（kpi_note / kicker / subtitle）', hw.get('untouched') is True,
+    'note: %r → %r' % (hw.get('origNote'), hw.get('noteAfter')))
 
 print('\n── F. 保存到数据库：图表数据表 ──')
 cw = d.get('cw') or {}

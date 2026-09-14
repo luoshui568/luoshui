@@ -26,6 +26,12 @@ s = open(SRC, encoding='utf-8').read()
 
 onerr = ('<script>window.__R={err:[],stage:"init"};'
          'window.onerror=function(m,u,l,c,e){window.__R.err.push(String(m)+" @"+l);};'
+         # ★★ 固定 profile 的**跨轮残留**必须在这里清掉，且要在应用脚本之前：
+         #    上一轮探针（尤其门禁那套）会往 localStorage 里留下"真实标的"，
+         #    下一轮一进来就已经有数据 →「空态先渲染」这条必然挂，
+         #    而且看起来像功能坏了（本轮就遇上了）。
+         'try{localStorage.removeItem("wb_strategy_v1");'
+         'sessionStorage.removeItem("wb_auth_v1");sessionStorage.clear();}catch(e){}'
          '</script>')
 assert '<head>' in s
 s = s.replace('<head>', '<head>\n' + onerr, 1)
@@ -100,6 +106,26 @@ probe = """
         App.stockKw('');
         window.__R.restored = document.getElementById('stockWrap').querySelectorAll('tbody tr').length;
 
+        /* 6) ★ 拼音首字母搜索：gyby → 贵研铂业；zgly → 中国铝业
+             —— 锚点表由 build.py 注入（见 build/_calib_pinyin.py 标定） */
+        function rows(){ return document.getElementById('stockWrap').querySelectorAll('tbody tr'); }
+        function first(){ var r = rows(); return r.length ? r[0].textContent : ''; }
+        window.__R.pyOk = PY_OK;
+        App.stockKw('gyby');
+        window.__R.pyN = rows().length;
+        window.__R.pyTxt = first();
+        App.stockKw('zgly');
+        window.__R.pyN2 = rows().length;
+        window.__R.pyTxt2 = first();
+        App.stockKw('zzzz');          /* 乱输不该命中 */
+        window.__R.pyN3 = rows().length;
+        App.stockKw('');
+        window.__R.pyBack = rows().length;
+        /* 汉字原文搜索不能被拼音影响 */
+        App.stockKw('贵研');
+        window.__R.cnN = rows().length;
+        App.stockKw('');
+
         window.__R.stage = 'done';
         out();
       }).catch(function(e){ window.__R.err.push('sync:' + (e && e.message)); out(); });
@@ -152,8 +178,9 @@ assert edge and os.path.exists(edge), '找不到 msedge.exe'
 print('[3] Edge：%s' % edge)
 
 prof = os.path.join(BASE, 'build', '_probe_profile')
-shutil.rmtree(prof, ignore_errors=True)
-
+# ★ 复用固定 profile：不删目录——Edge profile 有 300+ 文件，
+#   rmtree 会触发环境的 safe-delete 批量删除拦截；探针自己会重置状态
+os.makedirs(prof, exist_ok=True)
 url = 'http://127.0.0.1:%d/_probe_stock.html' % PORT
 cmd = [edge, '--headless=new', '--disable-gpu', '--no-sandbox', '--hide-scrollbars',
        '--user-data-dir=' + prof, '--virtual-time-budget=25000',
@@ -220,7 +247,14 @@ else:
         (got[0] if got else {}).get('qd'))
 
     ui = d.get('ui') or {}
-    chk('表格 20 列（19 字段 + 操作）', ui.get('th') == 20, ui.get('th'))
+    # ★ 列数**别写死**：写过 20，结果上一轮加了「板块」列就变 21 → 必然过期的假失败。
+    #   改成「表头与首行单元格数一致 + 至少 20 列 + 关键列都在」。
+    th, td = ui.get('th'), ui.get('tdCount')
+    thText = ui.get('thText') or []
+    chk('表格列数自洽（表头 = 首行单元格）且 ≥20', th == td and (th or 0) >= 20, 'th=%s td=%s' % (th, td))
+    chk('关键列齐全（代码/名称/板块/操作）',
+        all(any(k in t for t in thText) for k in ['代码', '名称', '板块', '操作']),
+        ' | '.join(thText))
     chk('表格 6 行', ui.get('tr') == 6, ui.get('tr'))
     chk('涨幅单元格带 % 与符号', '%' in (ui.get('chgCell') or ''), ui.get('chgCell'))
     chk('KPI 有内容', len(ui.get('kpi') or '') > 20, ui.get('kpi'))
@@ -234,6 +268,14 @@ else:
     chk('点击表头排序生效', (d.get('sortK') or '').startswith('mkt_cap'), d.get('sortK'))
     chk('搜索筛选生效（600459 → 1 行）', d.get('filtered') == 1, d.get('filtered'))
     chk('清空搜索恢复 6 行', d.get('restored') == 6, d.get('restored'))
+    chk('拼音自检 PY_OK（环境支持 zh 排序）', d.get('pyOk') is True, d.get('pyOk'))
+    chk('★ 拼音首字母搜 gyby → 1 行且是贵研铂业',
+        d.get('pyN') == 1 and '贵研铂业' in (d.get('pyTxt') or ''), d.get('pyTxt'))
+    chk('★ 拼音首字母搜 zgly → 1 行且是中国铝业',
+        d.get('pyN2') == 1 and '中国铝业' in (d.get('pyTxt2') or ''), d.get('pyTxt2'))
+    chk('★ 乱输首字母 zzzz → 0 行（不误命中）', d.get('pyN3') == 0, d.get('pyN3'))
+    chk('★ 汉字原文搜索不受拼音影响（贵研 → 1 行）', d.get('cnN') == 1, d.get('cnN'))
+    chk('清空搜索恢复 6 行（拼音之后）', d.get('pyBack') == 6, d.get('pyBack'))
 
     push = d.get('push') or {}
     chk('云端回写走 upsert on_conflict=code', 'wb_stocks?on_conflict=code' == (push.get('table') or ''), push.get('table'))
@@ -250,7 +292,9 @@ else:
     print('=' * 68)
 
 httpd.shutdown()
-shutil.rmtree(prof, ignore_errors=True)
+# ★ 复用固定 profile：不删目录——Edge profile 有 300+ 文件，
+#   rmtree 会触发环境的 safe-delete 批量删除拦截；探针自己会重置状态
+os.makedirs(prof, exist_ok=True)
 try:
     os.remove(OUT)
 except Exception:

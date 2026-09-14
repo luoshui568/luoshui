@@ -54,7 +54,9 @@ def shot(mode, js, png, w, hh):
                         'file:///' + PROBE.replace('\\', '/')],
                        capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=120)
     finally:
-        shutil.rmtree(prof, ignore_errors=True)
+        # ★ 复用固定 profile：不删目录——Edge profile 有 300+ 文件，
+        #   rmtree 会触发环境的 safe-delete 批量删除拦截；探针自己会重置状态
+        os.makedirs(prof, exist_ok=True)
     p = os.path.join(OUT, png)
     print(('[OK]  ' if os.path.exists(p) else '[FAIL]') + ' ' + png +
           ('  %d KB' % (os.path.getsize(p) // 1024) if os.path.exists(p) else ''))

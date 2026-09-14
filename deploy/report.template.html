@@ -194,7 +194,7 @@ table.rpt-grid td.ix{width:38px;text-align:center;color:#c0a8ac;font-size:11px}
 table.rpt-grid tr:hover td{background:#fffafb}
 
 /* 提示条 */
-.rpt-toast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,20px);z-index:400;
+.rpt-toast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,20px);z-index:600;
   padding:11px 20px;border-radius:12px;font-size:13.5px;font-weight:600;color:#fff;
   background:linear-gradient(135deg,#8c0a20,#c8102e);box-shadow:0 10px 30px rgba(140,10,32,.3);
   opacity:0;pointer-events:none;transition:.24s;max-width:80vw;text-align:center}
@@ -214,6 +214,16 @@ table.rpt-grid tr:hover td{background:#fffafb}
   font-size:12.5px;color:#8c0a20;line-height:1.9;margin-bottom:12px}
 .rpt-pbox .err{color:#c8102e;font-size:12.5px;min-height:18px}
 .rpt-pbox .ft{display:flex;gap:8px;justify-content:flex-end;padding:0 18px 16px}
+.rpt-pbox .rkeep{display:flex;align-items:flex-start;gap:7px;font-size:12.2px;color:#7d5b60;
+  margin:2px 0 8px;cursor:pointer;user-select:none;line-height:1.55}
+/* ⚠️ 文字必须裹在单个 <span>：flex 会把每段文本 / 每个内联元素当独立子项横排，
+   否则「…仍需输入（<b>…</b>）」会被拆成三列、括号飘到下一行。 */
+.rpt-pbox .rkeep>span{flex:1 1 auto;min-width:0}
+.rpt-pbox .rkeep input{width:15px;height:15px;accent-color:#c8102e;margin:0;margin-top:1px;flex:0 0 auto;cursor:pointer}
+.rpt-pbox .rkeep b{color:#8c0a20}
+.rbtn.red{background:linear-gradient(135deg,#a3122a,#8c0a20);color:#fff;border-color:transparent;
+  box-shadow:0 4px 14px -6px rgba(140,10,32,.85)}
+.rbtn.red:hover{background:linear-gradient(135deg,#b81530,#9c0b23)}
 .shake{animation:rptShake .38s}
 @keyframes rptShake{0%,100%{transform:none}20%{transform:translateX(-7px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
 
@@ -222,8 +232,8 @@ table.rpt-grid tr:hover td{background:#fffafb}
 @keyframes rptIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 
 @media print{
-  .rbar,.rpt-ops,.rpt-toolbar,.rpt-toast{display:none!important}
-  body{background:#fff}
+  .rbar,.rpt-ops,.rpt-toolbar,.rpt-toast,nav.toc{display:none!important}
+  body{background:#fff;padding:0!important}
 }
 @media (max-width:820px){
   .rpt-drawer{width:100vw}
@@ -273,6 +283,7 @@ var St = {
   edit:false, inst:{}
 };
 var UI = {tab:'head', selMod:'', selChart:'', preview:false, confirmCb:null,
+          confirmAct:'删除', confirmDanger:true,
           rteDirty:{}, rteSrcOrig:{}};
 
 /* ---------------------------------------------------------------- 小工具 */
@@ -345,6 +356,53 @@ function persistAuth(r, remember){
 function authClear(){
   Auth.token = ''; Auth.user = ''; Auth.name = ''; Auth.role = '';
   try{ localStorage.removeItem(AUTH_KEY); sessionStorage.removeItem(AUTH_KEY); }catch(e){}
+  rptPassStamp(false);        /* 退出登录即清掉「免重复输入」的放行窗口 */
+  if(typeof rTickClear === 'function') rTickClear();   /* 编辑会话票据也一并作废 */
+}
+
+/* ---------------------------------------------------------------- 写操作密码门禁
+   与工作台同一套语义：删除 / 覆盖导入永远要输密码；保存 / 修改可勾 15 分钟免重复输入。
+   桌面文件版（file://）连不上云端 → 退化为本机哈希校验，明文不落盘。 */
+var RPASS_FRESH_KEY = 'rpt_pass_fresh_v1';
+var RPASS_HASH_KEY  = 'wb_pass_h_v1';        /* 与工作台共用同一个本机校验密码 */
+var RPASS_FRESH_MS  = 15 * 60 * 1000;
+function rptPassFresh(){
+  try{ return (parseInt(sessionStorage.getItem(RPASS_FRESH_KEY) || '0', 10) || 0) > Date.now(); }
+  catch(e){ return false; }
+}
+function rptPassStamp(on){
+  try{
+    if(on) sessionStorage.setItem(RPASS_FRESH_KEY, String(Date.now() + RPASS_FRESH_MS));
+    else sessionStorage.removeItem(RPASS_FRESH_KEY);
+  }catch(e){}
+}
+function rptHashPass(p){
+  var s = 'wb-pass|' + String(p);
+  if(window.crypto && crypto.subtle && crypto.subtle.digest && window.TextEncoder){
+    try{
+      return crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)).then(function(buf){
+        var b = new Uint8Array(buf), h = '';
+        for(var i = 0; i < b.length; i++) h += (b[i] < 16 ? '0' : '') + b[i].toString(16);
+        return h;
+      });
+    }catch(e){}
+  }
+  var h2 = 5381;
+  for(var j = 0; j < s.length; j++) h2 = ((h2 * 33) ^ s.charCodeAt(j)) >>> 0;
+  return Promise.resolve('d' + h2.toString(16));
+}
+function localPassCheck(pass, onOk, onBad){
+  var has = null;
+  try{ has = localStorage.getItem(RPASS_HASH_KEY); }catch(e){}
+  rptHashPass(pass).then(function(h){
+    if(!has){
+      try{ localStorage.setItem(RPASS_HASH_KEY, h); }catch(e){}
+      toast('已把本次密码记为本机校验密码（仅存哈希）', 'ok');
+      onOk(); return;
+    }
+    if(h === has){ onOk(); return; }
+    onBad('本机密码不正确，操作已取消');
+  }).catch(function(){ onBad('本机校验失败，操作已取消'); });
 }
 
 /* ---------------------------------------------------------------- 读取 */
@@ -420,6 +478,7 @@ function renderBar(){
   h += '<span class="rb-tag">' + St.mods.length + ' 个模块 · ' + St.chartKeys.length + ' 张图表</span>';
   h += '<span class="rb-sp"></span>';
   if(St.src === 'cloud') h += '<span class="rb-tag">数据存于数据库 · 可编辑</span>';
+  h += '<button class="rbtn" onclick="Rpt.lib()">📚 全部研报</button>';
   h += '<button class="rbtn" onclick="Rpt.back()">← 返回工作台</button>';
   h += '<button class="rbtn' + (St.edit ? ' on' : '') + '" id="rbEdit" onclick="Rpt.toggleEdit()">' +
         (St.edit ? '✅ 完成编辑' : '✏️ 编辑数据') + '</button>';
@@ -463,10 +522,47 @@ function renderKpis(){
 
 function renderToc(){
   var t = (St.rep && St.rep.toc) || [];
-  $('toc').innerHTML = t.map(function(x){
-    return '<a href="#' + attr(x.anchor) + '">' + esc(x.text) + '</a>';
+  $('toc').innerHTML = t.map(function(x, i){
+    return '<a href="#' + attr(x.anchor) + '" data-i="' + (i + 1) + '">' + esc(x.text) + '</a>';
   }).join('');
   $('toc').style.display = t.length ? '' : 'none';
+  tocSpy();
+}
+
+/* 左侧竖排目录：滚动时高亮当前模块（顶部操作条会压住定位点，预留 110px 余量） */
+function tocSpy(){
+  var box = $('toc');
+  if(!box) return;
+  var as = box.querySelectorAll('a');
+  if(!as.length) return;
+  var cur = 0;
+  for(var i = 0; i < as.length; i++){
+    var id = String(as[i].getAttribute('href') || '').replace(/^#/, '');
+    var el = id ? document.getElementById(id) : null;
+    if(!el) continue;
+    var rc = el.getBoundingClientRect();
+    /* ⚠️ display:none 的模块 rect 全是 0，会被误判成「已经在视口上方」→ 必须跳过 */
+    if(!rc.height) continue;
+    if(rc.top <= 110) cur = i;
+  }
+  var de = document.documentElement;
+  if(window.innerHeight + window.pageYOffset >= de.scrollHeight - 8) cur = as.length - 1;
+  for(var j = 0; j < as.length; j++){
+    if(j === cur){ if(as[j].className !== 'on') as[j].className = 'on'; }
+    else if(as[j].className){ as[j].className = ''; }
+  }
+  /* 目录条本身可滚动时（手机上横向 / 条数多时纵向），把当前项带进可视区 */
+  var a = as[cur];
+  if(box.scrollWidth > box.clientWidth + 4){
+    box.scrollLeft = Math.max(0, a.offsetLeft - (box.clientWidth - a.offsetWidth) / 2);
+  } else if(box.scrollHeight > box.clientHeight + 4){
+    box.scrollTop = Math.max(0, a.offsetTop - (box.clientHeight - a.offsetHeight) / 2);
+  }
+}
+var _tocTick = 0;
+function tocSpySoon(){
+  if(_tocTick) return;
+  _tocTick = setTimeout(function(){ _tocTick = 0; tocSpy(); }, 90);
 }
 
 function renderMods(){
@@ -509,6 +605,22 @@ var FNS = {
   nullDash: function(){ return function(p){ return p.value == null ? '—' : p.value; }; },
   unit: function(u){ return function(v){ return (v == null ? '—' : v) + u; }; },
   valUnit: function(u){ return function(p){ return p.value + u; }; },
+  /* 指定数据点覆盖标签：第 idx 个点写成固定文案，其余照常显示数值
+     （底稿里出现过：某年实际为负值 / 需附同比，标签要写成特例）
+     ⚠️ 标记里不能带花括号，所以用 @c@ 代表「该点的数值」，这里自己拼进去。
+
+     ★★ 血泪坑（贵研铂业 chartRev 踩过）：**绝不能返回字面量 '{c}'**。
+        ECharts 只在 `formatter` 是**字符串模板**时才做 {a}/{b}/{c} 替换；
+        一旦 formatter 是函数，返回值原样输出 → 图上会把 "{c}" 直接画出来。
+        所以这里统一自己把数值拼好，目标点用文案、其余点用数值。 */
+  idxText: function(a){
+    var n = parseFloat(a[0]), t = a.slice(1).join(':');
+    return function(p){
+      var v = (p.value == null ? '' : p.value);
+      if(p.dataIndex === n) return String(t).replace(/@c@/g, v);
+      return v;
+    };
+  },
   idxColorList: function(list){
     return function(p){ return list[p.dataIndex] || list[0]; };
   },
@@ -562,6 +674,7 @@ function mkFn(token, opt){
   if(!f) return undefined;
   if(name === 'idxColorList')  return f(arg.split(','));
   if(name === 'idxColorBreak') return f(arg.split(':'));
+  if(name === 'idxText')       return f(arg.split(':'));
   if(name === 'stackSum')      return f(arg, opt);
   if(name === 'forecastTip')   return f(arg, opt);
   return f(arg, opt);
@@ -670,6 +783,10 @@ function renderToolbars(){
 window.addEventListener('resize', function(){
   for(var k in St.inst){ try{ St.inst[k].resize(); }catch(e){} }
 });
+/* 左侧竖排目录：滚动 / 尺寸变化时刷新当前模块高亮 */
+window.addEventListener('scroll', tocSpySoon, {passive:true});
+window.addEventListener('resize', tocSpySoon);
+window.addEventListener('hashchange', tocSpySoon);
 
 /* ---------------------------------------------------------------- 启动 */
 function boot(){
@@ -687,7 +804,8 @@ else boot();
 /* ============================================================================
    研报页 · 编辑（数据管理面板）
    —— 改标题 / 改正文 / 改表格里的数字 / 改图表数据，全部直接写回数据库
-   —— 删除走管理员密码（服务端 wb_admin_delete_row 校验）
+   —— ★ 凡是会改数据的入口（进入编辑模式 / 保存 / 新增 / 删除 / 覆盖导入）都要管理员密码，
+      由服务端 wb_admin_verify 校验；删除另走 wb_admin_delete_row。
    ============================================================================ */
 var MOD_SKELETON = [
   '公司简介', '公司历史沿革', '股东结构', '实控人与集团背景', '业务及产品',
@@ -701,6 +819,8 @@ var MOD_SKELETON = [
 var Rpt = {
   /* ---------------- 导航 ---------------- */
   back: function(){ location.href = 'index.html'; },
+  /* 研报库（独立页面 research.html）：列出云端全部研报 —— 与工作台侧栏的「研究报告」同一页 */
+  lib:  function(){ location.href = 'research.html'; },
   go: function(id){ location.replace(location.pathname + '?code=' + enc(id)); },
   toggleEdit: function(){
     St.edit = !St.edit;
@@ -717,7 +837,7 @@ var Rpt = {
     this.renderDrawer();
     $('rptMask').className = 'rpt-mask on';
   },
-  closeDrawer: function(){ $('rptMask').className = 'rpt-mask'; },
+  closeDrawer: function(){ $('rptMask').className = 'rpt-mask'; rTickClear(); },
   tab: function(t){ UI.tab = t; UI.selMod = ''; UI.selChart = ''; this.renderDrawer(); },
   openMod: function(id){ UI.tab = 'mods'; UI.selMod = id; UI.selChart = ''; this.openDrawer('mods', true); },
   openChart: function(key){ UI.tab = 'charts'; UI.selChart = key; UI.selMod = ''; this.openDrawer('charts', true); },
@@ -1060,27 +1180,44 @@ var Rpt = {
     }catch(e){ toast('导出失败：' + String(e.message), 'bad'); }
   },
 
-  /* ---------- 管理员密码 ---------- */
-  askPass: function(label, cb){
+  /* ---------- 写操作密码确认 ----------
+     opts = {act:'保存'|'删除'|'新增'|'修改'|'导入', danger:bool}
+     删除、覆盖导入这类不可逆操作永远要输密码；高频「保存 / 修改」可勾
+     「15 分钟内免重复输入」（sessionStorage，关标签或退出登录即失效）。 */
+  askPass: function(label, cb, opts){
+    opts = opts || {};
+    var act = opts.act || '删除';
+    var danger = (opts.danger !== undefined) ? !!opts.danger : (act === '删除');
+    if(!danger && rptPassFresh()){ if(cb) cb(''); return; }
+    UI.confirmAct = act;
+    UI.confirmDanger = danger;
     UI.confirmCb = cb;
     var last = '';
     try{ last = localStorage.getItem(AUTH_LAST_USER) || ''; }catch(e){}
+    var offline = (!REST) || location.protocol === 'file:';
     $('rptPMask').innerHTML =
       '<div class="rpt-pbox" id="rptPBox" onclick="event.stopPropagation()">' +
-        '<div class="hd">🔒 管理员验证</div>' +
+        '<div class="hd">🔒 管理员密码确认</div>' +
         '<div class="bd">' +
-          '<div class="warn">⚠️ <b>此操作不可撤销</b><br>' + esc(label) + '<br>' +
-            '请求会带上密码提交到云端函数校验，通过后才会真正动数据库。</div>' +
-          '<div class="rfld"><label>管理员账号 <em>' + (Auth.token ? '当前已登录 ' + esc(Auth.user) : '') + '</em></label>' +
-            '<input class="rinp" id="rpUser" value="' + attr(last) + '" placeholder="luoshui"' +
-            (Auth.token ? ' disabled' : '') + '></div>' +
-          '<div class="rfld"><label>管理员密码</label>' +
+          '<div class="warn">' + (danger ? '⚠️ <b>此操作不可撤销</b>' : '✍️ <b>写入确认</b>') + '<br>' +
+            esc(label) + '<br>' +
+            (offline ? '本机离线：密码只在本机校验（只存哈希），首次输入即成为本机管理密码。'
+                     : (danger ? '请求会带上密码提交到云端函数校验，通过后才会真正删除，不可撤销。'
+                               : '请求会带上密码提交到云端函数校验，通过后才会真正写入数据库。')) + '</div>' +
+          (offline || Auth.token ? '' :
+            '<div class="rfld"><label>管理员账号</label>' +
+              '<input class="rinp" id="rpUser" value="' + attr(last) + '" placeholder="luoshui"></div>') +
+          '<div class="rfld"><label>管理员密码' +
+            (Auth.token ? ' <em>当前登录 ' + esc(Auth.user) + '</em>' : '') + '</label>' +
             '<input class="rinp" id="rpPass" type="password" autocomplete="off" placeholder="请输入管理员密码" ' +
             'onkeydown="if(event.key===\'Enter\')Rpt.confirmPass()"></div>' +
+          (danger ? '' :
+            '<label class="rkeep"><input type="checkbox" id="rpKeep">' +
+            '<span>15 分钟内「保存 / 修改」免重复输入（<b>删除、覆盖导入仍需输入</b>）</span></label>') +
           '<div class="err" id="rpErr"></div>' +
         '</div>' +
         '<div class="ft"><button class="rbtn gh" onclick="Rpt.cancelPass()">取消</button>' +
-          '<button class="rbtn pri" id="rpGo" onclick="Rpt.confirmPass()">确认删除</button></div>' +
+          '<button class="rbtn ' + (danger ? 'red' : 'pri') + '" id="rpGo" onclick="Rpt.confirmPass()">确认' + esc(act) + '</button></div>' +
       '</div>';
     $('rptPMask').className = 'rpt-pmask on';
     setTimeout(function(){ var i = $('rpPass'); if(i) i.focus(); }, 70);
@@ -1096,19 +1233,26 @@ var Rpt = {
     var uEl = $('rpUser'), pEl = $('rpPass'), go = $('rpGo');
     var u = uEl ? String(uEl.value || '').trim() : '';
     var p = pEl ? String(pEl.value || '') : '';
+    var act = UI.confirmAct || '删除';
+    var keep = $('rpKeep') ? !!$('rpKeep').checked : false;
     if(!String(p).trim()){ this.pErr('请输入管理员密码'); return; }
-    if(!REST){ this.pErr('未配置云环境，无法删除'); return; }
     var self = this;
     if(go){ go.disabled = true; go.textContent = '验 证 中…'; }
     function ok(){
-      if(go){ go.disabled = false; go.textContent = '确认删除'; }
+      if(go){ go.disabled = false; go.textContent = '确认' + act; }
       $('rptPMask').className = 'rpt-pmask';
       var cb = UI.confirmCb; UI.confirmCb = null;
+      if(keep) rptPassStamp(true);
       if(cb) cb(String(p).trim());
     }
     function no(msg){
-      if(go){ go.disabled = false; go.textContent = '确认删除'; }
+      if(go){ go.disabled = false; go.textContent = '确认' + act; }
       self.pErr(msg);
+    }
+    /* 桌面文件版 / 未配置云环境：本机哈希校验，明文不落盘 */
+    if(!REST || location.protocol === 'file:'){
+      localPassCheck(String(p).trim(), ok, no);
+      return;
     }
     var chain;
     if(Auth.token){
@@ -1601,6 +1745,82 @@ Rpt.importJSON = function(){
 
 /* 把「数据管理面板」挂到 Rpt 上（保持内联 onclick 的调用点统一） */
 Rpt.createReport = RptCreate;
+
+/* ============================================================================
+   写操作门禁装配
+   —— 把 Rpt 上所有「会改数据库」的方法统一包一层密码确认。
+   协议：包装层先弹密码框；校验通过后把私有哨兵 RPASS_OK 追加为最后一个参数
+   再调原方法 —— 原方法看到哨兵就直通，内部重入不会再弹第二次。
+   ⚠️ delMod / delChart / delReport 已经在内部调 askPass，不要放进这张表（会连弹两次）。
+   ⚠️ 弹窗用的是独立的 #rptPMask，所以抽屉里正在填的表单不会被清掉。 */
+var RPASS_OK = {__rpassOk:true};
+
+/* —— 编辑会话票据（与工作台 13.5 / 13.6 同一套语义）——
+   入口「＋ 新增模块 / ＋ 新增图表」验过密码后开一张单子，紧接着在抽屉里点「保存」
+   凭单直通，用户只输一次；抽屉一关（closeDrawer）或退出登录整张作废 ——
+   所以下次再点「＋ 新增模块」照样要重新输密码。 */
+var RTICK = {};
+var RTICK_MS = 30 * 60 * 1000;
+function rTickIssue(k){ RTICK[k] = Date.now(); }
+function rTickHas(k){
+  var t = RTICK[k];
+  if(!t) return false;
+  if(Date.now() - t > RTICK_MS){ delete RTICK[k]; return false; }
+  return true;
+}
+function rTickClear(){ if(!RTICK) return; for(var k in RTICK){ delete RTICK[k]; } }
+
+var RGATE = [
+  /* [方法, 动作, 不可逆, 是否拦（返回 false 直通）, 目标描述] */
+  ['toggleEdit','编辑',false,function(){ return !St.edit; },
+    function(){ return '进入编辑模式（可直接改正文 / 结论 / 一句话本质 / 页脚）'; }],
+  ['svHead','保存',false,null,
+    function(){ return '页眉与核心结论：标题 / 副标题 / 徽标 / 8 项指标 / 目录 / 一句话本质 / 页脚'; }],
+  ['svMod','保存',false,null,
+    function(){ var m = Rpt.findMod(UI.selMod) || {};
+                return '模块 ' + (m.no || '') + '：' + String(m.title || '').slice(0, 40); }],
+  ['addMod','新增',false,null,
+    function(){ return '新增一个空模块（编号自动接在最后，随后会写入数据库）'; }, 'svMod'],
+  ['svChart','保存',false,null,
+    function(){ var k = UI.selChart, r = Rpt.findChart(k) || {};
+                return '图表「' + String(r.name || k || '') + '」的数据与样式'; }],
+  ['addChart','新增',false,null,
+    function(){ return '新增一张示例图表（随后会写入数据库）'; }, 'svChart'],
+  ['createReport','新增',false,null,
+    function(){ return '新建研报（代码 ' + String(($('n-code') || {}).value || '') +
+                      '），会写入壳记录 + 23 个空模块'; }],
+  /* 覆盖式写入：不可逆，永远要输密码 */
+  ['importJSON','导入',true,null,
+    function(){ return '把粘贴的 JSON 覆盖写入数据库（模块 + 图表，按 id upsert）'; }]
+];
+RGATE.forEach(function(sp){
+  var name = sp[0], act = sp[1], danger = !!sp[2], when = sp[3], label = sp[4];
+  var tickFn = sp[5] || null;
+  var raw = Rpt[name];
+  if(typeof raw !== 'function') return;
+  Rpt[name] = function(){
+    var args = [].slice.call(arguments);
+    if(args.length && args[args.length - 1] === RPASS_OK){
+      args.pop();
+      return raw.apply(Rpt, args);
+    }
+    if(when && !when.apply(Rpt, args)) return raw.apply(Rpt, args);
+    /* 抽屉是刚验过密码才打开的（票据未作废）→ 凭单直通，别让用户在同一张表单里输第二次 */
+    if(rTickHas(name)) return raw.apply(Rpt, args);
+    var txt;
+    try{ txt = label.apply(null, args); }catch(e){ txt = name; }
+    Rpt.askPass(txt, function(){
+      if(tickFn) rTickIssue(tickFn);   /* 开票：这张抽屉里的「保存」凭票直通 */
+      args.push(RPASS_OK);
+      return raw.apply(Rpt, args);
+    }, {act:act, danger:danger});
+  };
+  /* 给验收探针留的标记：可断言「这个方法确实被门禁包过」 */
+  Rpt[name].__gated = true;
+  Rpt[name].__act = act;
+  Rpt[name].__danger = danger;
+  Rpt[name].__raw = raw;
+});
 
 
 

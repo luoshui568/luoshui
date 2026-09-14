@@ -1,0 +1,35 @@
+{
+ "letters": [
+  "a",
+  "b",
+  "c",
+  "d",
+  "e",
+  "f",
+  "g",
+  "h",
+  "j",
+  "k",
+  "l",
+  "m",
+  "n",
+  "o",
+  "p",
+  "q",
+  "r",
+  "s",
+  "t",
+  "w",
+  "x",
+  "y",
+  "z"
+ ],
+ "anchorChars": "阿丷嚓咑妸发旮哈丌咔垃呣拏喔妑七呥仨他屲夕丫帀",
+ "exceptions": {},
+ "stat": {
+  "checkedAll": 20892,
+  "conflictAll": 79,
+  "checkedCommon": 1706,
+  "conflictCommon": 0
+ }
+}
