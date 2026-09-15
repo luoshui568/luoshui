@@ -8,6 +8,11 @@ build/*.png
 build/backup_*.html
 build/archive_*.html
 
+# ── 推库前快照目录（每次推研报都生成一份线上/本地副本，约 5 MB 且会持续增长）──
+#    这些是**过程产物**不是源码：需要回滚时随时能重新导出，别入库把仓库撑肥。
+#    注意写的是 backup/ 而不是 backup，`build/backup/` 才匹配目录。
+build/backup/
+
 # ── 系统垃圾 ──
 Thumbs.db
 desktop.ini

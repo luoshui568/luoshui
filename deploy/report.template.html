@@ -181,6 +181,10 @@ html.edit .rpt-chartwrap>.rpt-cops{display:flex}
 .n-warn b{color:#a3122a}
 
 /* 数据表格编辑器 */
+/* 数据表上方的「导入 Excel / CSV」工具条（放在 .rpt-gridwrap 上面，别塞进滚动区里） */
+.rpt-iotools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 9px}
+.rpt-iotools .tip{flex:1;min-width:170px;font-size:11.5px;line-height:1.7;color:#b09a9e}
+.rpt-iotools .tip code{background:#fdf2f3;color:#a3122a;padding:1px 4px;border-radius:4px;font-size:11px}
 .rpt-gridwrap{border:1px solid #f2dce0;border-radius:12px;overflow:auto;max-height:52vh;background:#fff}
 table.rpt-grid{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px}
 table.rpt-grid th{position:sticky;top:0;z-index:2;background:#fdf2f3;color:#8c0a20;font-weight:700;
@@ -190,8 +194,13 @@ table.rpt-grid td input{width:100%;font:inherit;font-size:12.5px;padding:5px 7px
   border:1px solid transparent;background:transparent;color:#3a2024}
 table.rpt-grid td input:hover{border-color:#f2dce0}
 table.rpt-grid td input:focus{outline:0;background:#fff;border-color:var(--brand);box-shadow:0 0 0 3px rgba(200,16,46,.09)}
-table.rpt-grid td.ix{width:38px;text-align:center;color:#c0a8ac;font-size:11px}
+table.rpt-grid td.ix{width:58px;text-align:center;color:#c0a8ac;font-size:11px;white-space:nowrap}
 table.rpt-grid tr:hover td{background:#fffafb}
+/* 行号列里的「删这一行」小按钮。常显但很淡 —— 别做成 hover 才出现，
+   藏起来的功能等于没有（上一版导入按钮就吃过这个亏）；悬停才变红。 */
+table.rpt-grid td.ix .gx{font:inherit;font-size:11px;line-height:1;margin-left:4px;padding:2px 4px;
+  border:1px solid #f2dce0;border-radius:6px;background:#fff;color:#d8b6bb;cursor:pointer;vertical-align:middle}
+table.rpt-grid td.ix .gx:hover{background:#fdecee;border-color:#e9a9b3;color:#c8102e}
 
 /* 提示条 */
 .rpt-toast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,20px);z-index:600;
@@ -236,7 +245,12 @@ table.rpt-grid tr:hover td{background:#fffafb}
   body{background:#fff;padding:0!important}
 }
 @media (max-width:820px){
-  .rpt-drawer{width:100vw}
+  /* ⚠️ 这里是 100vw 会踩的老坑：100vw 把竖向滚动条的宽度也算进去，窄屏下抽屉比屏幕宽
+     ~15px，底部「保存图表」会被切掉一截（截图才看出来）。父级 .rpt-mask 是 inset:0，
+     所以 100% 才是真正的可视宽度。 */
+  .rpt-drawer{width:100%}
+  /* 工具条的说明文字在窄屏独占一行，别被挤成三行贴在按钮右边 */
+  .rpt-iotools .tip{flex:1 1 100%;min-width:0}
   .rgrid2,.rgrid3{grid-template-columns:1fr}
   .rbar .rb-tag{display:none}
 }
@@ -578,7 +592,7 @@ function renderMods(){
   }
   var h = '';
   St.mods.forEach(function(m){
-    if(String(m.no) === '23' && St.rep.essence_html) h += St.rep.essence_html;
+    if(String(m.no) === '31' && St.rep.essence_html) h += St.rep.essence_html;
     h += '<div class="card" id="m' + attr(m.no) + '" data-mod="' + attr(m.id) + '">' +
            '<h2><span class="no">' + esc(m.no) + '</span>' + (m.title || '') + '</h2>' +
            '<div class="rpt-ops">' +
@@ -807,13 +821,39 @@ else boot();
    —— ★ 凡是会改数据的入口（进入编辑模式 / 保存 / 新增 / 删除 / 覆盖导入）都要管理员密码，
       由服务端 wb_admin_verify 校验；删除另走 wb_admin_delete_row。
    ============================================================================ */
+/* 研报标准模板 v3.1 · 31 模块 / 六篇（定义见 build/report_template_v31.py） */
 var MOD_SKELETON = [
-  '公司简介', '公司历史沿革', '股东结构', '实控人与集团背景', '业务及产品',
-  '主要产品产能与技术', '主要产品产量与销量（量价拆分）', '主要子公司与基地',
-  '产业链结构（全产业链一体化）', '上游原料价格', '产品价格与成本', '在建工程与新项目',
-  '风险事件与关注事项', '公司营业收入与利润', '公司产品收入与毛利结构', '毛利率、净利率、ROE',
-  '费用结构', '现金流与资产负债', '历年分红情况', '公司估值', '公司股价表现',
-  '企业评分（选股原则 10 项 · 满分 100）', '投资结论与跟踪清单'
+  '公司简介',
+  '公司历史沿革',
+  '股东结构',
+  '实控人与集团背景',
+  '业务及产品',
+  '主要产品产能与技术',
+  '主要产品产量与销量（量价拆分）',
+  '主要子公司与基地',
+  '行业总览与市场空间',
+  '下游需求结构拆解',
+  '竞争格局与市场份额',
+  '管理层与治理',
+  '产业链结构',
+  '上游原料价格',
+  '产品价格与成本',
+  '在建工程与新项目',
+  '护城河与竞争优势量化',
+  '风险矩阵',
+  '公司营业收入与利润',
+  '公司产品收入与毛利结构',
+  '盈利能力与杜邦分解',
+  '费用结构',
+  '现金流与资产负债三表',
+  '历年分红与股东回报',
+  '盈利预测模型',
+  '估值分析',
+  '估值敏感性',
+  '公司股价表现',
+  '企业评分（选股原则 10 项 · 满分 100）',
+  '多空论点对照',
+  '投资结论与跟踪清单'
 ];
 
 var Rpt = {
@@ -881,6 +921,59 @@ var Rpt = {
     catch(e){ box.innerHTML += chip; }
     UI.rteDirty[id] = 1;
     toast('已插入图表位置：' + k, 'ok');
+  },
+  /* 富文本表格：在光标所在行下面插一行 / 删掉光标所在的那一行。
+     只改编辑缓冲，不写数据库（写库仍然只走「💾 保存模块」）。
+     ⚠️⚠️ 改完必须置 UI.rteDirty —— rteRead() 只在 dirty 时才把编辑区内容写回，
+     漏了这一步的后果是「界面上看着改了、保存下去还是老样子」，而且一声不响。
+     ⚠️ 插行时样式照抄目标区同一列：光标在表头行时抄 tbody 第一行，
+     否则新行会带上表头的红底白字，看着像多了一行表头。 */
+  rteRow: function(id, delta){
+    var box = $(id);
+    if(!box) return false;
+    var tr = rteRowAt(id);
+    if(!tr){ toast('先把光标点进表格里，再点「＋ 行 / － 行」', 'bad'); return false; }
+    var tb = tr.parentNode;
+    if(!tb || !tb.nodeName) return false;
+    var isHead = /^thead$/i.test(tb.nodeName);
+    var fresh = null;
+    if(delta < 0){
+      if(isHead){ toast('这是表头行，删不了 —— 想换表头直接改文字就行', 'bad'); return false; }
+      var all = tb.getElementsByTagName ? tb.getElementsByTagName('tr') : [];
+      if(all.length <= 1){ toast('表格至少留一行 —— 整张表不要了，展开下面的「代码」区删掉它', 'bad'); return false; }
+      tb.removeChild(tr);
+    } else {
+      var table = tb.parentNode, body = null;
+      if(table && table.getElementsByTagName) body = table.getElementsByTagName('tbody')[0] || null;
+      var donor = isHead ? (body ? body.getElementsByTagName('tr')[0] : null) : tr;
+      var n = tr.cells ? tr.cells.length : 0;
+      fresh = document.createElement('tr');
+      for(var i = 0; i < n; i++){
+        var td = document.createElement('td');
+        var src = (donor && donor.cells) ? donor.cells[i] : null;
+        if(src && src.getAttribute){
+          if(src.getAttribute('class')) td.setAttribute('class', src.getAttribute('class'));
+          if(src.getAttribute('style')) td.setAttribute('style', src.getAttribute('style'));
+        }
+        td.innerHTML = '&nbsp;';
+        fresh.appendChild(td);
+      }
+      if(isHead){
+        /* 永远不做第二行表头：光标在表头里时，新行插进 tbody 的最前面 */
+        if(!body){
+          body = document.createElement('tbody');
+          if(table) table.appendChild(body);
+        }
+        body.insertBefore(fresh, body.firstChild);
+      } else {
+        tb.insertBefore(fresh, tr.nextSibling);
+      }
+    }
+    UI.rteDirty[id] = 1;
+    if(fresh){ try{ box.focus(); }catch(e){} rteCaretIn(fresh.firstChild); }
+    toast(delta < 0 ? '已删掉表格里的 1 行 —— 点「💾 保存模块」才写入数据库'
+                    : '已在下面插入 1 行 —— 点「💾 保存模块」才写入数据库', 'ok');
+    return true;
   },
   rteToggle: function(id, det){
     var box = $(id), src = $(id + '-src');
@@ -1153,6 +1246,160 @@ var Rpt = {
     });
   },
 
+  /* ---------- 数据表：导入 Excel / CSV、导出 CSV ----------
+     用户诉求：「图表编辑增加一个可上传导入 excel 表格上传编辑数据」。
+     三段式：impFile（拿到 File）→ impTable（读 + 解析，被 RGATE 包）→ impApply（改表，纯同步）。
+     解析器全是顶层纯函数（见下方「Excel / CSV 解析」区块），方便探针直接喂字节。 */
+  impPick: function(){ var e = $('c-file'); if(e) e.click(); },
+  impFile: function(inp){
+    var f = inp && inp.files && inp.files[0];
+    if(inp) inp.value = '';          /* 立刻清空：同一个文件才能被连选两次 */
+    if(!f) return;
+    this.impTable(f);
+  },
+  impTable: function(file){
+    var key = UI.selChart;
+    if(!key){ toast('先选中一张图表再导入', 'bad'); return; }
+    var nm = String((file && file.name) || '');
+    var isX = /\.xlsx$/i.test(nm);
+    if(!isX && !/\.(csv|txt|tsv)$/i.test(nm)){
+      if(/\.xls$/i.test(nm)) toast('.xls（旧版二进制）解析不了：请在 Excel 里「另存为」→ .xlsx 或 .csv', 'bad');
+      else toast('只支持 .xlsx / .csv / .txt 文件（收到：' + (nm || '未知') + '）', 'bad');
+      return;
+    }
+    var fr = new FileReader();
+    fr.onload = function(){
+      var p;
+      try{
+        p = isX ? parseXlsx(fr.result)
+                : Promise.resolve({rows: rowsFromText(decodeBuf(fr.result))});
+      }catch(e){ toast('解析失败：' + String(e.message || e).slice(0, 90), 'bad'); return; }
+      p.then(function(res){ Rpt.impApply(key, res.rows, nm); })
+       .catch(function(e){ toast('导入失败：' + String(e.message || e).slice(0, 120), 'bad'); });
+    };
+    fr.onerror = function(){ toast('文件读取失败：' + nm, 'bad'); };
+    fr.readAsArrayBuffer(file);
+  },
+  /* 把解析好的二维数组灌进数据表（不写数据库 —— 写库仍然只走「💾 保存图表」） */
+  impApply: function(key, rows, fname){
+    var rec = this.findChart(key);
+    if(!rec){ toast('图表不存在（先点进一张图表）', 'bad'); return false; }
+    if(!rows || !rows.length){ toast('文件里没读到任何数据行', 'bad'); return false; }
+    var opt;
+    try{ opt = JSON.parse(($('c-json') ? $('c-json').value : '') || '{}'); }
+    catch(e){ toast('高级 JSON 现在有语法错误，先修好再导入', 'bad'); return false; }
+    var s = opt.series || [];
+    var kind = (s[0] && s[0].type === 'pie') ? 'pie' : 'series';
+    if(!s.length){ toast('这张图表在高级 JSON 里没有 series，先补一个再导入', 'bad'); return false; }
+    var m = rowsToModel(rows, kind);
+    if(!m || !m.rows.length){ toast('文件里没读到数据行（第一行会被当成表头）', 'bad'); return false; }
+    var note = [];
+    if(m.serial) note.push('忽略序号列');
+    if(kind !== 'pie'){
+      var want = m.cols.length - 1;
+      if(want < 1){ toast('只读到 1 列：需要「类别 + 至少一个系列」两列以上', 'bad'); return false; }
+      if(s.length > want){
+        note.push('移除 ' + (s.length - want) + ' 个多余系列');
+        opt.series.length = want;
+      }
+      var added = 0;
+      while(opt.series.length < want){
+        var tpl = JSON.parse(JSON.stringify(opt.series[opt.series.length - 1]));
+        /* 复制最后一列的样式，但把写死的颜色去掉 → 交给 ECharts 调色板出不同颜色 */
+        delete tpl.color;
+        if(tpl.itemStyle) delete tpl.itemStyle.color;
+        if(tpl.lineStyle) delete tpl.lineStyle.color;
+        opt.series.push(tpl);
+        added++;
+      }
+      if(added) note.push('按最后一列补了 ' + added + ' 个系列');
+      opt.series.forEach(function(x, i){ if(m.cols[i + 1]) x.name = m.cols[i + 1]; });
+    }
+    try{ opt = applyGrid(opt, m); }
+    catch(e){ toast('写回失败：' + String(e.message || e).slice(0, 90), 'bad'); return false; }
+    /* 以「真正会被保存的 option」为准回显，保证看到的就是存下去的 */
+    var shown = chartModel(opt);
+    var g = $('c-grid');
+    if(g) g.innerHTML = gridHTML(shown);
+    var gi = $('c-gridinfo');
+    if(gi) gi.textContent = shown.rows.length + ' 行 × ' + Math.max(0, shown.cols.length - 1) + ' 个系列';
+    if($('c-json')) $('c-json').value = JSON.stringify(opt, null, 1);
+    toast('已从 ' + String(fname || '文件').slice(0, 28) + ' 读入 ' + shown.rows.length + ' 行 × ' +
+          Math.max(0, shown.cols.length - 1) + ' 个系列' + (note.length ? '（' + note.join('、') + '）' : '') +
+          ' —— 点「💾 保存图表」才写入数据库', 'ok');
+    return true;
+  },
+  /* 把界面上的数据表导出成 CSV（BOM + CRLF，Excel 双击即开）—— 可以当导入模板用 */
+  dlTable: function(){
+    var key = UI.selChart;
+    if(!key) return;
+    var rec = this.findChart(key) || {};
+    var cols = readGridCols(), rows = readGrid().rows;
+    if(!rows.length){ toast('这张图表还没有数据行', 'bad'); return; }
+    var q = function(v){
+      v = String(v == null ? '' : v);
+      return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+    };
+    var lines = [cols.map(q).join(',')];
+    for(var i = 0; i < rows.length; i++) lines.push(rows[i].map(q).join(','));
+    var csv = '\ufeff' + lines.join('\r\n') + '\r\n';
+    try{
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
+      a.download = String((St.rep && St.rep.code) || 'chart') + '_' + String(rec.name || key) + '_数据表.csv';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      toast('已导出 CSV —— 填好数字后直接「导入 Excel / CSV」回来就行', 'ok');
+    }catch(e){ toast('导出失败：' + String(e.message), 'bad'); }
+  },
+
+  /* ---------- 数据表：增行 / 删行 ----------
+     用户诉求：「模块的表格和图表的表格都增加一个删除行和增加行的功能」。
+     共同点：**只改编辑框（DOM），一个字节都不写库** —— 写库仍然只走「💾 保存图表」，
+     所以点错了、不保存就等于没发生。
+     删行毕竟会丢掉已填的内容，按「删除」计并挂 RGATE（见文件末尾）；
+     但 danger=false + 票据（tickFn 指向自己）→ 同一张抽屉里连着清十行只输一次密码。 */
+  gridAddRow: function(){
+    var g = $('c-grid');
+    if(!g){ toast('先点进一张图表，再增删行', 'bad'); return false; }
+    var m = readGrid(), cols = readGridCols();
+    var n = Math.max(1, cols.length), row = [];
+    for(var i = 0; i < n; i++) row.push('');
+    m.rows.push(row);
+    this.gridPaint(m);
+    toast('末尾已增加 1 行（现在 ' + m.rows.length + ' 行）—— 点「💾 保存图表」才写入数据库', 'ok');
+    return true;
+  },
+  gridDelRow: function(idx){
+    var g = $('c-grid');
+    if(!g){ toast('先点进一张图表，再增删行', 'bad'); return false; }
+    var m = readGrid();
+    if(m.rows.length <= 1){ toast('至少要留 1 行 —— 整张图表不要了请用下面的「🗑 删除图表」', 'bad'); return false; }
+    var i = parseInt(idx, 10);
+    if(isNaN(i)) i = m.rows.length - 1;        /* 没给行号（工具栏那个按钮）→ 删最后一行 */
+    if(i < 0 || i >= m.rows.length){ toast('这一行已经不在表里了，重新点一次就好', 'bad'); return false; }
+    var lab = String(((m.rows[i] || [])[0] == null ? '' : (m.rows[i] || [])[0])).trim();
+    m.rows.splice(i, 1);
+    this.gridPaint(m);
+    toast('已删除第 ' + (i + 1) + ' 行' + (lab ? '（' + lab.slice(0, 14) + '）' : '') +
+          '，现在 ' + m.rows.length + ' 行 —— 点「💾 保存图表」才写入数据库', 'ok');
+    return true;
+  },
+  /* 工具栏的「－ 删除行」：删光标所在的那一行；没点进任何格子就删最后一行 */
+  gridDelFocus: function(){
+    var a = document.activeElement, r = (a && a.getAttribute) ? a.getAttribute('data-r') : null;
+    if(r === null || r === undefined || r === '') r = readGrid().rows.length - 1;
+    return this.gridDelRow(parseInt(r, 10));
+  },
+  /* 拿一份新的 model 重画数据表（表头沿用界面上现有的 → 系列数不变） */
+  gridPaint: function(m){
+    var g = $('c-grid'); if(!g) return false;
+    var cols = readGridCols();          /* ★ 必须在换掉 innerHTML 之前读 */
+    g.innerHTML = gridHTML({cols:cols, rows:(m && m.rows) || []});
+    var gi = $('c-gridinfo');
+    if(gi) gi.textContent = ((m && m.rows) || []).length + ' 行 × ' + Math.max(0, cols.length - 1) + ' 个系列';
+    return true;
+  },
+
   /* ---------- 整份研报 ---------- */
   delReport: function(){
     var r = St.rep || {};
@@ -1352,6 +1599,31 @@ function rteRead(id, orig){
   return (orig == null ? '' : String(orig));
 }
 
+/* 光标落在哪一行表格里。只认本编辑区内的 tr —— 否则会误改页面上别处的表格。
+   （工具条按钮都带 onmousedown="return false"，所以点按钮不会把选区弄丢） */
+function rteRowAt(id){
+  var box = $(id);
+  if(!box) return null;
+  var n = null;
+  try{ var sel = window.getSelection(); n = (sel && sel.rangeCount) ? sel.anchorNode : null; }catch(e){}
+  var el = n ? (n.nodeType === 1 ? n : n.parentNode) : null;
+  while(el && el !== box){
+    if(el.nodeName && /^tr$/i.test(el.nodeName)) return el;
+    el = el.parentNode;
+  }
+  return null;
+}
+/* 把光标放进某个元素里（插完行接着就能打字） */
+function rteCaretIn(el){
+  if(!el) return;
+  try{
+    var r = document.createRange();
+    r.selectNodeContents(el); r.collapse(true);
+    var sel = window.getSelection();
+    sel.removeAllRanges(); sel.addRange(r);
+  }catch(e){}
+}
+
 function rteBar(id, withChart){
   function b(cmd, label, title, arg){
     return '<button type="button" class="rteb" onmousedown="return false" title="' + attr(title) + '" ' +
@@ -1376,6 +1648,16 @@ function rteBar(id, withChart){
   h += '<span class="rteSep"></span>';
   h += b('undo', '↶', '撤销');
   h += b('redo', '↷', '重做');
+  /* 表格增删行。所有富文本字段（正文 / 结论 / 一句话本质 / 页脚）都带这组按钮 ——
+     没把光标点进表格里时只给提示，不会瞎改。 ⚠️ onmousedown="return false" 不能省：
+     省了按钮会把编辑区的选区抢走，Rpt.rteRow 就找不到光标在哪一行了。 */
+  h += '<span class="rteSep"></span>';
+  h += '<button type="button" class="rteb" onmousedown="return false" ' +
+       'title="在光标所在行的下面插入一行（光标要先点进表格里）" ' +
+       'onclick="Rpt.rteRow(\'' + id + '\',1)">＋ 行</button>';
+  h += '<button type="button" class="rteb" onmousedown="return false" ' +
+       'title="删除光标所在的那一行（表头行不能删）" ' +
+       'onclick="Rpt.rteRow(\'' + id + '\',-1)">－ 行</button>';
   if(withChart){
     h += '<span class="rteSep"></span>';
     h += '<select class="rtesel" id="' + id + '-pick" onmousedown="return false" title="把某张图表插到光标处">' +
@@ -1433,7 +1715,7 @@ function headForm(){
   h += fld('h-note', '指标下方小字说明', r.kpi_note);
   h += ta('h-toc', '目录（一行一条，格式：锚点|显示文字）', (r.toc || []).map(function(x){ return x.anchor + '|' + x.text; }).join('\n'), 5,
           '锚点是模块编号对应的 #m1 / #m6 / #m14 …');
-  h += rteField('h-essence', '一句话本质', r.essence_html, 4, '会显示在 23 号模块上方', false);
+  h += rteField('h-essence', '一句话本质', r.essence_html, 4, '会显示在 31 号模块上方', false);
   h += rteField('h-footer', '页脚 / 免责声明', r.footer_html, 5, '', false);
   return h;
 }
@@ -1493,13 +1775,29 @@ function chartForm(key){
         '改完保存即生效。留空表示该点没有数据。' +
         (model.kind === 'pie' ? '（这张是饼图：两列分别是扇区名称和数值）' : '') + '</div>';
   h += fld('c-name', '图表名称（只在管理面板里用）', c.name || key);
-  h += '<div class="rfld"><label>数据表 <em>' + model.rows.length + ' 行 × ' + Math.max(0, model.cols.length - 1) + ' 个系列</em></label>' + gridHTML(model) + '</div>';
+  h += '<div class="rfld"><label>数据表 <em id="c-gridinfo">' + model.rows.length + ' 行 × ' +
+       Math.max(0, model.cols.length - 1) + ' 个系列</em></label>';
+  /* 导入工具条：原来只能一个一个格子敲，现在可以把 Excel / CSV 直接灌进来。
+     ⚠️ 门禁在 Rpt.impTable 上（RGATE，act='导入'，danger）—— 整表覆盖，属不可逆操作。 */
+  h += '<div class="rpt-iotools">' +
+       '<button class="rbtn sm" onmousedown="return false" onclick="Rpt.gridAddRow()">＋ 增加行</button>' +
+       '<button class="rbtn sm gh" onmousedown="return false" onclick="Rpt.gridDelFocus()">－ 删除行</button>' +
+       '<button class="rbtn sm" onclick="Rpt.impPick()">📥 导入 Excel / CSV</button>' +
+       '<button class="rbtn sm gh" onclick="Rpt.dlTable()">⬇ 导出 CSV</button>' +
+       '<span class="tip">「＋ 增加行」加在末尾；「－ 删除行」删掉<b>光标所在</b>那一行' +
+       '（没点进格子就删最后一行），也可以直接点行号旁的 <code>✕</code>。' +
+       '导入时第一行当表头：<b>第 1 列＝类别</b>，后面每列＝一个系列，<code>#</code>/<code>序号</code> 列自动忽略，' +
+       '<b>会整表覆盖</b>。各种改动都要点「💾 保存图表」才写入数据库。</span>' +
+       '<input type="file" id="c-file" accept=".xlsx,.xls,.csv,.txt,.tsv" style="display:none" ' +
+       'onchange="Rpt.impFile(this)">' +
+       '</div>';
+  h += '<div id="c-grid">' + gridHTML(model) + '</div></div>';
   h += '<div class="rfld"><label>高级：ECharts option（JSON） <em>改样式 / 颜色 / 坐标轴时用</em></label>' +
        '<textarea class="rtxt js" id="c-json" rows="12">' + esc(JSON.stringify(opt, null, 1)) + '</textarea></div>';
   return h;
 }
 function ioForm(){
-  var h = '<div class="rhint">整份研报（含 23 个模块与全部图表）可以导出成 JSON 备份，改完再贴回来导入。</div>';
+  var h = '<div class="rhint">整份研报（含 31 个模块与全部图表）可以导出成 JSON 备份，改完再贴回来导入。</div>';
   h += '<div class="rfld"><label>当前概况</label>' +
        '<div class="rhint" style="margin:0">标的：<b>' + esc((St.rep && St.rep.code) || '') + ' ' + esc((St.rep && St.rep.name) || '') +
        '</b><br>模块：' + St.mods.length + ' 个 · 图表：' + St.chartKeys.length + ' 张 · 数据来源：' +
@@ -1517,7 +1815,12 @@ function gridHTML(m){
   m.cols.forEach(function(c){ h += '<th>' + esc(c) + '</th>'; });
   h += '</tr></thead><tbody>';
   m.rows.forEach(function(r, i){
-    h += '<tr><td class="ix">' + (i + 1) + '</td>';
+    /* 行号 + 「删这一行」按钮。
+       ⚠️ 这一格里的文字没有任何读取逻辑依赖它（readGrid 只认 input、readGridCols 只认 thead 的
+       th、导出 CSV 也走 readGrid），所以在这里挂按钮不会污染数据 —— 别把按钮挪进 input 那几列。 */
+    h += '<tr><td class="ix">' + (i + 1) +
+         '<button type="button" class="gx" title="删掉这一行（只改编辑框，点保存才写入数据库）" ' +
+         'onmousedown="return false" onclick="Rpt.gridDelRow(' + i + ')">✕</button></td>';
     for(var j = 0; j < m.cols.length; j++){
       var v = r[j];
       h += '<td><input data-r="' + i + '" data-c="' + j + '" value="' + attr(v == null ? '' : v) + '"></td>';
@@ -1604,6 +1907,289 @@ function applyGrid(opt, model){
   return opt;
 }
 /* ---------------------------------------------------------------- 新建 / 导入 */
+/* ============================================================================
+   Excel / CSV 解析（顶层纯函数，探针可直接喂字节）
+   —— 供「图表 → 数据表 → 📥 导入 Excel / CSV」用。
+
+   三条设计取舍（都是权衡过才这么定的）：
+   ① `.xlsx` 本质是 zip。单文件页要能离线打开，所以**不引第三方库**；也不手写 inflate
+      （几百行、易错）。直接用浏览器原生的 `DecompressionStream('deflate-raw')`
+      （Edge / Chrome 103+）。拿不到这个 API 时**明确报错让用户另存为 CSV**，
+      绝不静默给出一张空表 —— 那是最坏的结果（看着像成功）。
+   ② 表头约定：第一行 = 表头，第 1 列 = 类别，后面每列一个系列。
+      `#` / `序号` / `no` / `编号` 这种纯序号列自动忽略；如果第一行全是数字
+      （没有表头），就按「类别 + 系列N」生成，**不能把第一行数据当表头吃掉**。
+   ③ 日期单元格（Excel 数字格式）解成 `YYYY-MM-DD`，而不是把 45000 这种序列号
+      原样填进表里 —— 类别列最常见的恰好就是月份/年份。
+   ============================================================================ */
+
+/* 字节 → 文本：UTF-8 优先；出现替换符（多半是 GBK 导出的 CSV）再试 GBK */
+function decodeBuf(buf){
+  var u8 = new Uint8Array(buf), s = '';
+  try{ s = new TextDecoder('utf-8').decode(u8); }catch(e){ s = ''; }
+  if(s.indexOf('\uFFFD') >= 0){
+    try{
+      var g = new TextDecoder('gbk').decode(u8);
+      if(g && g.indexOf('\uFFFD') < 0) return g.replace(/^\uFEFF/, '');
+    }catch(e){}
+  }
+  return s.replace(/^\uFEFF/, '');
+}
+
+/* 分隔符嗅探：Excel 复制出来是 \t，另存为 CSV 是 , 或 ;（欧洲区） */
+function sniffDelim(text){
+  var head = String(text).split('\n').slice(0, 6).join('\n');
+  var cands = ['\t', ',', ';', '|'], best = '\t', bn = 0;
+  for(var i = 0; i < cands.length; i++){
+    var n = head.split(cands[i]).length - 1;
+    if(n > bn){ bn = n; best = cands[i]; }
+  }
+  return best;
+}
+/* 分隔文本 → 二维数组（支持 "引号包裹" 与 "" 转义、跨行字段） */
+function rowsFromText(text){
+  text = String(text == null ? '' : text).replace(/\r\n?/g, '\n');
+  var d = sniffDelim(text);
+  var rows = [], cur = [], cell = '', q = false;
+  for(var i = 0; i < text.length; i++){
+    var c = text.charAt(i);
+    if(q){
+      if(c === '"'){
+        if(text.charAt(i + 1) === '"'){ cell += '"'; i++; }
+        else q = false;
+      } else cell += c;
+      continue;
+    }
+    if(c === '"') q = true;
+    else if(c === d){ cur.push(cell); cell = ''; }
+    else if(c === '\n'){ cur.push(cell); rows.push(cur); cur = []; cell = ''; }
+    else cell += c;
+  }
+  cur.push(cell); rows.push(cur);
+  return rows;
+}
+/* 数据表表头（跳过最左边的「#」列）；导出 CSV 时当表头用 */
+function readGridCols(){
+  var ths = document.querySelectorAll('.rpt-grid thead th'), out = [];
+  for(var i = 1; i < ths.length; i++) out.push(String(ths[i].textContent || '').trim());
+  return out;
+}
+
+/* ---------------- zip ----------------
+   ⚠️ 本地头里的 name/extra 长度与中央目录**不一定相同**（有 data descriptor 时更甚），
+   所以数据起点必须按本地头重新算，不能拿中央目录的偏移直接推。 */
+function zU16(b, o){ return b[o] | (b[o + 1] << 8); }
+function zU32(b, o){ return (b[o] | (b[o+1] << 8) | (b[o+2] << 16) | (b[o+3] << 24)) >>> 0; }
+function zStr(b, s, e){
+  var out = '';
+  for(var i = s; i < e; i++) out += String.fromCharCode(b[i]);
+  return out;
+}
+function unzipEntries(buf){
+  var b = new Uint8Array(buf), eo = -1;
+  var lo = Math.max(0, b.length - 66000);
+  for(var i = b.length - 22; i >= lo; i--){
+    if(b[i] === 0x50 && b[i+1] === 0x4b && b[i+2] === 0x05 && b[i+3] === 0x06){ eo = i; break; }
+  }
+  if(eo < 0) throw new Error('不是有效的 xlsx（找不到 zip 结尾标记）');
+  var cnt = zU16(b, eo + 10), p = zU32(b, eo + 16), out = {};
+  for(var k = 0; k < cnt; k++){
+    if(p + 46 > b.length || zU32(b, p) !== 0x02014b50) break;
+    var method = zU16(b, p + 10), csize = zU32(b, p + 20), lho = zU32(b, p + 42);
+    var nlen = zU16(b, p + 28), elen = zU16(b, p + 30), clen = zU16(b, p + 32);
+    var name = zStr(b, p + 46, p + 46 + nlen);
+    if(zU32(b, lho) === 0x04034b50){
+      var ds = lho + 30 + zU16(b, lho + 26) + zU16(b, lho + 28);
+      out[name] = {method:method, data:b.subarray(ds, ds + csize)};
+    }
+    p += 46 + nlen + elen + clen;
+  }
+  return out;
+}
+function entryText(ent){
+  if(!ent) return Promise.resolve('');
+  if(ent.method === 0) return Promise.resolve(new TextDecoder('utf-8').decode(ent.data));
+  if(ent.method !== 8) return Promise.reject(new Error('压缩方式 ' + ent.method + ' 不支持'));
+  if(typeof DecompressionStream !== 'function'){
+    return Promise.reject(new Error('这个浏览器解压不了 xlsx —— 请在 Excel 里「另存为 → CSV」再导入'));
+  }
+  var st = new Blob([ent.data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+  return new Response(st).arrayBuffer().then(function(ab){
+    return new TextDecoder('utf-8').decode(new Uint8Array(ab));
+  });
+}
+
+/* ---------------- xlsx 里的 XML ---------------- */
+function xmlUnesc(s){
+  return String(s == null ? '' : s)
+    .replace(/&#x([0-9a-fA-F]+);/g, function(m, h){ return String.fromCharCode(parseInt(h, 16)); })
+    .replace(/&#(\d+);/g, function(m, d){ return String.fromCharCode(parseInt(d, 10)); })
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'").replace(/&amp;/g, '&');
+}
+function sharedStrings(xml){
+  var out = [], re = /<si\b[^>]*>([\s\S]*?)<\/si>/g, m;
+  while((m = re.exec(xml || ''))){
+    var inner = m[1], t = '', r = /<t\b[^>]*>([\s\S]*?)<\/t>/g, mm;
+    while((mm = r.exec(inner))) t += xmlUnesc(mm[1]);
+    out.push(t);
+  }
+  return out;
+}
+/* 这个数字格式像日期吗（内置 14–22 / 45–47，或自定义格式里带 y/m/d/h/s） */
+function isDateFmt(id, code){
+  if((id >= 14 && id <= 22) || (id >= 45 && id <= 47)) return true;
+  if(!code) return false;
+  var c = String(code).replace(/"[^"]*"/g, '').replace(/\[[^\]]*\]/g, '').replace(/\\./g, '').toLowerCase();
+  return /[ymdhs]/.test(c) && !/^[0#?.,]+$/.test(c);
+}
+/* cellXfs 顺序 = 单元格 s 属性的下标 → [是不是日期格式] */
+function dateStyles(xml){
+  var out = [];
+  var m = /<cellXfs\b[^>]*>([\s\S]*?)<\/cellXfs>/.exec(xml || '');
+  if(!m) return out;
+  var customs = {}, re1 = /<numFmt\b([^>]*)\/?>/g, x;
+  while((x = re1.exec(xml))){
+    var a = /numFmtId="(\d+)"/.exec(x[1]), b = /formatCode="([^"]*)"/.exec(x[1]);
+    if(a) customs[a[1]] = xmlUnesc(b ? b[1] : '');
+  }
+  var re2 = /<xf\b([^>]*?)(?:\/>|>)/g, y;
+  while((y = re2.exec(m[1]))){
+    var idm = /numFmtId="(\d+)"/.exec(y[1]);
+    var id = idm ? parseInt(idm[1], 10) : 0;
+    out.push(isDateFmt(id, customs[String(id)]));
+  }
+  return out;
+}
+function colIdx(letters){
+  var n = 0;
+  for(var i = 0; i < letters.length; i++) n = n * 26 + (letters.charCodeAt(i) - 64);
+  return n - 1;
+}
+/* Excel 1900 序列号 → YYYY-MM-DD（25569 = 1970-01-01 的序列号；按 UTC 算避免时区偏移） */
+function serialDate(n){
+  var d = new Date(Math.round((n - 25569) * 86400000));
+  if(isNaN(d.getTime())) return String(n);
+  var p = function(x){ return (x < 10 ? '0' : '') + x; };
+  return d.getUTCFullYear() + '-' + p(d.getUTCMonth() + 1) + '-' + p(d.getUTCDate());
+}
+/* 工作表 XML → 二维数组（按 r="B3" 定位，xlsx 允许整行整列空缺） */
+function sheetRows(xml, shared, dstyles){
+  var body = String(xml || '');
+  var sd = /<sheetData\b[^>]*>([\s\S]*?)<\/sheetData>/.exec(body);
+  if(sd) body = sd[1];
+  var out = [], rr = /<row\b[^>]*>([\s\S]*?)<\/row>/g, m;
+  while((m = rr.exec(body))){
+    var cells = [], cr = /<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g, cm;
+    while((cm = cr.exec(m[1]))){
+      var at = cm[1], inner = cm[2] || '';
+      var ref = /r="([A-Z]+)\d+"/.exec(at);
+      var ci = ref ? colIdx(ref[1]) : cells.length;
+      var t = (/t="([^"]+)"/.exec(at) || [0, ''])[1];
+      var si = parseInt((/s="(\d+)"/.exec(at) || [0, 0])[1], 10) || 0;
+      var val = '';
+      if(t === 'inlineStr'){
+        var im = /<t\b[^>]*>([\s\S]*?)<\/t>/.exec(inner);
+        val = im ? xmlUnesc(im[1]) : '';
+      } else {
+        var vm = /<v\b[^>]*>([\s\S]*?)<\/v>/.exec(inner);
+        var raw = vm ? xmlUnesc(vm[1]) : '';
+        if(t === 's'){ var kk = parseInt(raw, 10); val = shared[kk] === undefined ? '' : shared[kk]; }
+        else if(t === 'str'){ val = raw; }
+        else if(t === 'b'){ val = (raw === '1' ? 'TRUE' : 'FALSE'); }
+        else if(t === 'e'){ val = ''; }
+        else if(raw !== ''){
+          var num = parseFloat(raw);
+          val = (dstyles[si] && !isNaN(num)) ? serialDate(num) : raw;
+        }
+      }
+      if(ci >= 0) cells[ci] = val;
+    }
+    var row = [];
+    for(var j = 0; j < cells.length; j++) row.push(cells[j] === undefined ? '' : cells[j]);
+    out.push(row);
+  }
+  return out;
+}
+/* 取第一张工作表：Excel 导出的 sheet1.xml 就是第一张表（这里不追 workbook.xml 的
+   sheet 顺序 —— 多花十几行异步代码只为极端重排场景，不值） */
+function pickSheet(z){
+  var cands = [], k;
+  for(k in z) if(/^xl\/worksheets\/sheet\d+\.xml$/.test(k)) cands.push(k);
+  if(!cands.length) throw new Error('这个文件里没有工作表（确定是 .xlsx 吗？）');
+  cands.sort(function(a, b){
+    return parseInt(/(\d+)\.xml$/.exec(a)[1], 10) - parseInt(/(\d+)\.xml$/.exec(b)[1], 10);
+  });
+  return cands[0];
+}
+function parseXlsx(buf){
+  var z;
+  try{ z = unzipEntries(buf); }
+  catch(e){ return Promise.reject(e); }
+  var deflated = false, k;
+  for(k in z) if(z[k].method === 8) deflated = true;
+  if(deflated && typeof DecompressionStream !== 'function'){
+    return Promise.reject(new Error('这个浏览器解压不了 xlsx —— 请在 Excel 里「另存为 → CSV」再导入'));
+  }
+  var sheet;
+  try{ sheet = pickSheet(z); }
+  catch(e){ return Promise.reject(e); }
+  return Promise.all([
+    entryText(z['xl/sharedStrings.xml']).catch(function(){ return ''; }),
+    entryText(z['xl/styles.xml']).catch(function(){ return ''; }),
+    entryText(z[sheet]).catch(function(e){ throw new Error('读取工作表失败：' + String(e.message || e)); })
+  ]).then(function(a){
+    return {rows: sheetRows(a[2], sharedStrings(a[0]), dateStyles(a[1])), sheet:sheet};
+  });
+}
+
+/* ---------------- 二维数组 → 数据表模型 ---------------- */
+function cellText(x){ return String(x == null ? '' : x).replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim(); }
+function rowsToModel(rows, kind){
+  var clean = [], i, j;
+  for(i = 0; i < rows.length; i++){
+    var r = rows[i] || [], has = false;
+    for(j = 0; j < r.length; j++){ if(cellText(r[j]) !== ''){ has = true; break; } }
+    if(has) clean.push(r.map(cellText));
+  }
+  if(!clean.length) return null;
+  var w = 0;
+  for(i = 0; i < clean.length; i++) w = Math.max(w, clean[i].length);
+  /* 表头判定：第一行只要有一个非数字单元，就当表头（否则整行都是数据） */
+  var head = clean[0], isHead = false;
+  for(j = 0; j < head.length; j++){
+    if(head[j] && !/^-?[\d,]+(\.\d+)?%?$/.test(head[j])){ isHead = true; break; }
+  }
+  var serial = isHead && /^(#|no\.?|序号|编号|index|行号)$/i.test(head[0] || '');
+  var off = serial ? 1 : 0;
+  var cols = [], data = [];
+  if(isHead){
+    for(j = off; j < w; j++) cols.push(head[j] === undefined ? '' : head[j]);
+    data = clean.slice(1).map(function(x){ return x.slice(off); });
+  } else {
+    cols = ['类别'];
+    for(j = 1; j < w; j++) cols.push('系列' + j);
+    data = clean.map(function(x){ return x.slice(off); });
+  }
+  if(kind === 'pie'){
+    cols = ['名称', '数值'];
+    data = data.map(function(x){ return [x[0] === undefined ? '' : x[0], x[1] === undefined ? '' : x[1]]; });
+  } else {
+    /* 末尾整列都是空的（Excel 里常见的幽灵列）→ 砍掉，别凭空多出一个系列 */
+    var keep = cols.length;
+    while(keep > 1){
+      var empty = true;
+      for(i = 0; i < data.length; i++){ if(cellText(data[i][keep - 1]) !== ''){ empty = false; break; } }
+      if(!empty) break;
+      keep--;
+    }
+    cols = cols.slice(0, keep);
+    if(!cols[0] || /^(#|序号|编号|index)$/i.test(cols[0])) cols[0] = '类别';
+  }
+  return {cols:cols, rows:data, serial:serial, head:isHead};
+}
+
+/* 8 项指标的空模板（新建研报时用） */
 function blankKpis(){
   var t = ['最新价', '总市值', 'PE（TTM）', 'PB（MRQ）', 'EPS（TTM）', '营业收入', '归母净利润', '机构目标价'];
   var u = ['元', '亿元', '倍', '倍', '元', '亿元', '亿元', '元'];
@@ -1611,9 +2197,9 @@ function blankKpis(){
 }
 function newForm(){
   var h = '<div class="rhint">研报是一份独立的数据记录：先建壳（公司 / 标题 / 8 项指标），' +
-          '再逐个模块填内容。建好后会生成 23 个空模块，标题按标准模板预置。</div>';
+          '再逐个模块填内容。建好后会生成 31 个空模块，标题按标准模板预置。</div>';
   h += '<div class="rhint" style="color:#a3122a">⚠️ 股票代码是研报的身份证。' +
-       '<b>输入一个已经有研报的代码，会被拒绝</b>（否则会把那份研报的 23 个模块、16 张图整份覆盖掉）。' +
+       '<b>输入一个已经有研报的代码，会被拒绝</b>（否则会把那份研报的 31 个模块、28 张图整份覆盖掉）。' +
        '想改现有的研报，请从下面的列表点进去。</div>';
   h += '<div class="rgrid2">';
   h += fld('n-code', '股票代码（6 位）', '', '600459');
@@ -1632,7 +2218,7 @@ function RptCreate(){
   var btn = $('n-go');
   if(btn){ btn.disabled = true; btn.textContent = '检 查 中…'; }
   /* ⚠️ 必须先查重：wb_reports 是按 id upsert 的，用已存在的代码建研报
-     会把那份研报连同它的 23 个模块、16 张图**整份覆盖**（不可恢复）。
+     会把那份研报连同它的 31 个模块、28 张图**整份覆盖**（不可恢复）。
      这是真实事故 —— 一律先查，存在就拒绝并给出口。 */
   api('wb_reports?id=eq.' + code + '&select=id,name,title').then(function(rows){
     if(rows && rows.length){
@@ -1643,7 +2229,7 @@ function RptCreate(){
         w.style.display = 'block';
         w.innerHTML = '⚠️ 代码 <b>' + esc(code) + '</b> 已经有研报《' +
           esc(r0.title || r0.name || code) + '》了，<b>不能重复创建</b> —— ' +
-          '重建会把它连 23 个模块、16 张图一起覆盖掉。' +
+          '重建会把它连 31 个模块、28 张图一起覆盖掉。' +
           '<div style="margin-top:9px">' +
           '<button type="button" class="rbtn sm" onclick="location.href=\'report.html?code=' + escq(code) + '\'">' +
           '打开这份已有研报</button>' +
@@ -1668,8 +2254,9 @@ function doCreate(code, v, btn){
     subtitle:v('n-sub'), badges:[], verdict_title:'核心结论',
     verdict_html:'<p>在此填写核心结论：中期方向、关键变量、估值位置、评级与目标价。</p>',
     kpis:blankKpis(), kpi_note:'',
-    toc:[{anchor:'m1', text:'公司基本面'}, {anchor:'m14', text:'财务分析'}, 
-         {anchor:'m20', text:'估值判断'}, {anchor:'m23', text:'投资结论'}],
+    toc:[{anchor:'m1', text:'一 公司与行业'}, {anchor:'m13', text:'二 产业链与成本'},
+         {anchor:'m16', text:'三 经营与项目'}, {anchor:'m19', text:'四 财务分析'},
+         {anchor:'m25', text:'五 预测与估值'}, {anchor:'m29', text:'六 结论与跟踪'}],
     essence_html:'<div class="essence"><div class="et">THE ESSENCE · 一句话本质（可证伪命题）</div>' +
                  '<div class="ec">在此写一句话本质：买它本质上是在买什么，什么条件下成立、什么条件下证伪。</div></div>',
     footer_html:'<div class="disclaimer"><strong>免责声明</strong>：以上内容基于公开数据整理，仅供参考，' +
@@ -1687,7 +2274,7 @@ function doCreate(code, v, btn){
       return {id:m.id, report_id:code, code:code, seq:m.seq, no:m.no, title:m.title, html:m.html, up:nowTs()};
     }), 6);
   }).then(function(){
-    toast('研报已创建（含 23 个空模块），正在打开…', 'ok');
+    toast('研报已创建（含 31 个空模块），正在打开…', 'ok');
     setTimeout(function(){ location.replace(location.pathname + '?code=' + enc(code)); }, 800);
   }).catch(function(e){
     if(btn){ btn.disabled = false; btn.textContent = '创建并写入数据库'; }
@@ -1786,9 +2373,34 @@ var RGATE = [
                 return '图表「' + String(r.name || k || '') + '」的数据与样式'; }],
   ['addChart','新增',false,null,
     function(){ return '新增一张示例图表（随后会写入数据库）'; }, 'svChart'],
+  /* 覆盖式写入（整表覆盖编辑框里的数据表）：与 JSON 导入同级 —— 不可逆，永远要输密码。
+     位置在 addChart 之后、createReport 之前；标签函数里点出是「哪一张图表」。 */
+  ['impTable','导入',true,null,
+    function(){ var k = UI.selChart, r = Rpt.findChart(k) || {};
+                return '把上传的 Excel / CSV 整表覆盖到图表「' + String(r.name || k || '') + '」的数据表上'; }],
+  /* 表格增删行（图表数据表 / 模块正文里的表格）：
+     都是**只改编辑缓冲、不写库**的动作（写库仍走「保存」），所以 danger=false；
+     但删行会丢掉已填的内容，所以按「删除」计 —— 且 danger=false 才带得出
+     「15 分钟免重复输入」那个口子。票据指向自己：同一张抽屉里连着删十行只输一次密码，
+     抽屉一关（closeDrawer）票据作废。插行不需要验（纯新增，随时可删）。 */
+  ['gridDelRow','删除',false,null,
+    function(idx){
+      var k = UI.selChart, r = Rpt.findChart(k) || {}, m = readGrid();
+      var i = parseInt(idx, 10);
+      var at = isNaN(i) ? m.rows.length : (i + 1);
+      var lab = (!isNaN(i) && m.rows[i]) ? String(m.rows[i][0] == null ? '' : m.rows[i][0]).slice(0, 14) : '';
+      return '删除图表「' + String(r.name || k || '') + '」数据表里的第 ' + at + ' 行' +
+             (lab ? '（' + lab + '）' : '') + ' —— 还没入库，点「💾 保存图表」才生效';
+    }, 'gridDelRow'],
+  ['rteRow','删除',false,function(id, delta){ return delta < 0; },
+    function(id, delta){
+      var m = (UI.tab === 'mods') ? Rpt.findMod(UI.selMod) : null;
+      return '删除' + (m ? ('模块 ' + (m.no || '') + '「' + String(m.title || '').slice(0, 24) + '」')
+                          : '这一段正文') + '表格里光标所在的那一行 —— 还没入库，点保存才生效';
+    }, 'rteRow'],
   ['createReport','新增',false,null,
     function(){ return '新建研报（代码 ' + String(($('n-code') || {}).value || '') +
-                      '），会写入壳记录 + 23 个空模块'; }],
+                      '），会写入壳记录 + 31 个空模块'; }],
   /* 覆盖式写入：不可逆，永远要输密码 */
   ['importJSON','导入',true,null,
     function(){ return '把粘贴的 JSON 覆盖写入数据库（模块 + 图表，按 id upsert）'; }]

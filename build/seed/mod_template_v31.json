@@ -1,0 +1,543 @@
+{
+ "version": "v3.1",
+ "count": 31,
+ "parts": [
+  {
+   "no": 1,
+   "label": "第一篇",
+   "name": "公司与行业基础"
+  },
+  {
+   "no": 2,
+   "label": "第二篇",
+   "name": "产业链与成本"
+  },
+  {
+   "no": 3,
+   "label": "第三篇",
+   "name": "经营与项目"
+  },
+  {
+   "no": 4,
+   "label": "第四篇",
+   "name": "财务分析"
+  },
+  {
+   "no": 5,
+   "label": "第五篇",
+   "name": "预测与估值"
+  },
+  {
+   "no": 6,
+   "label": "第六篇",
+   "name": "结论与跟踪"
+  }
+ ],
+ "modules": [
+  {
+   "no": 1,
+   "part": 1,
+   "title": "公司简介",
+   "charts": [],
+   "new": false,
+   "upgrade": false,
+   "must": [
+    "基本信息表（成立/上市/代码/实控人/员工数）",
+    "主营概要",
+    "行业地位一句话"
+   ]
+  },
+  {
+   "no": 2,
+   "part": 1,
+   "title": "公司历史沿革",
+   "charts": [],
+   "new": false,
+   "upgrade": false,
+   "must": [
+    "关键时间轴",
+    "改制/重组/更名节点"
+   ]
+  },
+  {
+   "no": 3,
+   "part": 1,
+   "title": "股东结构",
+   "charts": [],
+   "new": false,
+   "upgrade": false,
+   "must": [
+    "前十大股东表",
+    "持股比例",
+    "股东户数变化"
+   ]
+  },
+  {
+   "no": 4,
+   "part": 1,
+   "title": "实控人与集团背景",
+   "charts": [],
+   "new": false,
+   "upgrade": false,
+   "must": [
+    "实控人性质（央企/省国资委/民营）",
+    "集团资产与协同"
+   ]
+  },
+  {
+   "no": 5,
+   "part": 1,
+   "title": "业务及产品",
+   "charts": [],
+   "new": false,
+   "upgrade": false,
+   "must": [
+    "产品矩阵表",
+    "收入占比",
+    "应用领域"
+   ]
+  },
+  {
+   "no": 6,
+   "part": 1,
+   "title": "主要产品产能与技术",
+   "charts": [
+    "chartCap"
+   ],
+   "new": false,
+   "upgrade": true,
+   "must": [
+    "产能表（品种×产能）",
+    "产能利用率趋势（新增）",
+    "技术壁垒"
+   ]
+  },
+  {
+   "no": 7,
+   "part": 1,
+   "title": "主要产品产量与销量（量价拆分）",
+   "charts": [
+    "chartProd"
+   ],
+   "new": false,
+   "upgrade": true,
+   "must": [
+    "产销量表",
+    "均价×销量=收入 的拆解（新增）",
+    "产销率"
+   ]
+  },
+  {
+   "no": 8,
+   "part": 1,
+   "title": "主要子公司与基地",
+   "charts": [],
+   "new": false,
+   "upgrade": false,
+   "must": [
+    "子公司表（名称/持股/主营/净利）",
+    "生产基地分布"
+   ]
+  },
+  {
+   "no": 9,
+   "part": 1,
+   "title": "行业总览与市场空间",
+   "charts": [
+    "chartIndustrySize"
+   ],
+   "new": true,
+   "upgrade": false,
+   "must": [
+    "行业定义与边界",
+    "全球/中国市场规模表（年份/规模/增速）",
+    "未来 3 年 CAGR",
+    "增长驱动因素（政策/需求/替代）",
+    "数据来源标注"
+   ]
+  },
+  {
+   "no": 10,
+   "part": 1,
+   "title": "下游需求结构拆解",
+   "charts": [
+    "chartDemandMix"
+   ],
+   "new": true,
+   "upgrade": false,
+   "must": [
+    "下游应用占比表",
+    "各下游景气度（增速/订单）",
+    "结构性变化趋势"
+   ]
+  },
+  {
+   "no": 11,
+   "part": 1,
+   "title": "竞争格局与市场份额",
+   "charts": [
+    "chartShare"
+   ],
+   "new": true,
+   "upgrade": false,
+   "must": [
+    "可比公司对比表（营收/毛利率/份额/市值）",
+    "份额演变",
+    "公司相对定位"
+   ]
+  },
+  {
+   "no": 12,
+   "part": 1,
+   "title": "管理层与治理",
+   "charts": [],
+   "new": true,
+   "upgrade": false,
+   "must": [
+    "核心管理层表（姓名/职务/任期/背景）",
+    "股权激励与考核目标",
+    "治理结构特征"
+   ]
+  },
+  {
+   "no": 13,
+   "part": 2,
+   "title": "产业链结构",
+   "charts": [],
+   "new": false,
+   "upgrade": false,
+   "must": [
+    "上中下游链条",
+    "自给率",
+    "一体化程度"
+   ]
+  },
+  {
+   "no": 14,
+   "part": 2,
+   "title": "上游原料价格",
+   "charts": [
+    "chartRaw"
+   ],
+   "new": false,
+   "upgrade": false,
+   "must": [
+    "原料价格走势",
+    "供需平衡",
+    "成本传导"
+   ]
+  },
+  {
+   "no": 15,
+   "part": 2,
+   "title": "产品价格与成本",
+   "charts": [
+    "chartPrice"
+   ],
+   "new": false,
+   "upgrade": false,
+   "must": [
+    "产品售价与成本均价",
+    "剪刀差",
+    "盈利弹性"
+   ]
+  },
+  {
+   "no": 16,
+   "part": 3,
+   "title": "在建工程与新项目",
+   "charts": [],
+   "new": false,
+   "upgrade": false,
+   "must": [
+    "在建项目表（投资额/进度/投产时间）",
+    "达产效益",
+    "资金来源"
+   ]
+  },
+  {
+   "no": 17,
+   "part": 3,
+   "title": "护城河与竞争优势量化",
+   "charts": [
+    "chartRoic"
+   ],
+   "new": true,
+   "upgrade": false,
+   "must": [
+    "ROIC vs WACC 利差（近 5 年）",
+    "壁垒来源分项打分",
+    "与同业对比"
+   ]
+  },
+  {
+   "no": 18,
+   "part": 3,
+   "title": "风险矩阵",
+   "charts": [],
+   "new": false,
+   "upgrade": false,
+   "must": [
+    "风险表（概率×影响×预警信号）",
+    "已发生风险事件"
+   ]
+  },
+  {
+   "no": 19,
+   "part": 4,
+   "title": "公司营业收入与利润",
+   "charts": [
+    "chartRev"
+   ],
+   "new": false,
+   "upgrade": false,
+   "must": [
+    "营收/归母净利历年表",
+    "增速",
+    "业绩归因"
+   ]
+  },
+  {
+   "no": 20,
+   "part": 4,
+   "title": "公司产品收入与毛利结构",
+   "charts": [
+    "chartMix",
+    "chartMargin"
+   ],
+   "new": false,
+   "upgrade": false,
+   "must": [
+    "分产品收入表",
+    "毛利构成"
+   ]
+  },
+  {
+   "no": 21,
+   "part": 4,
+   "title": "盈利能力与杜邦分解",
+   "charts": [
+    "chartMargin"
+   ],
+   "new": false,
+   "upgrade": true,
+   "must": [
+    "毛利率/净利率/ROE 趋势",
+    "杜邦三因子分解（新增）",
+    "与同业对比"
+   ]
+  },
+  {
+   "no": 22,
+   "part": 4,
+   "title": "费用结构",
+   "charts": [
+    "chartExp"
+   ],
+   "new": false,
+   "upgrade": false,
+   "must": [
+    "四费率趋势",
+    "费用率异动解释"
+   ]
+  },
+  {
+   "no": 23,
+   "part": 4,
+   "title": "现金流与资产负债三表",
+   "charts": [
+    "chartCashflow"
+   ],
+   "new": false,
+   "upgrade": true,
+   "must": [
+    "经营/投资/筹资现金流（新增）",
+    "净现比",
+    "资产负债率与有息负债（新增）",
+    "营运资本（存货/应收）"
+   ]
+  },
+  {
+   "no": 24,
+   "part": 4,
+   "title": "历年分红与股东回报",
+   "charts": [
+    "chartDividend"
+   ],
+   "new": false,
+   "upgrade": true,
+   "must": [
+    "历年分红表（每股股利/总额/分红率/股息率）",
+    "累计回报",
+    "分红政策"
+   ]
+  },
+  {
+   "no": 25,
+   "part": 5,
+   "title": "盈利预测模型",
+   "charts": [
+    "chartEstimate"
+   ],
+   "new": true,
+   "upgrade": false,
+   "must": [
+    "量价成本三档假设（悲观/中性/乐观）显式列出",
+    "未来 3 年营收/净利预测表",
+    "关键假设敏感变量"
+   ]
+  },
+  {
+   "no": 26,
+   "part": 5,
+   "title": "估值分析",
+   "charts": [
+    "chartValuation"
+   ],
+   "new": false,
+   "upgrade": true,
+   "must": [
+    "PE/PB 历史区间",
+    "可比公司估值表",
+    "估值方法选择与目标价推导（新增）"
+   ]
+  },
+  {
+   "no": 27,
+   "part": 5,
+   "title": "估值敏感性",
+   "charts": [
+    "chartSens"
+   ],
+   "new": true,
+   "upgrade": false,
+   "must": [
+    "敏感性矩阵（价格×销量 / 增速×折现率）",
+    "目标价区间",
+    "安全边际"
+   ]
+  },
+  {
+   "no": 28,
+   "part": 5,
+   "title": "公司股价表现",
+   "charts": [
+    "chartPrice2"
+   ],
+   "new": false,
+   "upgrade": false,
+   "must": [
+    "股价走势",
+    "技术位置",
+    "区间涨跌"
+   ]
+  },
+  {
+   "no": 29,
+   "part": 6,
+   "title": "企业评分（选股原则 10 项 · 满分 100）",
+   "charts": [],
+   "new": false,
+   "upgrade": false,
+   "must": [
+    "十项加权评分",
+    "评级档位"
+   ]
+  },
+  {
+   "no": 30,
+   "part": 6,
+   "title": "多空论点对照",
+   "charts": [],
+   "new": true,
+   "upgrade": false,
+   "must": [
+    "多方论点（含验证指标）",
+    "空方论点（含证伪信号）",
+    "当前天平倾向与理由"
+   ]
+  },
+  {
+   "no": 31,
+   "part": 6,
+   "title": "投资结论与跟踪清单",
+   "charts": [],
+   "new": false,
+   "upgrade": false,
+   "must": [
+    "评级/目标价/时间维度",
+    "催化剂日历",
+    "跟踪阈值与复核触发条件"
+   ]
+  }
+ ],
+ "old2new": {
+  "1": 1,
+  "2": 2,
+  "3": 3,
+  "4": 4,
+  "5": 5,
+  "6": 6,
+  "7": 7,
+  "8": 8,
+  "9": 13,
+  "10": 14,
+  "11": 15,
+  "12": 16,
+  "13": 18,
+  "14": 19,
+  "15": 20,
+  "16": 21,
+  "17": 22,
+  "18": 23,
+  "19": 24,
+  "20": 26,
+  "21": 28,
+  "22": 29,
+  "23": 31
+ },
+ "new_nos": [
+  9,
+  10,
+  11,
+  12,
+  17,
+  25,
+  27,
+  30
+ ],
+ "upgrade_nos": [
+  6,
+  7,
+  21,
+  23,
+  24,
+  26
+ ],
+ "toc": [
+  {
+   "anchor": "m1",
+   "text": "第一篇 公司简介"
+  },
+  {
+   "anchor": "m13",
+   "text": "第二篇 产业链结构"
+  },
+  {
+   "anchor": "m16",
+   "text": "第三篇 在建工程与新项目"
+  },
+  {
+   "anchor": "m19",
+   "text": "第四篇 公司营业收入与利"
+  },
+  {
+   "anchor": "m25",
+   "text": "第五篇 盈利预测模型"
+  },
+  {
+   "anchor": "m29",
+   "text": "第六篇 企业评分（选股原"
+  }
+ ]
+}
