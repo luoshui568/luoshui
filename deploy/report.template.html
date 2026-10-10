@@ -11,16 +11,19 @@ window.onerror = function(m, s, l, c){ window.__RPT_ERR.push(String(m) + ' @' + 
 window.addEventListener('unhandledrejection', function(e){ window.__RPT_ERR.push('unhandled: ' + String(e.reason && e.reason.message || e.reason)); });
 </script>
 <script>/*__ECHARTS__*/</script>
+<!-- 合规世界地图（build/make_worldmap.py 生成）。必须在 ECharts 之后 —— 它调 echarts.registerMap。
+     为什么不用 ECharts 自带的 world：那份数据的中国画法不合国标（缺台湾、藏南归印度、无九段线）。 -->
+<script>/*__WORLDMAP__*/</script>
 <style>
 /*__REPORTCSS__*/
 
 /* ============================================================
    研报页附加样式（顶部操作条 / 编辑抽屉 / 图表工具条 / 空态）
-   主题色：正红 #c8102e · 深红 #8c0a20 · 亮红 #e63946 · 金 #c9a227
+   主题色：正红 #d0202f · 深红 #a30f24 · 亮红 #e43644 · 金 #c9a227
    ============================================================ */
 :root{
-  --brand:#c8102e; --brand-deep:#8c0a20; --brand-bright:#e63946;
-  --brand-soft:#fdecee; --brand-line:rgba(200,16,46,.18); --gold2:#c9a227;
+  --brand:#d0202f; --brand-deep:#a30f24; --brand-bright:#e43644;
+  --brand-soft:#f1f0ee; --brand-line:rgba(208,32,47,.18); --gold2:#c9a227;
 }
 body{font-size:15.5px}
 
@@ -30,7 +33,7 @@ body{font-size:15.5px}
   padding:9px 12px;margin:0 0 18px;border-radius:14px;
   background:rgba(255,255,255,.94);
   backdrop-filter:saturate(180%) blur(12px);-webkit-backdrop-filter:saturate(180%) blur(12px);
-  border:1px solid var(--brand-line);box-shadow:0 6px 22px rgba(140,10,32,.08);
+  border:1px solid var(--brand-line);box-shadow:0 6px 22px rgba(51,49,53,.08);
 }
 .rbar .rb-brand{font-weight:800;color:var(--brand-deep);font-size:15px;letter-spacing:.2px;white-space:nowrap}
 .rbar .rb-brand em{font-style:normal;color:var(--brand)}
@@ -46,10 +49,10 @@ body{font-size:15.5px}
 }
 .rbtn:hover{background:var(--brand-soft);border-color:var(--brand)}
 .rbtn.pri{background:linear-gradient(135deg,var(--brand),var(--brand-deep));color:#fff;border-color:transparent;
-  box-shadow:0 4px 14px rgba(200,16,46,.24)}
+  box-shadow:0 4px 14px rgba(74,72,76,.24)}
 .rbtn.pri:hover{filter:brightness(1.08)}
-.rbtn.on{background:linear-gradient(135deg,#e63946,#c8102e);color:#fff;border-color:transparent}
-.rbtn.gh{background:transparent;border-color:rgba(140,10,32,.22);color:#7d5b60}
+.rbtn.on{background:linear-gradient(135deg,#e43644,#d0202f);color:#fff;border-color:transparent}
+.rbtn.gh{background:transparent;border-color:rgba(163,15,36,.22);color:#6a6a6f}
 .rbtn.sm{font-size:12px;padding:6px 10px;border-radius:8px}
 .rbtn:disabled{opacity:.55;cursor:default}
 .rsel{font:inherit;font-size:13px;padding:7px 9px;border-radius:10px;
@@ -58,103 +61,103 @@ body{font-size:15.5px}
 /* ---------- 模块上的编辑按钮（仅编辑模式显示） ---------- */
 .rpt-ops{position:absolute;top:14px;right:16px;display:none;gap:6px;z-index:5}
 html.edit .rpt-ops{display:flex}
-.rpt-ops .rbtn{background:rgba(255,255,255,.96);box-shadow:0 3px 10px rgba(140,10,32,.12)}
+.rpt-ops .rbtn{background:rgba(255,255,255,.96);box-shadow:0 3px 10px rgba(51,49,53,.12)}
 .rpt-chartwrap{position:relative}
 html.edit .rpt-chartwrap::after{
   content:'📊 点右上角按钮编辑图表数据';position:absolute;inset:0;pointer-events:none;
-  border:2px dashed rgba(200,16,46,.30);border-radius:12px;background:rgba(253,236,238,.10);
+  border:2px dashed rgba(208,32,47,.30);border-radius:12px;background:rgba(244,244,243,.10);
 }
 html.edit .rpt-chartwrap>.rpt-cops{display:flex}
 .rpt-cops{position:absolute;top:6px;right:8px;display:none;gap:6px;z-index:6}
 
 /* ---------- 图表占位 / 失败 ---------- */
 .rpt-chartmiss{display:flex;align-items:center;justify-content:center;height:100%;min-height:120px;
-  color:#a0888d;font-size:13px;background:repeating-linear-gradient(45deg,#fffafb,#fffafb 10px,#fdf2f3 10px,#fdf2f3 20px);
+  color:#8a8a8f;font-size:13px;background:repeating-linear-gradient(45deg,#fcfcfc,#fcfcfc 10px,#f8f8f8 10px,#f8f8f8 20px);
   border-radius:10px}
 .rpt-toolbar{display:flex;justify-content:flex-end;gap:3px;margin:2px 0 4px}
 .rpt-toolbar button{font:inherit;font-size:11.5px;padding:3px 9px;border-radius:7px;cursor:pointer;
-  border:1px solid #f2dce0;background:#fff;color:#a0888d;transition:.14s}
+  border:1px solid #e7e7e7;background:#fff;color:#8a8a8f;transition:.14s}
 .rpt-toolbar button:hover{border-color:var(--brand);color:var(--brand)}
 .rpt-toolbar button.on{background:var(--brand);border-color:var(--brand);color:#fff}
 
 /* ---------- 空态 ---------- */
 .rpt-empty{background:#fff;border:1px dashed var(--brand-line);border-radius:16px;
-  padding:44px 26px;text-align:center;color:#7d5b60;box-shadow:0 4px 18px rgba(140,10,32,.05)}
+  padding:44px 26px;text-align:center;color:#6a6a6f;box-shadow:0 4px 18px rgba(51,49,53,.05)}
 .rpt-empty .big{font-size:38px;line-height:1;margin-bottom:12px}
 .rpt-empty h3{font-size:19px;color:var(--brand-deep);margin-bottom:8px;font-weight:800}
 .rpt-empty p{font-size:13.5px;line-height:2;max-width:620px;margin:0 auto}
 
 /* ---------- 编辑抽屉 ---------- */
-.rpt-mask{position:fixed;inset:0;z-index:200;display:none;background:rgba(74,7,16,.44)}
+.rpt-mask{position:fixed;inset:0;z-index:200;display:none;background:rgba(74,10,21,.44)}
 .rpt-mask.on{display:block;animation:rptFade .18s ease}
 @keyframes rptFade{from{opacity:0}to{opacity:1}}
 .rpt-drawer{
   position:absolute;top:0;right:0;bottom:0;width:min(880px,94vw);
-  display:flex;flex-direction:column;background:#fffdfd;
-  box-shadow:-16px 0 50px rgba(74,7,16,.22);
+  display:flex;flex-direction:column;background:#fefefe;
+  box-shadow:-16px 0 50px rgba(40,38,42,.22);
   animation:rptSlide .24s cubic-bezier(.22,.8,.36,1);
 }
 @keyframes rptSlide{from{transform:translateX(30px);opacity:.5}to{transform:none;opacity:1}}
 .rpt-dhead{display:flex;align-items:center;gap:10px;padding:14px 18px;
-  background:linear-gradient(135deg,#8c0a20,#c8102e);color:#fff}
+  background:linear-gradient(135deg,#a30f24,#d0202f);color:#fff}
 .rpt-dhead b{font-size:16px;font-weight:800}
 .rpt-dhead .sub{font-size:12px;opacity:.82}
 .rpt-dhead .x{margin-left:auto;cursor:pointer;font-size:20px;line-height:1;opacity:.9;padding:2px 6px;
   border-radius:8px}
 .rpt-dhead .x:hover{background:rgba(255,255,255,.16)}
-.rpt-tabs{display:flex;gap:6px;padding:10px 18px 0;background:#fff;border-bottom:1px solid #f6e6e9}
+.rpt-tabs{display:flex;gap:6px;padding:10px 18px 0;background:#fff;border-bottom:1px solid #efeeec}
 .rpt-tabs button{font:inherit;font-size:13.5px;padding:8px 14px;border:0;background:transparent;cursor:pointer;
-  color:#9a7d82;border-bottom:2px solid transparent;transition:.15s}
+  color:#85858a;border-bottom:2px solid transparent;transition:.15s}
 .rpt-tabs button:hover{color:var(--brand)}
 .rpt-tabs button.on{color:var(--brand-deep);font-weight:700;border-bottom-color:var(--brand)}
 .rpt-dbody{flex:1;overflow:auto;padding:16px 18px 26px}
 .rpt-dfoot{display:flex;gap:8px;justify-content:flex-end;align-items:center;
-  padding:11px 18px;border-top:1px solid #f6e6e9;background:#fffafb}
-.rpt-dfoot .lf{margin-right:auto;font-size:12px;color:#a0888d}
+  padding:11px 18px;border-top:1px solid #efeeec;background:#fcfcfc}
+.rpt-dfoot .lf{margin-right:auto;font-size:12px;color:#8a8a8f}
 
 .rfld{margin-bottom:14px}
-.rfld>label{display:block;font-size:12.5px;font-weight:700;color:#7d5b60;margin-bottom:6px}
-.rfld>label em{font-style:normal;font-weight:400;color:#b09a9e;margin-left:6px}
+.rfld>label{display:block;font-size:12.5px;font-weight:700;color:#6a6a6f;margin-bottom:6px}
+.rfld>label em{font-style:normal;font-weight:400;color:#9c9ca1;margin-left:6px}
 .rinp,.rtxt,.rsel2{width:100%;font:inherit;font-size:13.5px;padding:9px 11px;border-radius:10px;
-  border:1px solid #f0dde0;background:#fff;color:#3a2024;transition:.15s}
-.rinp:focus,.rtxt:focus,.rsel2:focus{outline:0;border-color:var(--brand);box-shadow:0 0 0 3px rgba(200,16,46,.10)}
+  border:1px solid #e6e5e3;background:#fff;color:#3a2024;transition:.15s}
+.rinp:focus,.rtxt:focus,.rsel2:focus{outline:0;border-color:var(--brand);box-shadow:0 0 0 3px rgba(74,72,76,.10)}
 .rtxt{font-family:ui-monospace,Consolas,"Courier New",monospace;font-size:12.5px;line-height:1.75;
   resize:vertical;min-height:260px;white-space:pre;overflow-wrap:normal;overflow-x:auto}
 .rtxt.js{min-height:200px}
 .rgrid2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
 .rgrid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 14px}
-.rhint{font-size:12px;color:#a0888d;line-height:1.85;margin:-4px 0 12px}
-.rhint code{background:#fdf2f3;padding:1px 5px;border-radius:5px;color:var(--brand-deep);font-size:11.5px}
+.rhint{font-size:12px;color:#8a8a8f;line-height:1.85;margin:-4px 0 12px}
+.rhint code{background:#f8f8f8;padding:1px 5px;border-radius:5px;color:var(--brand-deep);font-size:11.5px}
 
 /* 抽屉里的列表 */
 .rlist{display:flex;flex-direction:column;gap:6px}
 .rlist .it{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:11px;
-  border:1px solid #f4e4e7;background:#fff;cursor:pointer;transition:.14s}
-.rlist .it:hover{border-color:var(--brand);background:#fffafb;transform:translateX(2px)}
+  border:1px solid #efeeec;background:#fff;cursor:pointer;transition:.14s}
+.rlist .it:hover{border-color:var(--brand);background:#fcfcfc;transform:translateX(2px)}
 .rlist .it .no{flex:0 0 30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(135deg,#c8102e,#8c0a20);color:#fff;font-size:12.5px;font-weight:800}
+  background:linear-gradient(135deg,#d0202f,#a30f24);color:#fff;font-size:12.5px;font-weight:800}
 .rlist .it .tx{flex:1;min-width:0}
 .rlist .it .tx b{display:block;font-size:13.5px;color:#3a2024;font-weight:700;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rlist .it .tx span{font-size:11.5px;color:#a0888d}
+.rlist .it .tx span{font-size:11.5px;color:#8a8a8f}
 
 /* 可视化编辑区（所见即所得，用户不必面对 HTML 代码） */
 .rtebar{display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding:6px 8px;
-  background:#fdf2f3;border:1px solid #f0dde0;border-bottom:none;border-radius:10px 10px 0 0}
+  background:#f8f8f8;border:1px solid #e6e5e3;border-bottom:none;border-radius:10px 10px 0 0}
 .rteb{font:inherit;font-size:12px;line-height:1;padding:6px 9px;border-radius:8px;cursor:pointer;
-  border:1px solid #f0dde0;background:#fff;color:#7d5b60;transition:.14s}
-.rteb:hover{border-color:var(--brand);color:var(--brand-deep);background:#fffafb}
+  border:1px solid #e6e5e3;background:#fff;color:#6a6a6f;transition:.14s}
+.rteb:hover{border-color:var(--brand);color:var(--brand-deep);background:#fcfcfc}
 .rteb:active{transform:translateY(1px)}
 .rteb b,.rteb i,.rteb u,.rteb s{font-size:12.5px}
-.rteSep{width:1px;height:17px;background:#edd6da;margin:0 3px}
-.rtesel{font:inherit;font-size:12px;padding:5px 6px;border-radius:8px;border:1px solid #f0dde0;
-  background:#fff;color:#7d5b60;max-width:150px}
-.rtebar-tip{margin-left:auto;font-size:11.5px;color:#b09a9e;padding-right:4px}
+.rteSep{width:1px;height:17px;background:#e2e1df;margin:0 3px}
+.rtesel{font:inherit;font-size:12px;padding:5px 6px;border-radius:8px;border:1px solid #e6e5e3;
+  background:#fff;color:#6a6a6f;max-width:150px}
+.rtebar-tip{margin-left:auto;font-size:11.5px;color:#9c9ca1;padding-right:4px}
 
 .rte{min-height:170px;max-height:50vh;overflow:auto;padding:14px 16px;background:#fff;
-  border:1px solid #f0dde0;border-radius:0 0 10px 10px;font-size:14px;line-height:1.78;color:#3a2024;
+  border:1px solid #e6e5e3;border-radius:0 0 10px 10px;font-size:14px;line-height:1.78;color:#3a2024;
   outline:0;transition:.15s}
-.rte:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(200,16,46,.10)}
+.rte:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(74,72,76,.10)}
 .rte>*:first-child{margin-top:0}
 .rte>*:last-child{margin-bottom:0}
 .rte img{max-width:100%}
@@ -162,77 +165,77 @@ html.edit .rpt-chartwrap>.rpt-cops{display:flex}
 
 /* 图表位置：受保护的标签，点不动、改不了，避免误删代码 */
 .rte-chip{display:inline-block;vertical-align:middle;margin:3px 2px;padding:4px 11px;border-radius:20px;
-  background:#fde8ea;border:1px dashed #d99aa3;color:#a3122a;font-size:12.5px;font-weight:700;
+  background:#f2f1ef;border:1px dashed #c2c2c6;color:#c81a33;font-size:12.5px;font-weight:700;
   user-select:none;-webkit-user-select:none;cursor:default;white-space:nowrap}
 .rte-chip::before{content:'📊 ';font-weight:400}
 
 .rsrc{margin-top:9px}
-.rsrc>summary{cursor:pointer;font-size:12px;color:#a0888d;list-style:none;padding:3px 0}
+.rsrc>summary{cursor:pointer;font-size:12px;color:#8a8a8f;list-style:none;padding:3px 0}
 .rsrc>summary::-webkit-details-marker{display:none}
 .rsrc>summary::before{content:'▸ '}
 .rsrc[open]>summary::before{content:'▾ '}
-.rsrc-warn{font-size:12px;color:#a3122a;background:#fdecee;border:1px solid #f4d4d8;
+.rsrc-warn{font-size:12px;color:#c81a33;background:#f1f0ee;border:1px solid #e4e3e1;
   border-radius:9px;padding:7px 10px;margin:4px 0 7px;line-height:1.7}
 .rsrc-txt{min-height:120px !important;font-size:12px;line-height:1.6}
 
 /* 新建研报：代码已存在时的拒绝提示（防止整份覆盖） */
 .n-warn{margin:4px 0 12px;padding:11px 13px;border-radius:11px;font-size:13px;line-height:1.8;
-  background:#fdecee;border:1px solid #f0c7cc;color:#8c0a20}
-.n-warn b{color:#a3122a}
+  background:#f1f0ee;border:1px solid #dedddb;color:#a30f24}
+.n-warn b{color:#c81a33}
 
 /* 数据表格编辑器 */
 /* 数据表上方的「导入 Excel / CSV」工具条（放在 .rpt-gridwrap 上面，别塞进滚动区里） */
 .rpt-iotools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 9px}
-.rpt-iotools .tip{flex:1;min-width:170px;font-size:11.5px;line-height:1.7;color:#b09a9e}
-.rpt-iotools .tip code{background:#fdf2f3;color:#a3122a;padding:1px 4px;border-radius:4px;font-size:11px}
-.rpt-gridwrap{border:1px solid #f2dce0;border-radius:12px;overflow:auto;max-height:52vh;background:#fff}
+.rpt-iotools .tip{flex:1;min-width:170px;font-size:11.5px;line-height:1.7;color:#9c9ca1}
+.rpt-iotools .tip code{background:#f8f8f8;color:#c81a33;padding:1px 4px;border-radius:4px;font-size:11px}
+.rpt-gridwrap{border:1px solid #e7e7e7;border-radius:12px;overflow:auto;max-height:52vh;background:#fff}
 table.rpt-grid{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px}
-table.rpt-grid th{position:sticky;top:0;z-index:2;background:#fdf2f3;color:#8c0a20;font-weight:700;
-  padding:7px 8px;border-bottom:1px solid #f2dce0;white-space:nowrap;font-size:12px}
-table.rpt-grid td{padding:2px 4px;border-bottom:1px solid #fbf0f1}
+table.rpt-grid th{position:sticky;top:0;z-index:2;background:#f8f8f8;color:#a30f24;font-weight:700;
+  padding:7px 8px;border-bottom:1px solid #e7e7e7;white-space:nowrap;font-size:12px}
+table.rpt-grid td{padding:2px 4px;border-bottom:1px solid #f6f6f6}
 table.rpt-grid td input{width:100%;font:inherit;font-size:12.5px;padding:5px 7px;border-radius:7px;
   border:1px solid transparent;background:transparent;color:#3a2024}
-table.rpt-grid td input:hover{border-color:#f2dce0}
-table.rpt-grid td input:focus{outline:0;background:#fff;border-color:var(--brand);box-shadow:0 0 0 3px rgba(200,16,46,.09)}
-table.rpt-grid td.ix{width:58px;text-align:center;color:#c0a8ac;font-size:11px;white-space:nowrap}
-table.rpt-grid tr:hover td{background:#fffafb}
+table.rpt-grid td input:hover{border-color:#e7e7e7}
+table.rpt-grid td input:focus{outline:0;background:#fff;border-color:var(--brand);box-shadow:0 0 0 3px rgba(74,72,76,.09)}
+table.rpt-grid td.ix{width:58px;text-align:center;color:#b4b4b8;font-size:11px;white-space:nowrap}
+table.rpt-grid tr:hover td{background:#fcfcfc}
 /* 行号列里的「删这一行」小按钮。常显但很淡 —— 别做成 hover 才出现，
    藏起来的功能等于没有（上一版导入按钮就吃过这个亏）；悬停才变红。 */
 table.rpt-grid td.ix .gx{font:inherit;font-size:11px;line-height:1;margin-left:4px;padding:2px 4px;
-  border:1px solid #f2dce0;border-radius:6px;background:#fff;color:#d8b6bb;cursor:pointer;vertical-align:middle}
-table.rpt-grid td.ix .gx:hover{background:#fdecee;border-color:#e9a9b3;color:#c8102e}
+  border:1px solid #e7e7e7;border-radius:6px;background:#fff;color:#c6c6ca;cursor:pointer;vertical-align:middle}
+table.rpt-grid td.ix .gx:hover{background:#f1f0ee;border-color:#e0a4ab;color:#d0202f}
 
 /* 提示条 */
 .rpt-toast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,20px);z-index:600;
   padding:11px 20px;border-radius:12px;font-size:13.5px;font-weight:600;color:#fff;
-  background:linear-gradient(135deg,#8c0a20,#c8102e);box-shadow:0 10px 30px rgba(140,10,32,.3);
+  background:linear-gradient(135deg,#a30f24,#d0202f);box-shadow:0 10px 30px rgba(51,49,53,.3);
   opacity:0;pointer-events:none;transition:.24s;max-width:80vw;text-align:center}
 .rpt-toast.on{opacity:1;transform:translate(-50%,0)}
-.rpt-toast.bad{background:linear-gradient(135deg,#4a0710,#7a0a1c)}
+.rpt-toast.bad{background:linear-gradient(135deg,#4a0a15,#8f0f22)}
 .rpt-toast.ok{background:linear-gradient(135deg,#0b6b47,#0b8a5c)}
 
 /* 密码弹窗 */
 .rpt-pmask{position:fixed;inset:0;z-index:500;display:none;align-items:center;justify-content:center;
-  background:rgba(74,7,16,.5)}
+  background:rgba(74,10,21,.5)}
 .rpt-pmask.on{display:flex}
 .rpt-pbox{width:min(420px,92vw);background:#fff;border-radius:16px;overflow:hidden;
-  box-shadow:0 24px 70px rgba(74,7,16,.35);animation:rptSlide .2s ease}
-.rpt-pbox .hd{padding:14px 18px;background:linear-gradient(135deg,#8c0a20,#c8102e);color:#fff;font-weight:800}
+  box-shadow:0 24px 70px rgba(40,38,42,.35);animation:rptSlide .2s ease}
+.rpt-pbox .hd{padding:14px 18px;background:linear-gradient(135deg,#a30f24,#d0202f);color:#fff;font-weight:800}
 .rpt-pbox .bd{padding:16px 18px}
-.rpt-pbox .warn{background:#fff6f7;border:1px solid #f6d5da;border-radius:10px;padding:11px 13px;
-  font-size:12.5px;color:#8c0a20;line-height:1.9;margin-bottom:12px}
-.rpt-pbox .err{color:#c8102e;font-size:12.5px;min-height:18px}
+.rpt-pbox .warn{background:#fafafa;border:1px solid #e4e3e1;border-radius:10px;padding:11px 13px;
+  font-size:12.5px;color:#a30f24;line-height:1.9;margin-bottom:12px}
+.rpt-pbox .err{color:#d0202f;font-size:12.5px;min-height:18px}
 .rpt-pbox .ft{display:flex;gap:8px;justify-content:flex-end;padding:0 18px 16px}
-.rpt-pbox .rkeep{display:flex;align-items:flex-start;gap:7px;font-size:12.2px;color:#7d5b60;
+.rpt-pbox .rkeep{display:flex;align-items:flex-start;gap:7px;font-size:12.2px;color:#6a6a6f;
   margin:2px 0 8px;cursor:pointer;user-select:none;line-height:1.55}
 /* ⚠️ 文字必须裹在单个 <span>：flex 会把每段文本 / 每个内联元素当独立子项横排，
    否则「…仍需输入（<b>…</b>）」会被拆成三列、括号飘到下一行。 */
 .rpt-pbox .rkeep>span{flex:1 1 auto;min-width:0}
-.rpt-pbox .rkeep input{width:15px;height:15px;accent-color:#c8102e;margin:0;margin-top:1px;flex:0 0 auto;cursor:pointer}
-.rpt-pbox .rkeep b{color:#8c0a20}
-.rbtn.red{background:linear-gradient(135deg,#a3122a,#8c0a20);color:#fff;border-color:transparent;
-  box-shadow:0 4px 14px -6px rgba(140,10,32,.85)}
-.rbtn.red:hover{background:linear-gradient(135deg,#b81530,#9c0b23)}
+.rpt-pbox .rkeep input{width:15px;height:15px;accent-color:#d0202f;margin:0;margin-top:1px;flex:0 0 auto;cursor:pointer}
+.rpt-pbox .rkeep b{color:#a30f24}
+.rbtn.red{background:linear-gradient(135deg,#c81a33,#a30f24);color:#fff;border-color:transparent;
+  box-shadow:0 4px 14px -6px rgba(51,49,53,.85)}
+.rbtn.red:hover{background:linear-gradient(135deg,#c81a33,#a30f24)}
 .shake{animation:rptShake .38s}
 @keyframes rptShake{0%,100%{transform:none}20%{transform:translateX(-7px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
 
@@ -534,10 +537,23 @@ function renderKpis(){
   n.style.display = n.innerHTML ? '' : 'none';
 }
 
+/* 目录文案：剥掉「第X篇 」前缀。
+   ⚠️ 为什么非剥不可：左侧竖排目录很窄，前缀「第一篇」4 个字就吃掉一大半，
+   真正要看的模块名会被挤成「第四篇 公司营业收入与利…」——用户 2026-09-16 反馈
+   「不要显示前面第几篇，把主要的字挡住了」。库里的文案已统一成 4 个字
+   （公司简介 / 产业链条 / 在建工程 / 营业收入 / 盈利预测 / 企业评分）；
+   这里再兜底剥一次前缀，是为了兼容历史研报和网页端编辑过的旧数据。 */
+function tocLabel(s){
+  return String(s == null ? '' : s)
+    .replace(/^第[一二三四五六七八九十百零〇\d]+篇[\s·、,，:：\-—]*/, '')
+    .trim();
+}
+
 function renderToc(){
   var t = (St.rep && St.rep.toc) || [];
   $('toc').innerHTML = t.map(function(x, i){
-    return '<a href="#' + attr(x.anchor) + '" data-i="' + (i + 1) + '">' + esc(x.text) + '</a>';
+    return '<a href="#' + attr(x.anchor) + '" data-i="' + (i + 1) + '" title="' + attr(x.text) + '">' +
+           esc(tocLabel(x.text)) + '</a>';
   }).join('');
   $('toc').style.display = t.length ? '' : 'none';
   tocSpy();
@@ -591,8 +607,14 @@ function renderMods(){
     return;
   }
   var h = '';
+  /* 「一句话本质」插在**最后一个模块**之前。
+     ⚠️ 原先写死 String(m.no) === '31' —— 但 600456 已从 31 模块精简为 29 模块
+     （2026-09-17 删掉「估值敏感性」「公司股价表现」两篇），写死编号会让它的
+     essence 直接不显示。改成"最后一个"后，31 模块的报告与 29 模块的报告都对。
+     St.mods 来自 order=seq.asc，最后一项即序号最大的模块。 */
+  var _lastMod = St.mods.length ? St.mods[St.mods.length - 1] : null;
   St.mods.forEach(function(m){
-    if(String(m.no) === '31' && St.rep.essence_html) h += St.rep.essence_html;
+    if(m === _lastMod && St.rep.essence_html) h += St.rep.essence_html;
     h += '<div class="card" id="m' + attr(m.no) + '" data-mod="' + attr(m.id) + '">' +
            '<h2><span class="no">' + esc(m.no) + '</span>' + (m.title || '') + '</h2>' +
            '<div class="rpt-ops">' +
@@ -602,6 +624,673 @@ function renderMods(){
          '</div>';
   });
   box.innerHTML = h;
+  stackWide(box);
+  /* 槽 29 评分卡的「动态调整」也在渲染层接（见下方 scoreLive 段）——
+     ★ 必须排在这之后：它要读 `.sc-line` / `.sc-bar` 的最终 DOM。 */
+  scoreLive(box);
+}
+
+/* ----------------------------------------------------------------
+   并排 → 整行（2026-09-17）
+   模块正文里图文并排用的是 .grid2（1fr 1fr 两栏）。用户要求「表格/图表独占一行，
+   文字放到下面」。这里做**渲染层归一**：
+     · 只处理「含表格或图表」的 .grid2 —— 纯文字并排（如「治理特征 / 需关注」）保持两栏；
+     · 给视觉子块加 .gr-vis、纯文字子块加 .gr-txt，容器加 .gr-stack；
+     · 把文字子块 appendChild 到末尾（appendChild 对已有节点是"移动"）⇒ DOM 顺序变成
+       「图/表在前、文字在后」，也就是阅读顺序 = 图在上、字在下。
+   ★ 为什么不在库里改 HTML：43 处 .grid2 分布在 5 份研报里，逐条改要写 5 次库，
+     还会被网页端在线编辑覆盖。渲染层改一次，全库（含以后新建的研报）都生效。
+   ★ 为什么不用 :has() 选择器：老一点的手机浏览器（旧版微信内核）不支持，
+     会出现「有时并排、有时整行」的不确定渲染。这里判据是确定的。
+   ★ 高度/间距/卡片语言全在 build/report_theme.css 的 .grid2.gr-stack 段里，
+     注意 -- 模块级 CSS 必须落那个文件（sanitizeHtml 会剥掉模块内的样式表）。
+   ---------------------------------------------------------------- */
+function addCls(el, c){
+  if(!el) return;
+  var cur = ' ' + (el.className || '') + ' ';
+  if(cur.indexOf(' ' + c + ' ') < 0) el.className = (el.className ? el.className + ' ' : '') + c;
+}
+function stackWide(root){
+  if(!root) return;
+  var gs = root.querySelectorAll('.grid2');
+  for(var i = 0; i < gs.length; i++){
+    var g = gs[i], kids = g.children, vis = [], txt = [];
+    for(var j = 0; j < kids.length; j++){
+      var k = kids[j];
+      if(k.nodeType !== 1) continue;
+      if(k.querySelector('table,[data-chart],canvas,svg')) vis.push(k);
+      else txt.push(k);
+    }
+    if(!vis.length) continue;                    /* 纯文字并排 → 保持两栏 */
+    /* ★ 两张图并排（2026-09-20 用户要求：「两张图放到同一行」）
+       子块**全是图**、没有文字子块、没有表格、且正好两块 ⇒ 保持 .grid2 两栏不拉通。
+       容器加 .gr-pair、子块加 .gr-vis；高度/间距走 report_theme.css 的 .grid2.gr-pair 段。
+       ★ 判据为什么这么定：含表格的两栏会挤（表格要宽度）⇒ 仍拉通；
+         图 + 文字则要「图在上、字在下」⇒ 也仍拉通。只有「纯一对图」才并排。
+       ★ 影响面实测：全库 43 处 .grid2 里只有一处命中（600456「上游原料价格」），
+         其余 37 处含表格/文字、5 处纯文字 —— 所以这个分支只改那一处。 */
+    var anyTbl = false;
+    for(var t0 = 0; t0 < vis.length; t0++){ if(vis[t0].querySelector('table')) anyTbl = true; }
+    if(!txt.length && vis.length === 2 && !anyTbl){
+      addCls(g, 'gr-pair');
+      for(var p0 = 0; p0 < vis.length; p0++) addCls(vis[p0], 'gr-vis');
+      continue;
+    }
+    for(var t = 0; t < txt.length; t++) g.appendChild(txt[t]);
+    for(var v = 0; v < vis.length; v++) addCls(vis[v], 'gr-vis');
+    for(var t2 = 0; t2 < txt.length; t2++) addCls(txt[t2], 'gr-txt');
+    addCls(g, 'gr-stack');
+  }
+}
+
+/* ----------------------------------------------------------------
+   并排窄栏：绘图区顶部留白加大（2026-09-20）
+   ★ 起因：600456「上游原料价格」两张图并排（.gr-pair）后每栏只剩半宽，左图
+     顶部居中的图例与峰顶的 markPoint 气泡（库里「最高」→「9.7」）落在同一水平
+     线上，把「海绵钛均价(万元/吨)」尾部压住了。整行时图更宽、看不出重叠。
+   ★ 试过把图例挪到左侧 —— 不行：y 轴名「万元/吨」在左上角，靠左的图例正好压上去。
+   ★ 最终做法：只把绘图区顶部留白（grid.top）抬到 58px，图例保持居中、series
+     数据与轴范围一律不动。半宽图少 18px 绘图高度无所谓，重叠消失。
+   ★ 幂等：重复调用只是把 top 保持在 58。整行的图完全不碰。
+   ---------------------------------------------------------------- */
+function pairTopPad(slot, opt){
+  if(!slot || !opt || !opt.grid || typeof opt.grid !== 'object') return;
+  if(opt.grid instanceof Array) return;
+  var p = slot.parentNode;
+  while(p && p.nodeType === 1 && p !== document.body){
+    var c = ' ' + (p.className || '') + ' ';
+    if(c.indexOf(' gr-pair ') >= 0){
+      if(!(opt.grid.top >= 58)) opt.grid.top = 58;
+      return;
+    }
+    p = p.parentNode;
+  }
+}
+
+/* ----------------------------------------------------------------
+   槽 29「企业评分」动态调整（2026-09-22 用户令）
+   「模块29这里做成动态调整，改右边评分整个总评分要加权改动，
+     以后所有的做的新研报也要都这样」
+
+   ★ 为什么放在壳里、不放模块 HTML 里：
+     ① 模块 HTML 每次从数据库取，且要过 sanitizeHtml（脚本 / 输入框 / 样式表都会被剥）；
+     ② 31 槽随时可能被网页端在线编辑覆盖；
+     ③ 放渲染层 ⇒ 现存 10 家 + 以后新建的每一家**都自动拥有**，
+        与 stackWide()「渲染层归一」是同一个道理。
+   ★ 权重从哪来：优先 `.sc-line[data-w]`（build/score_lock.py 新版渲染会带），
+     取不到就解析 `.sc-w` 的「10%」文本兜底（线上现存 10 家都是旧版渲染，靠这条）。
+     两条都失败 ⇒ 整块**不接管**、页面保持原样 —— 宁可没有交互，也不猜权重。
+   ★ 计分口径与后端逐字对齐（build/score_lock.py）：
+       总分 = Σ（单项分 × 权重）× 10 ÷ 100（一位小数）
+       评级 ≥85 重点看好 / ≥75 看好 / ≥65 观察 / ≥55 谨慎 / <55 回避
+     两边不一致就会出现「页面显示一套、库里写着另一套」。
+   ★ 调整先落浏览器本地（localStorage），点「💾 提交到数据库」才写库
+     （2026-09-22 追加用户令：「这个数据改完要提交到数据库里去」）：
+       · 写库走 Rpt.commitScore → 已有写通道（wb_report_mods 的 PATCH），
+         并被 RGATE 表**自动挂上管理员密码门**（与「保存模块」同一套校验）；
+       · 要写进库的那段 HTML 由 `scBuildHtml()` 拼 —— 它与后端
+         `build/_score_patch.py` 的 `apply_scores()` 是**同一套定点替换**，
+         两条路径产出的字节必须完全相同（`_sc_test.py` 里有逐字相等的断言）。
+         ⇒ 只动「分数/条宽/总分/环形/徽标/评级/评分说明点名句」，
+           KPI 8 格、逐项说明、母本额外段落一个字节都不动。
+       · 提交前**必须先拿到模块原文**（St.mods 里的 html）当底稿：绝不能拿已经被
+         交互改造过的实时 DOM 去序列化 —— 那会把 `data-sc-wired`、`.sc-live`、
+         `--scp` 这些运行态标记写进库，下次加载就直接「接不上交互」了。
+   ★ 本地留存带**基线校验** —— 库里分数一变（重新评分 / 人工改库 / 别人提交过）
+     就丢弃过期调整，免得页面与库长期不一致。
+   ★ 空分形态（十项全是「—」）也接管：未评分项按中性 6 分参与总分，实时条上明写这句
+     —— 与后端 score_engine 的 NEUTRAL=6 同口径。
+   ---------------------------------------------------------------- */
+var SC_GRADE = [[85, '重点看好'], [75, '看好'], [65, '观察'], [55, '谨慎'], [0, '回避']];
+var SC_NEUTRAL = 6;                  /* 未评分项参与总分的基准 —— 与 score_engine 同值 */
+
+function scF1(x){                    /* 一位小数，整数不留 .0（与后端 %.1f 去尾一致） */
+  var s = (Math.round(x * 10) / 10).toFixed(1);
+  return s.slice(-2) === '.0' ? s.slice(0, -2) : s;
+}
+function scGrade(t){
+  for(var i = 0; i < SC_GRADE.length; i++){ if(t >= SC_GRADE[i][0]) return SC_GRADE[i][1]; }
+  return SC_GRADE[SC_GRADE.length - 1][1];
+}
+function scFn(v){
+  if(v === null || v === undefined || v === '') return null;
+  var f = parseFloat(String(v).replace(/[，,\s%]/g, '').replace('−', '-'));
+  return isFinite(f) ? f : null;
+}
+function scEsc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function scCls(el, c, on){
+  if(!el) return;
+  var cur = ' ' + (el.className || '') + ' ', hit = cur.indexOf(' ' + c + ' ') >= 0;
+  if(on && !hit) el.className += (el.className ? ' ' : '') + c;
+  else if(!on && hit) el.className = cur.replace(' ' + c + ' ', ' ').replace(/^\s+|\s+$/g, '');
+}
+function scCode(){
+  try{ if(typeof St !== 'undefined' && St && St.code) return String(St.code); }catch(e){}
+  var m = /[?&]code=([^&]*)/.exec(location.search || '');
+  return m ? decodeURIComponent(m[1]) : '';
+}
+function scLs(k, v){
+  try{
+    if(v === undefined) return JSON.parse(localStorage.getItem(k) || 'null');
+    if(v === null) localStorage.removeItem(k); else localStorage.setItem(k, JSON.stringify(v));
+  }catch(e){}
+  return null;
+}
+
+/* 入口：把 root 下所有评分卡接上（幂等 —— 重渲染会换新节点，这里只防重复调用）
+   ★ 回传接管成功的模块对象数组：生产代码忽略返回值，`_sc_test.py` 用它调用与线上
+     完全同一个 `scBuildHtml()` 做「落库字节」比对 —— 不额外开测试专用入口。 */
+function scoreLive(root){
+  var cs = (root || document).querySelectorAll('.criteria'), out = [], m;
+  for(var i = 0; i < cs.length; i++){
+    m = scWire(cs[i]);
+    if(m) out.push(m);
+  }
+  return out;
+}
+
+function scWire(crit){
+  if(crit.getAttribute('data-sc-wired')) return null;
+  var lines = crit.querySelectorAll('.sc-line');
+  if(lines.length !== 10) return null;            /* 不是母本十项形态 → 不接管 */
+  var items = [], i, ok = true;
+  for(i = 0; i < lines.length && ok; i++){
+    var ln = lines[i];
+    var bar = ln.querySelector('.sc-bar'), val = ln.querySelector('.sc-val');
+    if(!bar || !val){ ok = false; break; }
+    var w = scFn(ln.getAttribute('data-w'));
+    if(w === null){                               /* 旧版渲染（无 data-w）：从「10%」文本取 */
+      var wt = ln.querySelector('.sc-w');
+      var mm = wt ? /([0-9]+(?:\.[0-9]+)?)/.exec(wt.textContent || '') : null;
+      w = mm ? parseFloat(mm[1]) : null;
+    }
+    if(!w){ ok = false; break; }
+    var nm = ln.querySelector('.sc-name');
+    items.push({
+      line: ln, bar: bar, val: val, w: w, inp: null,
+      name: (nm ? nm.textContent : ('第' + (i + 1) + ' 项')).replace(/加分项/g, '').trim(),
+      base: scFn(val.textContent)                 /* 「—」→ null = 未评分 */
+    });
+  }
+  if(!ok || items.length !== 10) return null;
+
+  /* ★ 卡片要取**最近的带 data-mod 的祖先**，不能取 parentNode（2026-09-22 全链探头抓到）：
+     模块正文里只要有一个没闭合的行内标签（002408 的 m1 就是：一处 `<b>` 的收尾写成了残留 `**`），
+     后面的内容全会变成它的子节点 —— `.criteria` 的 parentNode 就成了那个 `<b>`，
+     `parentNode.getAttribute('data-mod')` 取空 ⇒ `mod.html` 拿不到原文
+     ⇒ 提交按钮永远弹「拿不到模块原文」。⇒ 向上找第一个 `[data-mod]`，对畸形嵌套免疫。 */
+  var card = null, _p = crit;
+  while(_p && _p !== document.body && _p.nodeType === 1){
+    if(_p.getAttribute && _p.getAttribute('data-mod')){ card = _p; break; }
+    _p = _p.parentNode;
+  }
+  card = card || crit.parentNode;
+
+  /* ★ 取分一致性判据（2026-09-22）—— 别只信 `.sc-val` 的文本：
+     文本与「条宽 + 存储总分」可能对不上。母本 600456 第 10 项就是文本写 5、
+     条宽 60%、总分 70.5（手写笔误，三比一）—— 只看文本会把库里的 70.5 悄悄显示成 69.9。
+     ⇒ 先按文本算总分；与 `.sc-total .tn` 对不上就改按**条宽**读，并在控制台留痕。
+       与后端 build/_score_patch.parse_scores() 同一条规则。 */
+  var tb = 0, ti;
+  for(ti = 0; ti < 10; ti++){
+    tb += (items[ti].base === null ? SC_NEUTRAL : items[ti].base) * items[ti].w;
+  }
+  var tnEl = card.querySelector('.sc-total .tn');
+  var storedTn = tnEl ? scFn(tnEl.textContent) : null;
+  if(storedTn !== null && Math.abs(Math.round(tb) / 10 - storedTn) > 0.05){
+    var byBar = 0;
+    for(ti = 0; ti < 10; ti++){
+      var f0 = items[ti].bar.firstElementChild;
+      var mw = f0 ? /width:\s*([0-9.]+)%/.exec(f0.getAttribute('style') || '') : null;
+      if(mw){ items[ti].base = Math.round(parseFloat(mw[1]) / 10); byBar++; }
+    }
+    if(byBar === 10){
+      try{
+        console.warn('[槽29] .sc-val 文本与条宽/存储总分不一致 ⇒ 已按条宽取分'
+                     + '（模块原文那一格可能是笔误，建议提交一次把它修正）');
+      }catch(e){}
+    }
+  }
+
+  /* 模块 id + **库里的原始 HTML**（提交时的唯一底稿 —— 必须取原文，不能序列化实时 DOM） */
+  var modId = card.getAttribute('data-mod') || '';
+  var srcMod = null;
+  try{
+    for(var q = 0; q < (St.mods || []).length; q++){
+      if(String(St.mods[q].id) === String(modId)){ srcMod = St.mods[q]; break; }
+    }
+  }catch(e){}
+  var mod = {
+    crit: crit, items: items, touch: false, dirty: false,
+    id: modId, no: (srcMod && srcMod.no) || '', html: (srcMod && srcMod.html) || '',
+    bases: [], cur: [],
+    gauge: card.querySelector('.gauge'),
+    gw: card.querySelector('.gauge-wrap'),
+    num: card.querySelector('.gauge-num'),
+    badge: card.querySelector('.gauge-badge'),
+    tn: card.querySelector('.sc-total .tn'),
+    tt: card.querySelector('.sc-total .tt'),
+    srcP: null, srcHTML: ''
+  };
+  for(i = 0; i < 10; i++){ mod.bases.push(items[i].base); mod.cur.push(items[i].base); }
+
+  /* 评分说明段 = .criteria 后面那个 `p.src`（score_lock.render 的固定排版） */
+  var nx = crit.nextElementSibling;
+  while(nx && !(nx.tagName === 'P' && /\bsrc\b/.test(nx.className || ''))) nx = nx.nextElementSibling;
+  if(nx){ mod.srcP = nx; mod.srcHTML = nx.innerHTML; }
+
+  /* 本地留存（带基线校验：库里的初评变了就丢弃，避免页面与库长期不一致） */
+  mod.key = 'wb.sc.' + scCode() + '.' + (card.getAttribute('data-mod') || 'm29');
+  var st = scLs(mod.key);
+  if(st && st.b === mod.bases.join(',') && st.s && st.s.length === 10){
+    for(i = 0; i < 10; i++) mod.cur[i] = scFn(st.s[i]);
+  } else if(st){ scLs(mod.key, null); }
+
+  scCls(crit, 'sc-live', true);
+  crit.setAttribute('data-sc-wired', '1');
+
+  /* —— 每行：分数输入框 + 可拖动进度条 + 键盘 —— */
+  for(i = 0; i < 10; i++) scWireLine(mod, i);
+
+  /* —— 实时条 ——
+     ⚠️ 类名用 `sc-livebar`，**不能叫 `sc-live`**：那个名字已经被「评分卡状态」占用
+        （上面给 crit 加的 `sc-live`），而 CSS 里 `.sc-live{display:flex}` 会把 .criteria
+        本身变成 flex 容器 —— 标题条被压成 168px、总分条并排跑（2026-09-22 实测踩过）。 */
+  var live = document.createElement('div');
+  live.className = 'sc-livebar';
+  live.innerHTML =
+    '<span class="lv-hint">🎚️ 拖动进度条 / 直接改右边分数 —— 总分与评级按权重实时重算；' +
+    '改完点「💾 提交到数据库」固化</span>' +
+    '<span class="lv-sp"></span>' +
+    '<span class="lv-chip lv-blank" style="display:none">未评分项按中性 ' + SC_NEUTRAL + ' 分计</span>' +
+    '<span class="lv-chip lv-base">初评 <b>' + scF1(scTotal(mod, mod.bases)) + '</b></span>' +
+    '<span class="lv-chip lv-dirty" style="display:none">已调整 → <b></b></span>' +
+    '<button class="lv-btn lv-reset" type="button" style="display:none">↺ 恢复初评</button>' +
+    '<button class="lv-btn lv-save" type="button" style="display:none">💾 提交到数据库</button>' +
+    '<button class="lv-btn lv-copy" type="button">⧉ 复制评分</button>';
+  crit.appendChild(live);
+  mod.chipBase = live.querySelector('.lv-base');
+  mod.chipDirty = live.querySelector('.lv-dirty');
+  mod.chipBlank = live.querySelector('.lv-blank');
+  mod.btnReset = live.querySelector('.lv-reset');
+  mod.btnSave = live.querySelector('.lv-save');
+  mod.btnReset.addEventListener('click', function(){ scReset(mod); });
+  mod.btnSave.addEventListener('click', function(){ scCommit(mod); });
+  live.querySelector('.lv-copy').addEventListener('click', function(){ scCopyScore(mod); });
+
+  scPaint(mod);
+  return mod;
+}
+
+function scWireLine(mod, i){
+  var it = mod.items[i], bar = it.bar;
+
+  /* 分数直接改：type=number（保留 ↑↓ 键），去掉原生上下箭头保持母本字形 */
+  var inp = document.createElement('input');
+  inp.type = 'number'; inp.className = 'sc-inp';
+  inp.min = '0'; inp.max = '10'; inp.step = '1';
+  inp.setAttribute('inputmode', 'numeric');
+  inp.setAttribute('aria-label', it.name + ' 得分');
+  inp.value = (it.base === null ? '' : String(it.base));
+  it.val.textContent = '';
+  it.val.appendChild(inp);
+  it.inp = inp;
+  inp.addEventListener('input', function(){
+    var v = scFn(this.value);
+    if(v !== null) v = Math.max(0, Math.min(10, Math.round(v * 10) / 10));
+    scSet(mod, i, v, i, false);                  /* skipInp=i：别把正在输入的值写回去 */
+  });
+  inp.addEventListener('change', function(){ scSet(mod, i, scFn(this.value), i, true); });
+  inp.addEventListener('blur', function(){
+    var v = scFn(this.value);
+    scSet(mod, i, v === null ? null : Math.max(0, Math.min(10, Math.round(v * 10) / 10)), i, true);
+  });
+
+  /* 进度条拖动：自己算比例（不用原生 range —— 原生 thumb 宽度会让「末端对不齐」） */
+  bar.setAttribute('tabindex', '0');
+  bar.setAttribute('role', 'slider');
+  bar.setAttribute('aria-label', it.name + ' 得分，可拖动调整');
+  bar.setAttribute('aria-valuemin', '0');
+  bar.setAttribute('aria-valuemax', '10');
+  function fromX(clientX){
+    var r = bar.getBoundingClientRect();
+    var p = r.width ? (clientX - r.left) / r.width : 0;
+    return Math.max(0, Math.min(10, Math.round(p * 10)));
+  }
+  bar.addEventListener('pointerdown', function(e){
+    if(e.button){ return; }
+    e.preventDefault();
+    scCls(it.line, 'sc-drag', true);
+    mod.dragId = e.pointerId;
+    try{ bar.setPointerCapture(e.pointerId); }catch(err){}
+    scSet(mod, i, fromX(e.clientX), -1, false);
+  });
+  bar.addEventListener('pointermove', function(e){
+    if(mod.dragId === undefined || e.pointerId !== mod.dragId) return;
+    e.preventDefault();
+    scSet(mod, i, fromX(e.clientX), -1, false);
+  });
+  function endDrag(e){
+    if(mod.dragId === undefined || (e && e.pointerId !== mod.dragId)) return;
+    mod.dragId = undefined;
+    scCls(it.line, 'sc-drag', false);
+    try{ bar.releasePointerCapture(e.pointerId); }catch(err){}
+    scPersist(mod);
+  }
+  bar.addEventListener('pointerup', endDrag);
+  bar.addEventListener('pointercancel', endDrag);
+  bar.addEventListener('keydown', function(e){
+    var k = e.key, v = (mod.cur[i] === null ? SC_NEUTRAL : mod.cur[i]), nv = null;
+    if(k === 'ArrowRight' || k === 'ArrowUp') nv = v + 1;
+    else if(k === 'ArrowLeft' || k === 'ArrowDown') nv = v - 1;
+    else if(k === 'Home') nv = 0;
+    else if(k === 'End') nv = 10;
+    if(nv === null) return;
+    e.preventDefault();
+    scSet(mod, i, Math.max(0, Math.min(10, nv)), -1, true);
+  });
+}
+
+function scV(mod, i){ return mod.cur[i] === null ? SC_NEUTRAL : mod.cur[i]; }
+function scTotal(mod, arr){
+  var sum = 0;
+  for(var i = 0; i < 10; i++){
+    var v = arr[i];
+    sum += (v === null || v === undefined ? SC_NEUTRAL : v) * mod.items[i].w;
+  }
+  return Math.round(sum) / 10;                   /* Σ(分×权重)÷10 = 母本公式的一位小数总分 */
+}
+/* 纯数组版（供落库变换用，不依赖 DOM）—— 与 scTotal 同口径 */
+function scTotalW(scores, ws){
+  var sum = 0;
+  for(var i = 0; i < 10; i++) sum += scores[i] * ws[i];
+  return Math.round(sum) / 10;
+}
+
+/* ============================================================================
+   落库变换：把十项分数写进**模块原文**，产出要 PATCH 的 HTML
+   —— 与后端 build/_score_patch.py 的 apply_scores() 是同一套定点替换，
+      两条路的字节必须完全相同（_sc_test.py 有逐字相等断言）。
+   ★ 只动这 7 类：sc-bar 里的 <i>、sc-val、.gauge 样式、.gauge-num、.gauge-badge、
+      .g-sub、.tn/.tt、以及「评分说明」里的点名句。
+   ★ 点名句「自洽即保留」（scNoteConsistent）：句中「（第 N 项，S 分）」都对得上当前分数
+      就一字不动 —— 母本那句是手写的、比机械版更准确；只有改了分导致对不上才重算。
+   ★ `data-w` 一律不动（有就保留、没有也不补 —— 补了会改变线上存量 10 家的字节）。
+   ★ 点名句里的项名**按原文插入、不做实体转义**：后端 _eval_note 就是这么拼的
+      （线上现存表述里就有 `主营集中 > 75%` 这种裸 >），转义了就不逐字相等了。
+   ============================================================================ */
+function scBarTag(s){
+  return '<i class="' + (s >= 8 ? 'hi' : (s >= 5 ? 'mid' : 'low')) +
+         '" style="width:' + Math.round(s * 10) + '%;"></i>';
+}
+function scNoteSentence(scores, names){
+  var i, j, idx = [];
+  for(i = 0; i < 10; i++) idx.push(i);
+  idx.sort(function(a, b){ return (scores[b] - scores[a]) || (a - b); });
+  var best = [], worst = [], rev = idx.slice().reverse();
+  for(i = 0; i < 10 && best.length < 3; i++){ if(scores[idx[i]] >= 8) best.push(idx[i]); }
+  if(!best.length) best = idx.slice(0, 3);
+  for(i = 0; i < 10 && worst.length < 2; i++){ if(scores[rev[i]] <= 5) worst.push(rev[i]); }
+  function fmt(lst){
+    var out = [];
+    for(j = 0; j < lst.length; j++){
+      var k = lst[j];
+      out.push(names[k] + '（第 ' + (k + 1) + ' 项，' + Math.trunc(scores[k]) + ' 分）');
+    }
+    return out.join('、');
+  }
+  return (best.length ? '主要得分项为<strong>' + fmt(best) + '</strong>' : '') +
+         (worst.length ? '；主要扣分项为<strong>' + fmt(worst) + '</strong>' : '') + '。';
+}
+/* 规范版整段（空分「填写说明」→ 有分「评分说明」时整段替换用，与 _eval_note 逐字一致） */
+function scNoteCanon(scores, names){
+  return '<b>评分说明：</b>总分 = Σ（单项评分 × 权重）× 10，满分 100。' +
+    scNoteSentence(scores, names) +
+    '本表由<b>规则化评分引擎</b>依公开数据自动生成（判据见各项括注与图表口径），' +
+    '分数可复算、可追溯；评分属定性判断，<b>仅供参考，不构成投资建议</b>。';
+}
+/* 点名句「自洽即保留」——与后端 _score_patch.note_consistent() 同一判据。
+   句中每处「（第 N 项，S 分）」都等于当前该项分数 ⇒ 这句此刻是准确的，一字不动。
+   为什么：母本那句是手写的（点 4 项、项名是人话），机械版只点 3 项、项名是判据原文、
+   还漏第 6 项 —— 无条件重写＝把好东西换成差东西。改了分导致对不上时才重算。 */
+function scNoteConsistent(body, scores){
+  var re = /（第\s*(\d+)\s*项[，,]\s*(-?\d+)\s*分）/g, m, n = 0;
+  while((m = re.exec(body))){
+    n++;
+    var i = parseInt(m[1], 10) - 1;
+    if(i < 0 || i > 9 || parseInt(m[2], 10) !== scores[i]) return false;
+  }
+  return n > 0;
+}
+function scBuildHtml(mod, scores){
+  var html = mod.html;
+  if(!html) return null;
+  var i, ws = [], names = [];
+  for(i = 0; i < 10; i++){ ws.push(mod.items[i].w); names.push(mod.items[i].name); }
+  var total = scTotalW(scores, ws), rating = scGrade(total), num = scF1(total);
+
+  /* 1) 十条进度条：有 <i> 就原地换（保留周围空白），没有就插在开标签后 */
+  var bi = 0;
+  html = html.replace(/(<div class="sc-bar">)([\s\S]*?)(<\/div>)/g, function(m, a, inner, c){
+    var tag = scBarTag(scores[bi++]);
+    return a + (/<i\b[^>]*>\s*<\/i>/.test(inner) ? inner.replace(/<i\b[^>]*>\s*<\/i>/, tag) : tag + inner) + c;
+  });
+  /* 2) 十个得分格 */
+  var vi = 0;
+  html = html.replace(/(<div class="sc-val">)([\s\S]*?)(<\/div>)/g, function(m, a, x, c){
+    return a + String(scores[vi++]) + c;
+  });
+  /* 3) 环形刻度 */
+  html = html.replace(/(<div class="gauge" style=")[^"]*(">)/, function(m, a, c){
+    return a + 'background:conic-gradient(#c8102e 0 ' + num + '%, #f6e6e9 ' + num + '% 100%);' + c;
+  });
+  /* 4) 环内数字  5) 徽标  6) 副标题（报告日从原文抠，不重算） */
+  html = html.replace(/(<div class="gauge-num">)[\s\S]*?(<small>)/, function(m, a, c){ return a + num + c; });
+  html = html.replace(/(<div class="gauge-badge">)[\s\S]*?(<\/div>)/, function(m, a, c){
+    return a + '评级 · ' + rating + c;
+  });
+  var gs = /<div class="g-sub">([\s\S]*?)<\/div>/.exec(html);
+  if(gs){
+    var dm = /报告日\s*([\s\S]*?)\s*$/.exec(gs[1].replace(/<[^>]+>/g, ''));
+    var sub = '参照选股原则 10 项' + (dm ? (' · 报告日 ' + dm[1]) : '');
+    html = html.replace(/(<div class="g-sub">)[\s\S]*?(<\/div>)/, function(m, a, c){ return a + sub + c; });
+  }
+  /* 7) 底部总分 / 评级 */
+  html = html.replace(/(<span class="tn">)[\s\S]*?(<\/span>)/, function(m, a, c){ return a + num + c; });
+  html = html.replace(/(<span class="tt">)[\s\S]*?(<\/span>)/, function(m, a, c){
+    return a + '评级：' + rating + c;
+  });
+  /* 8) 评分说明段：只换「主要得分项…。」那一句，前后措辞原样保留（母本是手写措辞，别偷换）。
+        ① 点名句与当前分数自洽 ⇒ 一字不动；② 存在但对不上 ⇒ 重算该句；③ 没有 ⇒ 补一句。 */
+  var sent = scNoteSentence(scores, names);
+  html = html.replace(/(<p class="src"[^>]*>)([\s\S]*?)(<\/p>)/g, function(m, a, body, c){
+    if(body.indexOf('填写说明：</b>') >= 0) return a + scNoteCanon(scores, names) + c;
+    if(body.indexOf('评分说明：</b>') >= 0){
+      if(body.indexOf('主要得分项为') >= 0 && scNoteConsistent(body, scores)) return a + body + c;
+      if(body.indexOf('主要得分项为') >= 0) body = body.replace(/主要得分项为[\s\S]*?。/, sent);
+      else if(sent) body = body.replace(/。/, '。' + sent);
+      return a + body + c;
+    }
+    return m;
+  });
+  return html;
+}
+
+/* 提交到数据库：校验 → 拼 HTML → 走 RGATE 密码门写库 */
+function scCommit(mod){
+  var i, scores = [];
+  for(i = 0; i < 10; i++){
+    var v = mod.cur[i];
+    if(v === null){
+      if(typeof toast === 'function') toast('请先把十项分数都填上 —— 空着的那几项没法定分', 'bad');
+      return;
+    }
+    if(!Number.isInteger(v)){
+      if(typeof toast === 'function'){
+        toast('第 ' + (i + 1) + ' 项是小数（' + v + '）—— 十项都要 0-10 的整数才能提交', 'bad');
+      }
+      return;
+    }
+    scores.push(v);
+  }
+  if(!mod.html){
+    if(typeof toast === 'function') toast('拿不到模块原文（St.mods 里没有），为免写坏已中止', 'bad');
+    return;
+  }
+  var html;
+  try{ html = scBuildHtml(mod, scores); }
+  catch(e){ html = null; }
+  if(!html){
+    if(typeof toast === 'function') toast('拼装新内容失败，已中止（数据库未改动）', 'bad');
+    return;
+  }
+  var old = mod.html;
+  if(html === old){
+    scLs(mod.key, null);
+    if(typeof toast === 'function') toast('分数与库里一致 —— 无需提交', 'ok');
+    scPaint(mod);
+    return;
+  }
+  /* 写库。Rpt.commitScore 已被 RGATE 包过 ⇒ 这里会先弹管理员密码 */
+  Rpt.commitScore(mod.id, html, mod.no).then(function(){
+    scLs(mod.key, null);          /* 已入库 ⇒ 本地调整记录作废，避免与库不一致 */
+  }).catch(function(e){
+    if(typeof toast === 'function') toast('提交失败：' + String((e && e.message) || e).slice(0, 100), 'bad');
+  });
+}
+
+function scSet(mod, i, v, skipInp, save){
+  mod.cur[i] = v;
+  mod.touch = true;
+  scPaint(mod, {skipInp: skipInp});
+  if(save) scPersist(mod);
+}
+
+function scPaint(mod, opt){
+  opt = opt || {};
+  var i, uv, sum = 0, dirty = false, blank = false, graded = false;
+  for(i = 0; i < 10; i++){
+    var it = mod.items[i], v = mod.cur[i];
+    if(v === null){ blank = true; uv = SC_NEUTRAL; } else { uv = v; graded = true; }
+    if(v !== it.base) dirty = true;
+    sum += uv * it.w;
+    var fill = it.bar.firstElementChild;
+    if(!fill){ fill = document.createElement('i'); it.bar.appendChild(fill); }
+    /* 未评分行：条按中性分显示但打 .guess（半透明）—— 总分要能解释得通，
+       但不能让人误以为「这行已经评过了」；输入框空着、用 placeholder 提示基准分。 */
+    fill.className = (uv >= 8 ? 'hi' : (uv >= 5 ? 'mid' : 'low')) + (v === null ? ' guess' : '');
+    fill.style.width = (uv * 10) + '%';
+    it.bar.style.setProperty('--scp', (uv * 10) + '%');
+    it.bar.setAttribute('aria-valuenow', scF1(uv));
+    if(it.inp && opt.skipInp !== i){
+      it.inp.value = (v === null ? '' : String(v));
+      it.inp.placeholder = (v === null ? String(SC_NEUTRAL) : '');
+    }
+  }
+  var total = Math.round(sum) / 10, rating = scGrade(total), ts = scF1(total);
+
+  /* 环形卡 / 总分条：与 score_lock.render() 的两种形态逐字对齐 */
+  if(mod.num) mod.num.innerHTML = graded ? (ts + '<small>/100</small>') : '—<small>/100</small>';
+  if(mod.gauge) mod.gauge.style.background = graded
+    ? ('conic-gradient(#c8102e 0 ' + ts + '%, #f6e6e9 ' + ts + '% 100%)')
+    : 'conic-gradient(#e6e5e3 0 100%)';
+  if(mod.badge) mod.badge.textContent = graded ? ('评级 · ' + rating) : '待评分';
+  if(mod.tn) mod.tn.textContent = graded ? ts : '—';
+  if(mod.tt) mod.tt.textContent = graded ? ('评级：' + rating) : '待评分';
+
+  scCls(mod.gw, 'sc-dirty', dirty && graded);
+  if(mod.chipBase) mod.chipBase.style.display = graded ? '' : 'none';
+  if(mod.chipBlank) mod.chipBlank.style.display = blank ? '' : 'none';
+  if(mod.chipDirty){
+    mod.chipDirty.style.display = (dirty && graded) ? '' : 'none';
+    var b = mod.chipDirty.querySelector('b');
+    if(b) b.textContent = ts;
+  }
+  if(mod.btnReset) mod.btnReset.style.display = (dirty && graded) ? '' : 'none';
+  if(mod.btnSave) mod.btnSave.style.display = (dirty && graded) ? '' : 'none';
+  mod.dirty = dirty;
+
+  /* 评分说明段：未动过 → 还原线上原文；动过 → 按后端同款句式重写得分/扣分项点名
+     ★ 给「临时调整版」打 `data-sc-dyn` 当稳定标记 —— 探针别去匹配散文措辞（文案一改就假失败）。
+       这个属性只活在实时 DOM 上；落库用的是 mod.html 原文，不会把它写进库。 */
+  if(mod.srcP){
+    if(dirty && graded){
+      mod.srcP.innerHTML = scNote(mod);
+      mod.srcP.setAttribute('data-sc-dyn', '1');
+    } else {
+      if(mod.srcHTML) mod.srcP.innerHTML = mod.srcHTML;
+      mod.srcP.removeAttribute('data-sc-dyn');
+    }
+  }
+}
+
+/* 与 score_lock._eval_note 同规则：分≥8 取前 3 为得分项（不足则取前三），分≤5 取 2 为扣分项 */
+function scNote(mod){
+  var idx = [], i;
+  for(i = 0; i < 10; i++) idx.push(i);
+  idx.sort(function(a, b){ return scV(mod, b) - scV(mod, a) || a - b; });
+  var best = [], worst = [], rev = idx.slice().reverse();
+  for(i = 0; i < 10 && best.length < 3; i++){ if(scV(mod, idx[i]) >= 8) best.push(idx[i]); }
+  if(!best.length) best = idx.slice(0, 3);
+  for(i = 0; i < 10 && worst.length < 2; i++){ if(scV(mod, rev[i]) <= 5) worst.push(rev[i]); }
+  function fmt(lst){
+    var out = [];
+    for(var j = 0; j < lst.length; j++){
+      var k = lst[j];
+      out.push(mod.items[k].name + '（第 ' + (k + 1) + ' 项，' + scF1(scV(mod, k)) + ' 分）');
+    }
+    return out.join('、');
+  }
+  return '<p class="src" style="margin-top:12px;">'
+    + '<b>评分说明：</b>总分 = Σ（单项评分 × 权重）× 10，满分 100。'
+    + (best.length ? '主要得分项为<strong>' + scEsc(fmt(best)) + '</strong>' : '')
+    + (worst.length ? '；主要扣分项为<strong>' + scEsc(fmt(worst)) + '</strong>' : '')
+    + '。<b>以上为页面上的临时调整，尚未提交 —— 点「💾 提交到数据库」才会写回</b>；'
+    + '本表由<b>规则化评分引擎</b>依公开数据自动生成（判据见各项括注与图表口径），'
+    + '分数可复算、可追溯；评分属定性判断，<b>仅供参考，不构成投资建议</b>。</p>';
+}
+
+function scPersist(mod){
+  var changed = false;
+  for(var i = 0; i < 10; i++){ if(mod.cur[i] !== mod.bases[i]){ changed = true; break; } }
+  scLs(mod.key, changed ? {b: mod.bases.join(','), s: mod.cur} : null);
+}
+
+function scReset(mod){
+  for(var i = 0; i < 10; i++) mod.cur[i] = mod.bases[i];
+  mod.touch = false;
+  scLs(mod.key, null);
+  scPaint(mod);
+  if(typeof toast === 'function') toast('已恢复引擎初评分数', 'ok');
+}
+
+function scCopyScore(mod){
+  var o = {};
+  o[scCode() || 'report'] = mod.cur;
+  var txt = JSON.stringify(o);
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(
+        function(){ if(typeof toast === 'function') toast('已复制评分 JSON —— 发我即可固化成新初评', 'ok'); },
+        function(){ scCopyFallback(txt); });
+      return;
+    }
+  }catch(e){}
+  scCopyFallback(txt);
+}
+function scCopyFallback(txt){
+  var ta = document.createElement('textarea');
+  ta.value = txt;
+  ta.style.cssText = 'position:fixed;left:-9999px;top:0;';
+  document.body.appendChild(ta);
+  ta.select();
+  var ok = false;
+  try{ ok = document.execCommand('copy'); }catch(e){}
+  document.body.removeChild(ta);
+  if(typeof toast === 'function') toast(ok ? '已复制评分 JSON' : ('评分：' + txt), 'ok');
 }
 
 function renderFoot(){
@@ -618,6 +1307,18 @@ var FNS = {
   catBreak: function(){ return function(v){ return String(v).split(' ').join('\n'); }; },
   nullDash: function(){ return function(p){ return p.value == null ? '—' : p.value; }; },
   unit: function(u){ return function(v){ return (v == null ? '—' : v) + u; }; },
+  /* 地图 tooltip 的取值格式化（2026-09-20）。
+     map series 的 data 里 `value: null` 表示「该地区无数据」——不能显示成 0，
+     更不能显示成 NaN。ECharts 对 null 默认渲染 `-`，这里显式换成一句人话。
+     ⚠️ 与 unit 的区别：unit 是「数值 + 单位」，这里是「有值给文本、无值给说明」，
+        且**不附加单位**（单位由 formatter 模板自己带，避免出现两个单位）。 */
+  nullText: function(t){
+    var txt = t || '暂无数据';
+    return function(v){
+      if(v == null || v === '' || (typeof v === 'number' && isNaN(v))) return txt;
+      return String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    };
+  },
   valUnit: function(u){ return function(p){ return p.value + u; }; },
   /* 指定数据点覆盖标签：第 idx 个点写成固定文案，其余照常显示数值
      （底稿里出现过：某年实际为负值 / 需附同比，标签要写成特例）
@@ -669,6 +1370,151 @@ var FNS = {
       }
       return out.join('\n');
     };
+  },
+  /* ── 地图类 tooltip（2026-09-20）─────────────────────────────────────────
+     世界地图 / 中国地图共用同一套「取值 → 文案」约定，避免同一个国家两种写法。
+     为什么必须用函数而不是 {b}/{c} 占位符：见下方两个 FNS 各自的注释（都踩过坑）。
+     ──────────────────────────────────────────────────────────────────────── */
+
+  /* 世界地图 tooltip。参数 a 支持**两种写法，必须同时支持** ——
+     库里已入库的图行用的是旧写法，本函数改参数化时不能把它们改坏。
+
+       旧：`China=中国|Australia=澳大利亚|…`                    ← 600456 钛铁矿等存量图
+       新：`<指标名>~<单位>~<占比词>~<分母>~<无数据提示>|China=中国|…`
+
+     判据：按 `|` 分段后，**含 `=` 的**是「英文=中文」对照表，
+           **不含 `=` 的**是元信息段（旧写法里不存在 `~`，所以整段都进对照表）。
+     ⇒ 换矿种只要在令牌最前面多写一段元信息，**壳不用再改、老数据也不必迁移**。
+       （在此之前指标名/单位/分母 69000/无数据提示四样是写死在下面的，
+         换矿种会串口径 —— 黄金图悬浮显示「钛铁矿储量」，2026-09-21 修。）
+
+     ★ 为什么走函数而不是 "{b}<br/>{c}"：
+       map series 的 data 是 {name, value} 形态时 `{c}` 取不到 value，
+       ECharts 会把没有 value 的项渲染成字面量 **NaN** —— 用户截图3 里
+       Mali 的 tooltip「钛铁矿储量：NaN 万吨」就是这个原因。
+     ★ 为什么不用 {b} 当国名：底图 217 国里只有十几国有储量、
+       且名字都是英文 ⇒ 必须自己查表翻中文。 */
+  mapTip: function(a, opt){
+    var m = {};
+    var meta = {label: '钛铁矿储量', unit: '万吨', word: '占全球',
+                base: 69000, nodata: 'USGS 2023 年统计未单独列示'};
+    String(a || '').split('|').forEach(function(p){
+      var i = p.indexOf('=');
+      if(i > 0){ m[p.slice(0, i)] = p.slice(i + 1); return; }
+      var t = String(p).split('~');
+      if(t.length < 2) return;          /* 旧写法没有 `~` ⇒ 整段用默认值，行为与改前一致 */
+      var lb = String(t[0] || '').replace(/^\s+|\s+$/g, '');
+      if(lb) meta.label = lb;
+      if(t[1]) meta.unit = t[1];
+      if(t[2]) meta.word = t[2];
+      var b = parseFloat(t[3]);
+      if(b > 0) meta.base = b;
+      if(t[4]) meta.nodata = t[4];
+    });
+    /* 从 map series 的 data 里按 name 反查 value —— 比只读 params.value 更稳：
+       ECharts 对 `value: null` 的项，params.value 在不同版本里可能是 undefined
+       或 null，甚至回落到底图自身的数据，统一走这次反查。 */
+    function look(name){
+      var ser = (opt && opt.series) || [];
+      for(var i = 0; i < ser.length; i++){
+        var d = ser[i] && ser[i].data;
+        if(!Array.isArray(d)) continue;
+        for(var j = 0; j < d.length; j++){
+          if(d[j] && d[j].name === name){
+            return (d[j].value == null ? null : d[j].value);
+          }
+        }
+      }
+      return undefined;
+    }
+    return function(p){
+      var en = p.name || '', cn = m[en] || '';
+      var head = cn ? (cn + '（' + en + '）') : en;
+      /* 先信 params.value（有值就是有值）；为空才回查 data。
+         ⚠️ 0 也要当「无数据」：储量统计里 0 意味着「USGS 未单独列示」，
+            不是「这个国家真的没有资源」。把它当有效值会写出
+            「储量：0 万吨 / 占全球 0.0%」这种误导性文案（已踩过）。 */
+      var v = (p.value == null || p.value === 0) ? look(en) : p.value;
+      var body;
+      if(v == null || v === 0 || isNaN(v)){
+        body = '暂无' + meta.label + '数据<div style="color:#8a8a86;font-size:11px;margin-top:2px">'
+             + meta.nodata + '</div>';
+      } else {
+        body = meta.label + '：<b style="color:#d0202f">'
+             + String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+             + '</b> ' + meta.unit + '<div style="color:#8a8a86;font-size:11px;margin-top:2px">'
+             + meta.word + ' ' + (v / meta.base * 100).toFixed(1) + '%</div>';
+      }
+      return '<div style="font-weight:700;margin-bottom:2px">' + head + '</div>' + body;
+    };
+  },
+
+  /* 中国地图 tooltip。参数 a 同样支持**两种写法**：
+       旧：`<单位后缀>`（如 " 万吨"，**带前导空格**）         ← 600456 钛铁矿等存量图
+       新：`<指标名>~<单位>~<无数据短名>`（如 "金矿资源储量~吨~金矿资源储量"）
+     ★ 没有 `~` 时 unit **原样保留**（含那个前导空格），保证存量图的 tooltip
+       一个字都不变 —— 别顺手 trim。
+     ★ 为什么走函数：上一版写的是 "{b}<br/>原生钛铁矿（TiO₂）资源储量：<b>{@[2]} 万吨</b>"，
+       `{@[2]}` 是 **scatter 专用的取数组下标语法**，但只在 formatter 是字符串、
+       且 ECharts 走模板分支时才解析；实际渲染时被原样画了出来 —— 用户截图4
+       看到的就是字面的 `{@[2]}`。函数里自己把数值拼出来，彻底绕开模板。
+     ★ 文案与世界地图**对齐**：都是「名字 → 项目名：数值 + 单位 → 占比」三段。
+     ★★ 兼容两种 data 形态（2026-09-20 晚）：
+        ① `value: 7535.49`  —— 现在的**区域铺色版**（map series，标量）
+        ② `value: [lon, lat, 7535.49]` —— 早先的气泡版（scatter，三元数组）
+        两者都要能取到数：早期版本只写了 `value[2]`，换成标量后直接取到 undefined，
+        于是所有省份都掉进「暂无数据」分支。这里统一归一化。 */
+  mapCnTip: function(a, opt){
+    var s = String(a == null ? '' : a);
+    var label = '原生钛铁矿（TiO₂）资源储量', short = '资源储量', unit = s;
+    if(s.indexOf('~') >= 0){
+      var t = s.split('~');
+      if(t[0]) label = t[0];
+      unit = t.length > 1 ? t[1] : '';
+      short = (t.length > 2 && t[2]) ? t[2] : label;
+    }
+    function numOf(d){
+      var v = d && d.value;
+      if(Array.isArray(v)) return v[2];
+      if(v && typeof v === 'object') return v.value;
+      return v;
+    }
+    var total = 0, ser = (opt && opt.series) || [];
+    for(var i = 0; i < ser.length; i++){
+      var d = ser[i] && ser[i].data;
+      if(!Array.isArray(d)) continue;
+      for(var j = 0; j < d.length; j++){
+        var n = numOf(d[j]);
+        if(typeof n === 'number' && !isNaN(n)) total += n;
+      }
+    }
+    /* 反查：ECharts 对 `value: null` 的项，params.value 在不同版本里可能
+       是 undefined / null，甚至回落到底图自身数据 —— 统一按 name 回查 series.data。 */
+    function look(name){
+      for(var i = 0; i < ser.length; i++){
+        var d = ser[i] && ser[i].data;
+        if(!Array.isArray(d)) continue;
+        for(var j = 0; j < d.length; j++) if(d[j] && d[j].name === name) return numOf(d[j]);
+      }
+      return undefined;
+    }
+    return function(p){
+      var name = p.name || '';
+      var num = numOf(p);
+      if(num == null || num === 0 || isNaN(num)) num = look(name);
+      if(num == null || num === 0 || isNaN(num)){
+        return '<div style="font-weight:700;margin-bottom:2px">' + name + '</div>'
+             + '暂无' + short + '数据<div style="color:#8a8a86;font-size:11px;margin-top:2px">'
+             + '本次统计未单独列示</div>';
+      }
+      var pct = total > 0 ? (num / total * 100) : 0;
+      return '<div style="font-weight:700;margin-bottom:2px">' + name + '</div>'
+           + label + '：<b style="color:#d0202f">'
+           + String(num).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+           + '</b>' + unit
+           + '<div style="color:#8a8a86;font-size:11px;margin-top:2px">'
+           + '占全国 ' + pct.toFixed(2) + '%</div>';
+    };
   }
 };
 function seriesArr(opt, name){
@@ -698,6 +1544,17 @@ function revive(node, opt){
   if(typeof node === 'string'){
     var m = /^\{\{fn:([\s\S]+)\}\}$/.exec(node);
     if(m){ var fn = mkFn(m[1], opt); if(fn) return fn; }
+    /* ★★ 安全网（2026-09-20 傍晚，用户截图1「悬浮显示有点乱码」的根因）：
+       令牌串是**给渲染层看的控制指令**，不是给人看的文案。一旦 mkFn 认不出这个名字
+       （例如用的是旧版壳、或新增函数忘了部署到线上），原样返回字符串的后果是
+       **ECharts 把 `{{fn:mapTip:China=中国|…}}` 整串当作标签文字画在图上**
+       —— 满屏乱码，比不显示还糟。
+       ⇒ 认不出就返回空串（各消费方对空值都安全：formatter/color 空 ⇒ 走默认样式），
+         绝不让控制指令泄漏成可见文本。 */
+    if(m) return '';
+    /* 半截令牌（不是完整 {{fn:…}}，但含 {{）同样按「不可见」处理，
+       防止未来出现前后缀拼接导致的漏网。 */
+    if(node.indexOf('{{') >= 0) return '';
     return node;
   }
   if(Array.isArray(node)){
@@ -712,9 +1569,565 @@ function catCount(opt){
   var xa = Array.isArray(opt.xAxis) ? opt.xAxis[0] : opt.xAxis;
   return (xa && Array.isArray(xa.data)) ? xa.data.length : 0;
 }
+/* 地图系列判据（2026-09-20）——给「可自由缩放的地图」用。
+   ★ 为什么不复用上面那套：renderCharts 里的缩放进阶是按**时间轴**设计的
+     （catCount ≥ 5 就挂 dataZoom + 3年/5年/10年按钮组）。地图是**分类图**，
+     没有 xAxis.data ⇒ catCount = 0 ⇒ 永远进不了那个分支；
+     而 dataZoom 的 start/end 是「按索引裁切」，套到地图上只会把国家裁掉一半，
+     不是缩放。所以地图走**独立分支**：series.roam + scaleLimit。 */
+function mapSeriesOf(opt){
+  var ser = (opt && opt.series) || [];
+  for(var i = 0; i < ser.length; i++) if(ser[i] && ser[i].type === 'map') return ser[i];
+  return null;
+}
+function isMapChart(opt){ return !!mapSeriesOf(opt); }
+/* ============================================================================
+   图表美化层 · 统一「花里胡哨」视觉语言（2026-09-17）
+   ----------------------------------------------------------------------------
+   目标：全部研报的全部图表共用一套视觉语言（渐变面积 / 发光曲线 / 圆点 /
+        彩色轴 / 虚线参考线 / 圆角渐变柱 / 白描边环形），效果对齐 600456
+        模块 26 的 PB·PE 样板图。
+   为什么放渲染层、而不是逐条改库里的 opt：
+     ① 库里 opt 保持干净 ⇒ 网页端「✏️ 图表数据」看到的仍是数据结构，不被样式污染
+     ② 一处生效即覆盖全部研报（当前 5 份 / 100+ 图表），不必逐条 PATCH
+     ③ 回退零成本：去掉 renderCharts 里的 beauty(...) 调用即可
+   铁律：
+     · 只做「渲染增强」，一个数据字节都不动（data / xAxis.data 原样）
+     · 绝不覆盖业务色 —— 颜色一律从原 opt 里挖，PB 红 / PE 蓝 / 金 / 绿的语义必须留住
+     · 幂等：每次渲染都从库里那份干净 opt 重新推导，不会越描越黑
+   ============================================================================ */
+var BT = {
+  /* ⚠️ 顺序即「未上色系列」的取色顺序：前 6 个必须家族互异。
+     深红 #a30f24 与首色同族，若排在前面会让第 5 个系列又变红（2026-09-17 修正）。 */
+  pal: ['#d0202f', '#00b0f0', '#c9a227', '#0b8a5c', '#7a5bb5', '#e0803a'],
+  ink: '#707075',      /* 轴标签墨色 */
+  edge: '#e6e5e3'      /* x 轴轴线 */
+};
+function btRGB(c){
+  var s = String(c == null ? '' : c);
+  var m = /^#([0-9a-f]{6})$/i.exec(s);
+  if(m){ var n = parseInt(m[1], 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+  m = /^#([0-9a-f]{3})$/i.exec(s);
+  if(m){ var h = m[1];
+    return [parseInt(h.charAt(0) + h.charAt(0), 16),
+            parseInt(h.charAt(1) + h.charAt(1), 16),
+            parseInt(h.charAt(2) + h.charAt(2), 16)]; }
+  m = /^rgba?\(([^)]+)\)$/i.exec(s);
+  if(m){ var p = m[1].split(',');
+    return [parseInt(p[0], 10) || 0, parseInt(p[1], 10) || 0, parseInt(p[2], 10) || 0]; }
+  return null;
+}
+function btA(c, a){                     /* 同色降透明度 */
+  var v = btRGB(c);
+  return v ? ('rgba(' + v[0] + ',' + v[1] + ',' + v[2] + ',' + a + ')') : c;
+}
+function btHex(c, fb){                  /* 统一成 #rrggbb */
+  var v = btRGB(c);
+  if(!v) return fb || '#d0202f';
+  return '#' + ('00000' + ((v[0] << 16 | v[1] << 8 | v[2]).toString(16))).slice(-6);
+}
+/* 系列业务色：从原 opt 各角落挖，挖不到才落调色板 */
+function btSerColor(s, i){
+  var fb = BT.pal[i % BT.pal.length];
+  if(!s) return fb;
+  var c = null;
+  if(s.lineStyle && typeof s.lineStyle.color === 'string') c = s.lineStyle.color;
+  if(!c && s.itemStyle && typeof s.itemStyle.color === 'string') c = s.itemStyle.color;
+  if(!c && s.itemStyle && s.itemStyle.color && s.itemStyle.color.colorStops && s.itemStyle.color.colorStops.length)
+    c = s.itemStyle.color.colorStops[0].color;
+  if(!c && typeof s.color === 'string') c = s.color;
+  if(!c && s.color && s.color.length && typeof s.color[0] === 'string') c = s.color[i % s.color.length];
+  if(!c && s.areaStyle && s.areaStyle.color && s.areaStyle.color.colorStops && s.areaStyle.color.colorStops.length)
+    c = s.areaStyle.color.colorStops[0].color;
+  return c ? btRetint(btHex(c, fb)) : fb;   /* 出口统一归一色板 */
+}
+function btGrad(c, a1, a2){             /* 竖向渐变（顶→底） */
+  return { type:'linear', x:0, y:0, x2:0, y2:1,
+           colorStops:[{offset:0, color:btA(c, a1)}, {offset:1, color:btA(c, a2)}] };
+}
+/* ================= 色板归一：历史配色收敛到「参考图鲜红 + 参考图青蓝」 =================
+   背景：用户给的参考色是 红 #d0202f（图一横向渐变主色）与 蓝 #00b0f0（图二青蓝）。
+         库里 100+ 张图的 opt 是历年攒下来的，混着旧砖红 #d0202f、旧蓝 #00b0f0
+         以及一批**暖灰粉**（#85858a / #d89098 之类）—— 那批粉才是「整页发粉」的元凶。
+   做法：在颜色出口做「同族归一」—— 只调色相/饱和度，**保留原有明暗层次与业务语义**：
+     · 红族   → 按明度分档到新红系（亮 #dd3543 / 主 #d0202f / 深 #a30f24 / 极深 #4a0a15）
+     · 蓝族   → 按明度分档到青蓝系（浅 #7fd8f7 / 主 #00b0f0 / 深 #0089bd）
+     · 暖灰粉 → 中性灰（保明度），彻底去粉
+     · 金色 #c9a227 系 / 绿色 #0b8a5c 系 / 紫色 → **原样保留**
+   ⚠️ 铁律：只碰颜色，data / xAxis.data 一个字节不动；每次渲染都从库里那份干净 opt
+      重新推导，天然幂等，不会越描越黑。 */
+var BT_MAP = {
+  /* 红族（历史高频） */
+  '#d0202f':'#d0202f', '#d0202f':'#d0202f', '#a30f24':'#a30f24', '#c81a33':'#c81a33',
+  '#b80e26':'#a30f24', '#bb0f28':'#a30f24', '#c2112c':'#d0202f', '#d92b40':'#d0202f',
+  '#dc3048':'#dd3543', '#e04051':'#d0202f', '#d0202f':'#d0202f', '#e43644':'#dd3543',
+  '#921019':'#921019', '#d0202f':'#d0202f',
+  /* 蓝族 */
+  '#00b0f0':'#00b0f0', '#4a90d9':'#00b0f0', '#215f9e':'#0091cc', '#3f6b85':'#3f6b85',
+  /* 暖灰粉 → 中性 */
+  '#85858a':'#85858a', '#8a8a8f':'#8a8a8f', '#909095':'#909095', '#9c9ca1':'#9c9ca1',
+  '#7c5c62':'#6a6a6f', '#e6e5e3':'#e6e5e3', '#e8e8e8':'#e6e5e3', '#efeeec':'#efeeec',
+  '#f0f0f0':'#f2f1ef', '#d4d4d6':'#d4d4d6', '#dcdcde':'#dcdcde', '#dcdcde':'#dcdcde',
+  '#d89098':'#d89098', '#d89098':'#d89098', '#c9c9cd':'#c9c9cd', '#cbcbcf':'#cbcbcf',
+  '#b6b6ba':'#b6b6ba', '#e0a4ab':'#e0a4ab', '#e8a6ac':'#e8a6ac', '#c6c6ca':'#c6c6ca',
+  /* 深棕暖底 → 中性深 */
+  '#3a2024':'#2e2e33', '#4a0a15':'#4a0a15', '#2e2e33':'#2e2e33', '#211f22':'#211f22'
+};
+function btGray(L){                      /* 同明度中性灰 */
+  var v = Math.round(L * 255);
+  v = v < 0 ? 0 : (v > 255 ? 255 : v);
+  var s = v.toString(16);
+  if(s.length < 2) s = '0' + s;
+  return '#' + s + s + s;
+}
+function btRetint(c){
+  var v0 = btRGB(c);
+  if(!v0) return c;                      /* 不是颜色（渐变对象 / 函数）→ 原样 */
+  var h = '#' + ('00000' + ((v0[0] << 16 | v0[1] << 8 | v0[2]).toString(16))).slice(-6);
+  if(BT_MAP[h]) return BT_MAP[h];
+  var r = v0[0] / 255, g = v0[1] / 255, b = v0[2] / 255;
+  var mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+  var L = (mx + mn) / 2;
+  var S = d === 0 ? 0 : d / (1 - Math.abs(2 * L - 1));
+  var H = 0;
+  if(d){
+    if(mx === r) H = ((g - b) / d) % 6;
+    else if(mx === g) H = (b - r) / d + 2;
+    else H = (r - g) / d + 4;
+    H *= 60;
+    if(H < 0) H += 360;
+  }
+  var redish = (H <= 30 || H >= 335);
+  var blueish = (H >= 185 && H <= 265);
+  /* 暖灰粉 / 淡粉 / 玫瑰灰 → 中性灰。
+     色相放宽到 ≤40° 与 ≥315°（玫瑰灰 #6b5560 落在 330°），但**只吃低饱和**的：
+     这样紫罗兰（H≈266°）与金色（H≈42°）都不会被误伤。 */
+  if(S < 0.26 && (H <= 40 || H >= 315)) return btGray(L);
+  if(redish){                                          /* 红族：按明度分档 */
+    if(L >= 0.62) return '#dd3543';
+    if(L >= 0.42) return '#d0202f';
+    if(L >= 0.28) return '#a30f24';
+    return '#4a0a15';
+  }
+  if(blueish && S >= 0.20){                            /* 蓝族：按明度分档到青蓝 */
+    if(L >= 0.62) return '#7fd8f7';
+    if(L >= 0.42) return '#00b0f0';
+    return '#0089bd';
+  }
+  return h;                                            /* 金 / 绿 / 紫：原样保留 */
+}
+/* ---- 浅色底纹专用：保留明度，只把色相拉到红系 ----
+   btRetint 的红族只有 4 档（≥.62 → #dd3543 / ≥.42 → #d0202f / ≥.28 → #a30f24 / 其余 #4a0a15），
+   **所有浅红都被塌成同一个 #dd3543**。这对「线条/柱子」没问题（本来就只要主红），
+   但对**地图底纹**是灾难：F7D9DC（L≈.91）与 FBEEEE（L≈.95）都变成实心亮红，
+   「浅红打底 + 深红气泡」的层次直接没了 —— 2026-09-20 世界地图就这么被刷成一片红。
+   本函数专供 map areaColor：**只接管 L ≥ .78 的浅色**，把色相归到红系、S 压到 ≤.55，
+   明度原样保留。L < .78 的一律交回 btRetint —— 
+   ① 保住气泡/柱子的主红不被洗淡（#d0202f 必须还是 #d0202f）；
+   ② 保住「暖灰粉去粉」这条既有铁律（#9a7d82 仍要变中性灰，它是 L≈.55，走 btRetint 才对）。 */
+function btTintKeep(c){
+  var v = btRGB(c);
+  if(!v) return c;                       /* 渐变对象 / 函数 → 原样 */
+  var r = v[0]/255, g = v[1]/255, b = v[2]/255;
+  var mx = Math.max(r,g,b), mn = Math.min(r,g,b), d = mx-mn, L = (mx+mn)/2;
+  var S = d === 0 ? 0 : d / (1 - Math.abs(2*L-1));
+  /* 只处理浅色；其余原样交给 btRetint（气泡主红、去粉都靠它） */
+  if(L < 0.78) return btRetint(c);
+  if(S < 0.06) return c;                 /* 近乎中性（#ececeb 类灰底）→ 原样，别染红 */
+  var H = 0;
+  if(d){
+    if(mx === r) H = ((g-b)/d) % 6;
+    else if(mx === g) H = (b-r)/d + 2;
+    else H = (r-g)/d + 4;
+    H *= 60; if(H < 0) H += 360;
+  }
+  /* 浅暖灰粉（H≤40 或 ≥320 但低饱和）→ 交给 btRetint 去粉，别留在红系 */
+  if(S < 0.26 && (H <= 40 || H >= 320)) return btRetint(c);
+  if(!(H <= 45 || H >= 320)) return btRetint(c);   /* 非红族 → 原归一 */
+  /* 打回 #d0202f 的色相（354.6°）但保留原 L；S 压到不超过原值、且 ≤.55（浅底不该太艳） */
+  var h2 = 354.6/360, s2 = Math.min(S, 0.55);
+  function h2r(p, q, t2){
+    if(t2 < 0) t2 += 1; if(t2 > 1) t2 -= 1;
+    if(t2 < 1/6) return p + (q-p)*6*t2;
+    if(t2 < 1/2) return q;
+    if(t2 < 2/3) return p + (q-p)*(2/3-t2)*6;
+    return p;
+  }
+  var q2 = L < 0.5 ? L*(1+s2) : L+s2-L*s2, p2 = 2*L-q2;
+  var R = Math.round(h2r(p2,q2,h2+1/3)*255),
+      G = Math.round(h2r(p2,q2,h2)*255),
+      B = Math.round(h2r(p2,q2,h2-1/3)*255);
+  return '#' + ('00000' + ((R<<16|G<<8|B).toString(16))).slice(-6);
+}
+/* ================= 同图多系列「色相去重」 =================
+   背景：库里的 opt 是历年攒下来的，**大量图表把多个系列都写成砖红**
+         （#d0202f / #a30f24 / #dd3543 深浅两档），归一色板后彻底分不清 ——
+         2026-09-17 用户报「不要全是红色，无法区分」（销售/成本均价、投资总额/募投、
+         年销售收入/年净利润、PB/PE、毛利率/净利率 全是同一类）。
+   策略（先到先得，业务色语义优先）：
+     ① 某色相家族**没被占用** → 原样保留（原本就蓝/绿/金的业务色一律不动）
+     ② 撞车的（同家族且明度差 <.20）→ 换到 BT_SER 里第一个「家族未被占用」的色
+     ③ 家族全用尽才退回原色
+   为什么放渲染层：库里 opt 一个字节不动；一处生效即覆盖全部研报；回退零成本。 */
+var BT_SER = ['#d0202f', '#00b0f0', '#c9a227', '#0b8a5c', '#7a5bb5', '#e0803a', '#5a8fd6', '#a30f24'];
+function btHSL(c){
+  var v = btRGB(c); if(!v) return null;
+  var r = v[0] / 255, g = v[1] / 255, b = v[2] / 255;
+  var mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn, L = (mx + mn) / 2;
+  var S = d === 0 ? 0 : d / (1 - Math.abs(2 * L - 1)), H = 0;
+  if(d){
+    if(mx === r) H = ((g - b) / d) % 6;
+    else if(mx === g) H = (b - r) / d + 2;
+    else H = (r - g) / d + 4;
+    H *= 60;
+    if(H < 0) H += 360;
+  }
+  return { h: H, s: S, l: L };
+}
+/* 撞车判据：**色相接近 且 明度拉不开**（不按固定色相桶分档）。
+   ⚠️ 曾按「家族桶」判定（红/蓝/金/绿/紫），结果 #b7791f 色相 34.7° 掉在
+      红(≤30°)与金(≥36°)的缝隙里 → 被当独立家族放过，与金 #c9a227 明度只差 .05
+      却判为不撞（2026-09-17 推演时抓到）。改成色相距离后没有死角。 */
+function btClash(a, b){
+  if(!a || !b) return false;
+  var ga = (a.s < 0.22), gb = (b.s < 0.22);
+  if(ga && gb) return true;                 /* 两个中性灰也算撞 */
+  if(ga || gb) return false;                /* 灰 vs 有色，本来就分得开 */
+  var dh = Math.abs(a.h - b.h);
+  if(dh > 180) dh = 360 - dh;
+  return dh < 30 && Math.abs(a.l - b.l) < 0.26;
+}
+/* 语义色：PB / PE 是跨研报的固定指标，**不能跟着系列顺序走** ——
+   否则 000731 是「PB 红 · PE 蓝」、002237 又成了「PE 红 · PB 蓝」，同一套配色自相矛盾。
+   2026-09-17 用户明确要求「PE 不要也是红的」，故钉死：PB=主红、PE=青蓝。 */
+function btNameColor(name){
+  var n = String(name || '').toUpperCase();
+  if(n.indexOf('PB') >= 0) return '#d0202f';
+  if(n.indexOf('PE') >= 0) return '#00b0f0';
+  return null;
+}
+function btDistinct(list){
+  var out = [], used = [];
+  for(var i = 0; i < list.length; i++){
+    var c = list[i], x = btHSL(c);
+    var clash = false, j, k, m;
+    for(j = 0; j < used.length; j++){ if(btClash(x, used[j])){ clash = true; break; } }
+    if(clash){
+      for(k = 0; k < BT_SER.length; k++){
+        var px = btHSL(BT_SER[k]), ok = true;
+        for(m = 0; m < used.length; m++){ if(btClash(px, used[m])){ ok = false; break; } }
+        if(ok){ c = BT_SER[k]; x = btHSL(c); break; }
+      }
+    }
+    out.push(c);
+    if(x) used.push(x);
+  }
+  return out;
+}
+function btLen(d){ return (d && d.length) ? d.length : 0; }
+function btLast(d){                     /* 末个数值，用于「当前」参考线 */
+  if(!d || !d.length) return null;
+  for(var i = d.length - 1; i >= 0; i--){
+    var v = d[i];
+    if(typeof v === 'number' && isFinite(v)) return v;
+    if(v && typeof v.value === 'number' && isFinite(v.value)) return v.value;
+  }
+  return null;
+}
+function btAxis(ax, color, isX){
+  if(!ax || typeof ax !== 'object' || ax.show === false) return;
+  var cat = isX && ax.type !== 'value';
+  ax.axisLine = ax.axisLine || {};
+  ax.axisLine.show = true;
+  ax.axisLine.lineStyle = ax.axisLine.lineStyle || {};
+  ax.axisLine.lineStyle.color = cat ? BT.edge : btA(color, .35);
+  ax.axisTick = ax.axisTick || {};
+  ax.axisTick.show = false;
+  ax.axisLabel = ax.axisLabel || {};
+  ax.axisLabel.color = cat ? BT.ink : color;
+  if(!ax.axisLabel.fontSize) ax.axisLabel.fontSize = 11;
+  if(!cat){
+    ax.splitLine = { show: true, lineStyle: { type:'dashed', color: btA(color, .10) } };
+    ax.nameTextStyle = ax.nameTextStyle || {};
+    ax.nameTextStyle.color = color;
+    ax.nameTextStyle.fontSize = 12;
+    ax.nameTextStyle.fontWeight = 'bold';
+  }
+}
+function beauty(opt, key){
+  if(!opt || typeof opt !== 'object') return opt;
+  var ser = opt.series || [];
+  if(!ser.length) return opt;
+  /* ---- 0. 同图多系列色相去重（先算好，坐标轴 / 系列 / 图例统一用它） ---- */
+  var SERC = [];
+  for(var si = 0; si < ser.length; si++) SERC.push(btSerColor(ser[si], si));
+  /* 语义色优先（PB / PE 跨研报钉死），再跑色相去重 —— 两者都只动颜色，数据不碰 */
+  for(var sm = 0; sm < ser.length; sm++){
+    var ncol = btNameColor(ser[sm].name);
+    if(ncol) SERC[sm] = ncol;
+  }
+  SERC = btDistinct(SERC);
+  if(!opt.color) opt.color = BT.pal;
+  else if(opt.color && opt.color.length){
+    /* 库里自带的调色板也归一 —— 饼图 / 未显式上色的多系列靠它循环取色 */
+    for(var pi = 0; pi < opt.color.length; pi++){
+      if(typeof opt.color[pi] === 'string') opt.color[pi] = btRetint(opt.color[pi]);
+    }
+  }
+
+  /* ---- 1. 坐标轴：颜色跟随系列业务色，网格线极淡虚线 ---- */
+  var xs = Array.isArray(opt.xAxis) ? opt.xAxis : (opt.xAxis ? [opt.xAxis] : []);
+  var ys = Array.isArray(opt.yAxis) ? opt.yAxis : (opt.yAxis ? [opt.yAxis] : []);
+  xs.forEach(function(ax){ btAxis(ax, BT.ink, true); });
+  ys.forEach(function(ax, i){
+    var col = BT.pal[i % BT.pal.length];
+    for(var j = 0; j < ser.length; j++){
+      if((ser[j].yAxisIndex || 0) === i){ col = SERC[j] || BT.pal[i % BT.pal.length]; break; }
+    }
+    btAxis(ax, col, false);
+    ax.splitLine.show = (i === 0);   /* 双轴只让主轴画网格，免得起格子布 */
+  });
+
+  /* ---- 2. 图例：圆点 + 暖墨色 ---- */
+  if(ser.length > 1){
+    opt.legend = opt.legend || {};
+    if(opt.legend.show !== false){
+      if(opt.legend.bottom === undefined && opt.legend.top === undefined) opt.legend.top = 0;
+      opt.legend.icon = 'circle';
+      opt.legend.itemWidth = 9;
+      opt.legend.itemHeight = 9;
+      opt.legend.itemGap = 16;
+      opt.legend.textStyle = opt.legend.textStyle || {};
+      opt.legend.textStyle.color = '#5a5a5f';
+      opt.legend.textStyle.fontSize = 12;
+      opt.legend.textStyle.fontWeight = 600;
+    }
+  }
+
+  /* ---- 3. 提示框：白底圆角 + 红金描边 + 投影 ---- */
+  opt.tooltip = opt.tooltip || {};
+  opt.tooltip.backgroundColor = 'rgba(255,255,255,.97)';
+  opt.tooltip.borderColor = 'rgba(208,32,47,.22)';
+  opt.tooltip.borderWidth = 1;
+  opt.tooltip.padding = [9, 13];
+  opt.tooltip.textStyle = opt.tooltip.textStyle || {};
+  opt.tooltip.textStyle.color = '#4a0a15';
+  opt.tooltip.textStyle.fontSize = 12.5;
+  opt.tooltip.extraCssText = 'border-radius:11px;box-shadow:0 10px 26px rgba(40,38,42,.16);';
+  if(opt.tooltip.trigger === 'axis'){
+    opt.tooltip.axisPointer = opt.tooltip.axisPointer || {};
+    opt.tooltip.axisPointer.type = 'line';
+    opt.tooltip.axisPointer.lineStyle = { color:'rgba(208,32,47,.35)', type:'dashed', width:1.2 };
+  }
+
+  /* ---- 4. 动画：统一缓动，柱/点依次弹出 ---- */
+  if(opt.animation === undefined) opt.animation = true;
+  opt.animationDuration = 780;
+  opt.animationEasing = 'cubicOut';
+  if(opt.animationDelay === undefined) opt.animationDelay = function(idx){ return idx * 18; };
+
+  /* ---- 5. 系列 ---- */
+  var nLine = 0, nCat = 0;
+  ser.forEach(function(s){
+    if(String(s.type || 'line') === 'line') nLine++;
+    nCat = Math.max(nCat, btLen(s.data));
+  });
+  var lastStack = {};                                  /* 堆叠柱只给最上面那条加圆角 */
+  for(var k = ser.length - 1; k >= 0; k--){ if(ser[k].stack) lastStack[ser[k].stack] = k; }
+  /* 全图只有**第一条折线**铺渐变面积 —— 否则两条线各铺一层，叠起来发灰发脏：
+     PB(红) + PE(蓝) 会糊成一片灰紫（样板图里 PE 就只有线、没有面）。
+     ⚠️ 判据不能写成「每条轴的第一条线」：双轴图恰好每条轴各一条，照样两条都铺。 */
+  var firstLine = -1;
+  for(var q = 0; q < ser.length; q++){
+    if(String(ser[q].type || 'line') === 'line'){ firstLine = q; break; }
+  }
+
+  ser.forEach(function(s, i){
+    var c = SERC[i] || btSerColor(s, i);
+    var t = String(s.type || 'line');
+    /* 数据标签自动避让：双轴柱+线图里，左轴某个值与右轴某个值恰好同高时两个标签会叠在一起
+       （如分红图 2021 年左轴 0.85 与右轴 1.173 重合，印成「1.173 0.85」糊成一团）。
+       ECharts 只隐藏**真正重叠**的那个，其余标签原样保留；饼图有自己的 avoidLabelOverlap，不碰。*/
+    if((t === 'line' || t === 'bar') && s.label && s.label.show){
+      s.labelLayout = s.labelLayout || { hideOverlap: true };
+      /* 标签颜色跟随系列色。库里这两处写死过：
+         ① #a3122a 深红 —— 折线被归一成青蓝后标签仍是深红，叠在同色柱上糊成一片（IRR 图「项目三」）；
+         ② #9a7d82 / #A0888D 玫瑰灰 —— 正是「禁粉」要清掉的那类暖灰，全库 25 处，且因为藏在图表 opt 里
+            躲过了换色工具（retint.py 只管 CSS/素材）。
+         ⚠️ 两类必须排除，否则是改坏而不是改进：
+         · 标签色本身是**逐项函数**（{{fn:idxColorList}} 这类，revive 已解析成函数）——作者刻意让每项
+           标签跟着各自的柱子走，覆盖成单色就废了（chartSales）；
+         · 系列 itemStyle.color 是逐项函数而标签色未指定 —— 让它继续继承逐项色（chartCapacity）。
+         饼图不在此列：扇区标签在外侧，由下面 pie 分支统一给深墨色。 */
+      var perItem = (typeof (s.itemStyle && s.itemStyle.color) === 'function');
+      if(typeof s.label.color !== 'function' && !perItem) s.label.color = c;
+    }
+    if(t === 'line'){
+      s.smooth = true;
+      s.symbol = 'circle';
+      s.symbolSize = 7;
+      s.showSymbol = (nCat <= 22);                     /* 点太多就藏圆点，免得糊成一条 */
+      if(!s.z) s.z = 3;
+      s.itemStyle = s.itemStyle || {};
+      s.itemStyle.color = c;
+      s.itemStyle.borderColor = '#fff';
+      s.itemStyle.borderWidth = 1.5;
+      s.lineStyle = s.lineStyle || {};
+      s.lineStyle.color = c;
+      s.lineStyle.width = 3;
+      s.lineStyle.shadowBlur = 12;
+      s.lineStyle.shadowColor = btA(c, .35);
+      s.lineStyle.shadowOffsetY = 6;
+      /* 渐变面积：只有「主轴上的第一条线」且整图线数 ≤2 时才铺；
+         其余原样保留的（原本自带面积的）压淡一点，免得叠色。 */
+      if(i === firstLine && nLine <= 2) s.areaStyle = { color: btGrad(c, .30, .02) };
+      else if(s.areaStyle) s.areaStyle = { color: btGrad(c, .12, .01) };
+      /* 「当前」虚线参考线：只在 1~2 条线、点数适中时加，多了会变格子布 */
+      if(nLine <= 2 && nCat >= 5 && nCat <= 20){
+        var last = btLast(s.data);
+        if(last !== null) s.markLine = {
+          silent: true, symbol: 'none', data: [{ yAxis: last }],
+          lineStyle: { type:'dashed', color: btA(c, .55), width: 1.4 },
+          label: { color: c, fontSize: 11, fontWeight: 'bold',
+                   position: 'insideEndTop', formatter: '当前 {c}' }
+        };
+      }
+    } else if(t === 'bar'){
+      var isTop = !s.stack || lastStack[s.stack] === i;
+      s.itemStyle = s.itemStyle || {};
+      s.itemStyle.color = btGrad(c, .99, .72);         /* 顶亮底淡的竖向渐变 */
+      s.itemStyle.borderRadius = isTop ? [7, 7, 0, 0] : 0;
+      s.itemStyle.shadowBlur = 8;
+      s.itemStyle.shadowColor = btA(c, .16);
+      s.itemStyle.shadowOffsetY = 3;
+      if(!s.barWidth && !s.stack) s.barMaxWidth = '42%';
+      s.emphasis = s.emphasis || {};
+      s.emphasis.itemStyle = s.emphasis.itemStyle || {};
+      s.emphasis.itemStyle.shadowBlur = 18;
+      s.emphasis.itemStyle.shadowColor = btA(c, .45);
+    } else if(t === 'pie'){
+      s.itemStyle = s.itemStyle || {};
+      s.itemStyle.borderColor = '#fff';
+      s.itemStyle.borderWidth = 2.5;
+      s.itemStyle.borderRadius = 6;
+      s.itemStyle.shadowBlur = 12;
+      s.itemStyle.shadowColor = 'rgba(40,38,42,.14)';
+      s.itemStyle.shadowOffsetY = 4;
+      s.emphasis = s.emphasis || {};
+      s.emphasis.scale = true;
+      s.emphasis.scaleSize = 8;
+      s.emphasis.itemStyle = s.emphasis.itemStyle || {};
+      s.emphasis.itemStyle.shadowBlur = 20;
+      s.emphasis.itemStyle.shadowColor = 'rgba(74,72,76,.35)';
+      s.label = s.label || {};
+      s.label.color = '#4a0a15';
+      s.label.fontSize = 12;
+      s.label.fontWeight = 600;
+      s.labelLine = s.labelLine || {};
+      s.labelLine.smooth = true;
+      s.labelLine.lineStyle = { color:'#cccccf', width:1.2 };
+      /* 扇区各自可能带 itemStyle.color（库里写死的粉色就是这一批），一并归一 */
+      (s.data || []).forEach(function(d){
+        if(!d || typeof d !== 'object') return;
+        var it = d.itemStyle;
+        if(!it) return;
+        if(typeof it.color === 'string') it.color = btRetint(it.color);
+        if(typeof it.borderColor === 'string') it.borderColor = btRetint(it.borderColor);
+      });
+    } else if(t === 'scatter'){
+      /* 气泡图（2026-09-20 新加：储量分布用气泡替代分省着色）。
+         ⚠️ 这里**必须尊重作者写在 data 项里的 itemStyle.color**，不能像折线/柱那样
+            一律刷成 SERC[i]：气泡图是靠「颜色深浅」分档的（万吨级深红 / 其余浅红），
+            单一系列色会把量级层次抹平 —— 那正是当初不用色块地图的原因。
+         做法：系列级只补边框与投影；data 项级颜色**逐项 retint**（同族归一），
+              保留作者的分档意图，同时把可能的历史杂色收进红系。
+
+         ★★ 2026-09-20 傍晚补的**豁免条款**（用户截图4「中国地图还是这种点点」的根因）：
+            本层是给「数据系列」美化的，但地图上那层 scatter 是**纯装饰的标注层** ——
+            它的圆点被刻意设成 `itemStyle.color = 'rgba(255,255,255,0)'`（全透明）
+            + `symbolSize: 3`，只为承载国名标签的坐标定位，作者根本不想要圆点。
+            beauty 原样照刷：`btRetint('rgba(255,255,255,0)')` 把**白色**通过去粉规则
+            变成 `#ffffff`，于是「透明」被刷成「不透明白点」⇒ 地图上凭空出现一堆白点。
+            更能说明问题的是系列色：`s.itemStyle.color === undefined` ⇒ 补 `c`（调色板
+            首色 #d0202f），但 ECharts 里 scatter 的 symbol **会继承系列色**，圆点又变红点。
+         豁免判据：**该 scatter 系列的所有 data 项都没有「可见颜色意图」**——
+            即每项 itemStyle.color 要么缺失、要么带 alpha < 1（如 rgba(...,0)）。
+            这类系列是纯装饰，直接整段跳过（不补边框、不补系列色、不逐项 retint）。 */
+      var deco = (s.data || []).length > 0 && (s.data || []).every(function(d){
+        if(!d || typeof d !== 'object') return true;
+        var it = d.itemStyle;
+        if(!it || typeof it.color !== 'string') return true;
+        var m = /^rgba?\(([^)]+)\)$/i.exec(it.color);
+        if(!m) return false;                       /* #fff 这类不透明色 ⇒ 有意图 */
+        var parts = m[1].split(',');
+        return parts.length > 3 && parseFloat(parts[3]) < 0.06;   /* 近全透明 ⇒ 装饰 */
+      });
+      if(!deco){
+        s.itemStyle = s.itemStyle || {};
+        if(!s.itemStyle.borderColor) s.itemStyle.borderColor = '#fff';
+        if(!s.itemStyle.borderWidth) s.itemStyle.borderWidth = 1.4;
+        if(s.itemStyle.color === undefined) s.itemStyle.color = c;
+        else if(typeof s.itemStyle.color === 'string') s.itemStyle.color = btRetint(s.itemStyle.color);
+        (s.data || []).forEach(function(d){
+          if(!d || typeof d !== 'object') return;
+          var it = d.itemStyle;
+          if(!it) return;
+          if(typeof it.color === 'string') it.color = btRetint(it.color);
+          if(typeof it.borderColor === 'string') it.borderColor = btRetint(it.borderColor);
+        });
+      }
+    } else if(t === 'map'){
+      /* 地图（worldcn / china 自建底图）。beauty 原本不管 map，于是库里那批
+         满涂色块的 areaColor 一直是原样 —— 新设计改成「浅红打底 + 气泡标注」后
+         需要把 areaColor 收进红系。
+         ⚠️⚠️ 必须用 btTintKeep 而**不是** btRetint：底纹是「浅红」语义，
+             btRetint 会把 #f7d9dc / #fbeeee 一律塌成实心 #dd3543，
+             层次全丢（2026-09-20 世界地图就这么被刷成一片红）。
+         ⚠️ 只动 areaColor / borderColor，**绝不碰 roam / scaleLimit / geo** ——
+            那几项是「可自由缩放」的命门，写在模板的 isMapChart 分支里。
+
+         ★★ 2026-09-20 傍晚补的**四档主题红豁免**（用户截图3「有储量的国家没铺红」的根因）：
+            世界地图用**四档主题红**表达储量量级（#a30f24 / #d0202f / #e06670 / #eea3aa），
+            这是作者刻意的**数据编码**，不是待归一的杂色。而 btTintKeep 会把 L<.78 的
+            颜色交回 btRetint，btRetint 的红族只有 4 档且按 L 切 ⇒ #e06670(L≈.63)
+            被刷成 #dd3543、#eea3aa(L≈.78) 被刷成 #dd3543
+            —— **中间两档被压成同一色，四档层次塌掉**。
+         判据：**该 map 系列里出现了 ≥2 种 areaColor** ⇒ 说明作者在用「颜色分档」编码数据，
+            整段跳过（不归一），保住量级层次。
+            只有「单一 areaColor」的地图（历史那批满涂一种色的）才继续走归一。 */
+      var areaSet = {};
+      (s.data || []).forEach(function(d){
+        if(d && d.itemStyle && typeof d.itemStyle.areaColor === 'string') areaSet[d.itemStyle.areaColor] = 1;
+      });
+      var tiered = Object.keys(areaSet).length >= 2;
+      if(!tiered){
+        if(s.itemStyle){
+          if(typeof s.itemStyle.areaColor === 'string') s.itemStyle.areaColor = btTintKeep(s.itemStyle.areaColor);
+          if(typeof s.itemStyle.borderColor === 'string') s.itemStyle.borderColor = btRetint(s.itemStyle.borderColor);
+        }
+        (s.data || []).forEach(function(d){
+          if(!d || typeof d !== 'object') return;
+          var it = d.itemStyle;
+          if(!it) return;
+          if(typeof it.areaColor === 'string') it.areaColor = btTintKeep(it.areaColor);
+          if(typeof it.borderColor === 'string') it.borderColor = btRetint(it.borderColor);
+        });
+      }
+    }
+  });
+  /* ---- 6. geo 组件：与 map series 同步（新设计走 geo，不走 series.map）---- */
+  var geos = Array.isArray(opt.geo) ? opt.geo : (opt.geo ? [opt.geo] : []);
+  geos.forEach(function(g){
+    if(g.itemStyle && typeof g.itemStyle.areaColor === 'string'){
+      g.itemStyle.areaColor = btTintKeep(g.itemStyle.areaColor);
+    }
+  });
+  return opt;
+}
 var NO_ZOOM = {chartForecast: 1, chart2: 1};
 function renderCharts(){
   var slots = document.querySelectorAll('[data-chart]');
+  var goneSlots = [];   /* 库里没数据 ⇒ 整块隐藏的槽位，末尾统一收尾（见 sweepGoneSlots） */
   St.inst = {};
   St.slots = [];
   for(var i = 0; i < slots.length; i++){
@@ -734,13 +2147,41 @@ function renderCharts(){
       box.appendChild(ops);
     }
     var slot = el;
-    if(!rec){
-      slot.innerHTML = '<div class="rpt-chartmiss">图表「' + esc(key) + '」暂无数据 —— 点「✏️ 图表数据」导入或编辑</div>';
+    if(!rec || optEmpty(rec.opt)){
+      /* ★ 库里没有这条图表数据（被删掉了 / 从没填过）⇒ 浏览态整块不显示。
+         2026-09-20 用户反馈：「下面这块被删除了的直接去掉不要显示」——
+         原来这里渲染一个 120px 的虚线空框写着「图表「chartDividend」暂无数据」，
+         表格底下凭空多一块斜纹灰条，像页面坏了。
+         ★ 编辑态（St.edit）仍保留占位 —— 那是「哪里能填图」的唯一入口，藏了就找不着了。
+         ★ 隐藏动作发生在 stackWide() 之后（renderCharts 排在 renderMods 后面），
+           所以函数末尾要用 sweepGoneSlots() 补一次并排重算。 */
+      if(St.edit){
+        slot.innerHTML = '<div class="rpt-chartmiss">图表「' + esc(key) + '」暂无数据 —— 点「✏️ 图表数据」导入或编辑</div>';
+      }else{
+        slot.innerHTML = '';
+        slot.style.display = 'none';
+        addCls(slot, 'rpt-slotgone');
+        goneSlots.push(slot);
+      }
       continue;
     }
     try{
       var opt = revive(copy(rec.opt), copy(rec.opt));
+      beauty(opt, key);   /* 统一美化：只改视觉、不动数据（库里的 opt 保持干净） */
+      pairTopPad(slot, opt);   /* 并排窄栏：绘图区顶部留白加大，避开图例与气泡重叠 */
       var n = catCount(opt);
+      var isMap = isMapChart(opt);
+      /* 地图：给「可自由缩放」—— 滚轮缩放 + 拖动平移 + 双击复位。
+         ★ scaleLimit 是**必填**：ECharts 默认 zoomLimit 为 null ⇒ 缩放没有上下界，
+           滚轮多滚几下地图就飞出画布再也找不回来。min 1 顺带保证「缩不小」，
+           但**双击复位仍然必要**（可以把地图拖到画布外，那不算缩放）。
+         ★ aspectScale 不动：它只管经纬度纵横比，改了会把版图拉伸变形。
+         ★ 提示条只在浏览态给（编辑态插了会挡住「✏️ 图表数据」按钮）。 */
+      if(isMap){
+        var mser = mapSeriesOf(opt);
+        if(!mser.scaleLimit) mser.scaleLimit = { min: 1, max: 12 };
+        if(mser.roam === undefined) mser.roam = true;
+      }
       var zoom = (n >= 5 && !NO_ZOOM[key]);
       if(zoom){
         opt.dataZoom = [{type:'inside', start:0, end:100}, {type:'slider', show:false, start:0, end:100}];
@@ -749,7 +2190,20 @@ function renderCharts(){
       var inst = echarts.init(slot, THEME);
       inst.setOption(opt, true);
       St.inst[key] = inst;
-      St.slots.push({key:key, n:n, zoom:zoom});
+      St.slots.push({key:key, n:n, zoom:zoom, map:isMap});
+      if(isMap && !St.edit){
+        var mg = document.createElement('div');
+        mg.className = 'rpt-mapguide';
+        mg.innerHTML = '<span>滚轮 <b>缩放</b></span><span>拖动 <b>平移</b></span>' +
+                       '<span>双击 <b>复位</b></span>';
+        slot.parentNode.insertBefore(mg, slot);   /* 压在图上，靠 CSS absolute 定位 */
+        mg.onclick = (function(it){
+          return function(){
+            it.setOption({series:[{type:'map', center:null, zoom:1}]});
+          };
+        })(inst);
+        mg.ondblclick = mg.onclick;
+      }
     }catch(e){
       slot.innerHTML = '<div class="rpt-chartmiss">图表渲染失败：' + esc(String(e && e.message || e)) + '</div>';
     }
@@ -763,7 +2217,55 @@ function renderCharts(){
     }
   }
   renderToolbars();
+  if(goneSlots.length) sweepGoneSlots(goneSlots);
   window.__RPT_CHARTS = St.slots.length;
+}
+
+/* ----------------------------------------------------------------
+   图表数据「实质为空」判据（2026-09-20）
+   ★ 只认「一个数据点都没有」：没有 series、或每条 series 的 data 都空。
+     不猜别的 —— 全库 84 张图的 opt 实测都是 series[].data 形式、dataset 全为 false，
+     所以这个判据不会误伤有数据的图。
+   ---------------------------------------------------------------- */
+function optEmpty(opt){
+  if(!opt || typeof opt !== 'object') return true;
+  if(opt.dataset) return false;
+  var ss = opt.series;
+  if(!ss || !ss.length) return true;
+  for(var i = 0; i < ss.length; i++){
+    var d = ss[i] && ss[i].data;
+    if(d && d.length) return false;
+  }
+  return true;
+}
+
+/* ----------------------------------------------------------------
+   空图槽位被隐藏后的并排收尾（2026-09-20）
+   ★ 隐藏发生在 stackWide() 之后，并排容器不知道少了一块，会留下半栏空白。
+     这里补一次重算：可见子块只剩 1 个 ⇒ 摘掉 .gr-pair 并加 .gr-solo（单列整行）；
+     一个都不剩 ⇒ 连并排容器一起藏掉，别留一条空白槽。
+   ---------------------------------------------------------------- */
+function sweepGoneSlots(list){
+  var seen = [];
+  for(var i = 0; i < list.length; i++){
+    var g = list[i].parentNode;
+    while(g && g.nodeType === 1 && !(g.className || '').match(/(^|\s)grid[234](\s|$)/)) g = g.parentNode;
+    if(!g || g.nodeType !== 1) continue;
+    if(seen.indexOf(g) >= 0) continue;
+    seen.push(g);
+    var kids = g.children, vis = 0;
+    for(var j = 0; j < kids.length; j++){
+      var k = kids[j];
+      if(k.nodeType !== 1) continue;
+      if(k.style && k.style.display === 'none') continue;
+      vis++;
+    }
+    if(vis === 0) g.style.display = 'none';
+    else if(vis === 1){
+      g.className = (g.className || '').replace(/(^|\s)gr-pair(\s|$)/g, ' ');
+      addCls(g, 'gr-solo');
+    }
+  }
 }
 /* 时间范围按钮组（和原研报一致：3年 / 5年 / 10年 / 全部） */
 function renderToolbars(){
@@ -821,7 +2323,10 @@ else boot();
    —— ★ 凡是会改数据的入口（进入编辑模式 / 保存 / 新增 / 删除 / 覆盖导入）都要管理员密码，
       由服务端 wb_admin_verify 校验；删除另走 wb_admin_delete_row。
    ============================================================================ */
-/* 研报标准模板 v3.1 · 31 模块 / 六篇（定义见 build/report_template_v31.py） */
+/* 研报标准模板 v3.1-gold · 31 模块（母本＝宝钛股份 600456，2026-09-21）
+   —— 顺序与标题**逐字复刻母本**，与 build/report_template_v31.py 的 MODULES 一一对应。
+   —— 第 24 槽在正式报告里会写成「钛/黄金/化肥行业介绍与市场规模」；这里放通用名，
+      编辑时在前面补上行业名即可。 */
 var MOD_SKELETON = [
   '公司简介',
   '公司历史沿革',
@@ -831,26 +2336,26 @@ var MOD_SKELETON = [
   '主要产品产能与技术',
   '主要产品产量与销量（量价拆分）',
   '主要子公司与基地',
-  '行业总览与市场空间',
-  '下游需求结构拆解',
-  '竞争格局与市场份额',
   '管理层与治理',
-  '产业链结构',
-  '上游原料价格',
-  '产品价格与成本',
-  '在建工程与新项目',
-  '护城河与竞争优势量化',
-  '风险矩阵',
   '公司营业收入与利润',
   '公司产品收入与毛利结构',
+  '产品价格与成本',
   '盈利能力与杜邦分解',
   '费用结构',
   '现金流与资产负债三表',
   '历年分红与股东回报',
+  '在建工程与新项目',
+  '护城河与竞争优势量化',
+  '风险矩阵',
+  '下游需求结构拆解',
+  '竞争格局与市场份额',
+  '产业链结构',
+  '上游原料价格',
+  '行业介绍与市场规模',
+  '产量储量分布及价格分析',
+  '供需格局与平衡表',
   '盈利预测模型',
   '估值分析',
-  '估值敏感性',
-  '公司股价表现',
   '企业评分（选股原则 10 项 · 满分 100）',
   '多空论点对照',
   '投资结论与跟踪清单'
@@ -1097,7 +2602,8 @@ var Rpt = {
     var lines = v('h-badges').split('\n').map(function(s){ return s.trim(); }).filter(Boolean);
     var toc = v('h-toc').split('\n').map(function(s){ return s.trim(); }).filter(Boolean).map(function(s){
       var i = s.indexOf('|');
-      return i < 0 ? {anchor:s, text:s} : {anchor:s.slice(0, i).trim(), text:s.slice(i + 1).trim()};
+      return i < 0 ? {anchor:s, text:tocLabel(s)}
+                   : {anchor:s.slice(0, i).trim(), text:tocLabel(s.slice(i + 1).trim())};
     });
     var kpis = [];
     var rows = document.querySelectorAll('#kpiEdit tr[data-k]');
@@ -1140,6 +2646,24 @@ var Rpt = {
     this.patch('wb_report_mods', '?id=eq.' + enc(id),
       {no:m.no, title:m.title, html:m.html, seq:m.seq, report_id:St.code, code:St.code}, '模块 ' + m.no)
       .then(function(){ render(); Rpt.renderDrawer(); }).catch(function(){});
+  },
+  /* 槽 29「企业评分」的页面调整落库（2026-09-22 用户令：「这个数据改完要提交到数据库里去」）
+     material 由壳里的 scBuildHtml() 拼好 —— 与后端 build/_score_patch.py 同一套定点替换。
+     ★ 只写 html（分数全在正文里），no/title/seq 原样回填，避免顺手改掉别的字段。
+     ★ 本方法已被 RGATE 挂上管理员密码门（与「保存模块」同一套校验），调用方不要自己再弹密码。 */
+  commitScore: function(id, material){
+    var m = this.findMod(id);
+    if(!m) return Promise.reject(new Error('找不到模块 ' + id));
+    if(!material) return Promise.reject(new Error('没有要写入的内容'));
+    return this.patch('wb_report_mods', '?id=eq.' + enc(id),
+      {no:m.no, title:m.title, html:material, seq:m.seq, report_id:St.code, code:St.code},
+      '模块 ' + m.no + ' 的评分'
+    ).then(function(){
+      m.html = material;            /* 本地同步，免得下一次提交还拿旧底稿 */
+      render();
+      if(St.edit) Rpt.renderDrawer();
+      if(typeof toast === 'function') toast('评分已写入数据库 —— 所有人看到的都是这一版', 'ok');
+    });
   },
   addMod: function(){
     var maxNo = 0;
@@ -1713,8 +3237,8 @@ function headForm(){
   });
   h += '</tbody></table></div></div>';
   h += fld('h-note', '指标下方小字说明', r.kpi_note);
-  h += ta('h-toc', '目录（一行一条，格式：锚点|显示文字）', (r.toc || []).map(function(x){ return x.anchor + '|' + x.text; }).join('\n'), 5,
-          '锚点是模块编号对应的 #m1 / #m6 / #m14 …');
+  h += ta('h-toc', '目录（一行一条，格式：锚点|显示文字）', (r.toc || []).map(function(x){ return x.anchor + '|' + tocLabel(x.text); }).join('\n'), 5,
+          '锚点是模块编号对应的 #m1 / #m6 / #m14 …；显示文字别写「第X篇」前缀（侧栏窄，会把模块名挤成省略号）');
   h += rteField('h-essence', '一句话本质', r.essence_html, 4, '会显示在 31 号模块上方', false);
   h += rteField('h-footer', '页脚 / 免责声明', r.footer_html, 5, '', false);
   return h;
@@ -1734,7 +3258,7 @@ function modList(){
       '<div class="no">' + esc(m.no) + '</div>' +
       '<div class="tx"><b>' + esc(m.title || '(无标题)') + '</b>' +
       '<span>' + m.html.length + ' 字' + (m.html.indexOf('data-chart') >= 0 ? ' · 含图表' : '') + '</span></div>' +
-      '<span style="font-size:16px;color:#c0a8ac">✏️</span></div>';
+      '<span style="font-size:16px;color:#b4b4b8">✏️</span></div>';
   });
   return h + '</div>';
 }
@@ -1761,7 +3285,7 @@ function chartList(){
       '<div class="no">📊</div>' +
       '<div class="tx"><b>' + esc(c.name || k) + '</b><span>' + esc(k) +
       (used ? '' : ' · ⚠️ 没有模块引用它') + '</span></div>' +
-      '<span style="font-size:16px;color:#c0a8ac">✏️</span></div>';
+      '<span style="font-size:16px;color:#b4b4b8">✏️</span></div>';
   });
   return h + '</div>';
 }
@@ -2198,7 +3722,7 @@ function blankKpis(){
 function newForm(){
   var h = '<div class="rhint">研报是一份独立的数据记录：先建壳（公司 / 标题 / 8 项指标），' +
           '再逐个模块填内容。建好后会生成 31 个空模块，标题按标准模板预置。</div>';
-  h += '<div class="rhint" style="color:#a3122a">⚠️ 股票代码是研报的身份证。' +
+  h += '<div class="rhint" style="color:#c81a33">⚠️ 股票代码是研报的身份证。' +
        '<b>输入一个已经有研报的代码，会被拒绝</b>（否则会把那份研报的 31 个模块、28 张图整份覆盖掉）。' +
        '想改现有的研报，请从下面的列表点进去。</div>';
   h += '<div class="rgrid2">';
@@ -2233,7 +3757,7 @@ function RptCreate(){
           '<div style="margin-top:9px">' +
           '<button type="button" class="rbtn sm" onclick="location.href=\'report.html?code=' + escq(code) + '\'">' +
           '打开这份已有研报</button>' +
-          '<span style="margin-left:8px;font-size:12px;color:#a0888d">要另建一份，请把上面的股票代码改成别的</span>' +
+          '<span style="margin-left:8px;font-size:12px;color:#8a8a8f">要另建一份，请把上面的股票代码改成别的</span>' +
           '</div>';
       }
       toast('代码 ' + code + ' 已有研报，未创建', 'bad');
@@ -2366,6 +3890,14 @@ var RGATE = [
   ['svMod','保存',false,null,
     function(){ var m = Rpt.findMod(UI.selMod) || {};
                 return '模块 ' + (m.no || '') + '：' + String(m.title || '').slice(0, 40); }],
+  /* 槽 29 页面调整落库（2026-09-22 用户令）—— 与「保存模块」同级：写的是模块正文、公开页立即可见。
+     没有 when 条件 ⇒ 每次都验管理员密码（它不是从抽屉里发起的，没有可借的编辑票据）。 */
+  ['commitScore','提交',false,null,
+    function(id){
+      var m = Rpt.findMod(id) || {};
+      return '把槽 29「企业评分」当前这版分数提交到数据库（模块 ' + (m.no || '') +
+             '：' + String(m.title || '').slice(0, 24) + '）';
+    }],
   ['addMod','新增',false,null,
     function(){ return '新增一个空模块（编号自动接在最后，随后会写入数据库）'; }, 'svMod'],
   ['svChart','保存',false,null,

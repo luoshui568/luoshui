@@ -50,3 +50,22 @@ cloudbase/migrations/*.sql
 !cloudbase/migrations/20260913220000_add_stock_lock_fields.sql
 !cloudbase/migrations/20260913230000_create_wb_reports.sql
 !cloudbase/migrations/20260914120000_admin_register.sql
+
+# ── 上线前抓取的线上托管备份（每次上传前留一份，已累积 31 份 / 66 MB）──
+#    与 build/backup/ 同类：过程产物，需要时用 grab_live_backup.py 重抓。
+build/backup_hosting_pre_*/
+
+# ── 批量出图的中间产物（截图预览 / 后台数据快照 / 临时脚手架）──
+build/out/
+build/fxbg/
+build/seed/_raw_b1/
+build/tmp*.js
+
+# ── deliver/ 只入库交付物本身，不入库验证过程（截图与浏览器 profile 约 41 MB）──
+deliver/_edgeprof/
+deliver/verify/
+deliver/*.png
+
+# ── 顶层诊断日志与一次性清单 ──
+/*.log
+待清理清单_*.txt

@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>中国股市牛熊全史 · 1990—2026 年二十九轮周期深度复盘</title>
+<meta name="description" content="从上证指数 100 点起步到 6124 点巅峰：1990—2026 年中国股市全部二十九轮牛熊周期的点位、时长、驱动因素、政策事件与复盘注解。">
+<style>
+/* ============================================================
+   中国股市牛熊全史 —— 视觉系统（红金深色 · 涨红跌绿）
+   ============================================================ */
+:root{
+  --bg:#0c0909;
+  --bg2:#120e0e;
+  --panel:#181212;
+  --panel2:#1f1717;
+  --panel3:#261c1c;
+  --line:#332527;
+  --line2:#4a3639;
+  --ink:#f5f0ef;
+  --ink2:#c9bcbb;
+  --dim:#948887;
+  --mute:#6d6261;
+  --red:#d0202f;
+  --red-l:#f2454f;
+  --red-ll:#ff6b73;
+  --red-d:#7e1119;
+  --gold:#c9a227;
+  --gold-l:#e8c96a;
+  --green:#12a06a;
+  --green-l:#2fc98c;
+  --blue:#00b0f0;
+  --shadow:0 18px 48px rgba(0,0,0,.55);
+  --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:15px;line-height:1.78;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 900px 520px at 12% -8%,rgba(208,32,47,.16),transparent 62%),
+    radial-gradient(ellipse 760px 460px at 88% 4%,rgba(201,162,39,.09),transparent 60%),
+    linear-gradient(180deg,#0e0a0a 0%,#0c0909 46%,#0a0808 100%);
+}
+.wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 22px}
+a{color:var(--gold-l);text-decoration:none;border-bottom:1px solid rgba(201,162,39,.32)}
+a:hover{color:#fff;border-bottom-color:var(--red-l)}
+
+/* ---------- 顶栏 ---------- */
+.topbar{
+  position:sticky;top:0;z-index:60;backdrop-filter:blur(14px);
+  background:rgba(12,9,9,.86);border-bottom:1px solid var(--line);
+}
+.topbar .wrap{display:flex;align-items:center;gap:14px;height:54px;overflow-x:auto;scrollbar-width:none}
+.topbar .wrap::-webkit-scrollbar{display:none}
+.tb-brand{font-weight:800;letter-spacing:.06em;font-size:14px;white-space:nowrap;color:var(--red-l)}
+.tb-brand i{color:var(--gold);font-style:normal}
+.tb-nav{display:flex;gap:2px;margin-left:auto}
+.tb-nav a{
+  font-size:12.5px;color:var(--ink2);border:0;padding:5px 11px;border-radius:999px;white-space:nowrap;
+}
+.tb-nav a:hover{background:rgba(208,32,47,.16);color:#fff}
+
+/* ---------- Hero ---------- */
+.hero{padding:66px 0 34px;position:relative}
+.hero-tag{
+  display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.16em;
+  color:var(--gold-l);border:1px solid rgba(201,162,39,.4);border-radius:999px;padding:5px 14px;
+  background:rgba(201,162,39,.07);margin-bottom:22px;
+}
+.hero-tag b{width:6px;height:6px;border-radius:50%;background:var(--red-l);box-shadow:0 0 10px var(--red-l)}
+h1{
+  font-size:clamp(30px,5.4vw,58px);line-height:1.1;font-weight:900;letter-spacing:-.01em;
+  background:linear-gradient(96deg,#fff 0%,#ffd9dc 34%,var(--red-l) 62%,var(--red) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  margin-bottom:16px;
+}
+.hero-sub{font-size:clamp(14px,1.7vw,17px);color:var(--ink2);max-width:820px;margin-bottom:8px}
+.hero-sub b{color:var(--red-l);font-weight:700}
+.hero-date{
+  font-family:ui-monospace,Consolas,monospace;font-size:13px;color:var(--dim);
+  letter-spacing:.06em;margin-top:14px;
+}
+.hero-line{
+  height:3px;margin-top:30px;border-radius:2px;
+  background:linear-gradient(90deg,var(--red) 0%,var(--red-l) 22%,var(--gold) 52%,var(--line) 100%);
+}
+
+/* ---------- 关键数字带 ---------- */
+.stats{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:12px;margin:26px 0 8px;
+}
+.stat{
+  background:linear-gradient(165deg,var(--panel2),var(--panel));
+  border:1px solid var(--line);border-radius:12px;padding:16px 16px 14px;position:relative;overflow:hidden;
+}
+.stat::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--red)}
+.stat.g::after{background:var(--green)}
+.stat.y::after{background:var(--gold)}
+.stat.k{font-size:11.5px;letter-spacing:.1em;color:var(--dim);margin-bottom:6px}
+.stat.v{font-size:23px;font-weight:800;font-family:ui-monospace,Consolas,monospace;color:var(--ink);line-height:1.2}
+.stat.v small{font-size:12px;font-weight:600;color:var(--dim);margin-left:3px}
+.stat.d{font-size:11.5px;color:var(--mute);margin-top:5px}
+
+/* ---------- 区块标题 ---------- */
+.sec{padding:54px 0 8px}
+.sec-h{display:flex;align-items:flex-end;gap:14px;border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:26px;flex-wrap:wrap}
+.sec-h h2{font-size:clamp(20px,2.8vw,28px);font-weight:850;letter-spacing:-.01em}
+.sec-h .no{
+  font-family:ui-monospace,Consolas,monospace;font-size:12px;font-weight:700;color:var(--red-l);
+  border:1px solid rgba(208,32,47,.45);border-radius:6px;padding:2px 8px;background:rgba(208,32,47,.1);
+  letter-spacing:.08em;
+}
+.sec-h .desc{font-size:13px;color:var(--dim);margin-left:auto;text-align:right;max-width:460px}
+.lede{color:var(--ink2);font-size:14.5px;margin-bottom:22px;max-width:900px}
+.lede em{color:var(--red-l);font-style:normal;font-weight:600}
+
+/* ---------- 图表面板 ---------- */
+.panel{
+  background:linear-gradient(170deg,var(--panel2),var(--panel));
+  border:1px solid var(--line);border-radius:var(--r);padding:20px;box-shadow:var(--shadow);
+}
+.chart{width:100%;height:520px}
+.chart-legend{
+  display:flex;gap:20px;flex-wrap:wrap;font-size:12.5px;color:var(--dim);
+  margin-top:14px;padding-top:14px;border-top:1px dashed var(--line2);
+}
+.chart-legend i{display:inline-block;width:16px;height:9px;border-radius:2px;margin-right:7px;vertical-align:middle}
+.lg-bull{background:rgba(208,32,47,.42);border:1px solid var(--red-l)}
+.lg-bear{background:rgba(18,160,106,.42);border:1px solid var(--green-l)}
+
+/* ---------- 周期概览网格 ---------- */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(224px,1fr));gap:12px}
+.gcard{
+  background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 15px;
+  border-top:3px solid var(--red);transition:transform .18s,border-color .18s,background .18s;
+  display:block;color:inherit;
+}
+.gcard.bear{border-top-color:var(--green)}
+.gcard.mix{border-top-color:var(--gold)}
+.gcard:hover{transform:translateY(-3px);background:var(--panel2);border-color:var(--line2);border-bottom-color:var(--line2)}
+.gcard-h{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.gcard-n{
+  font-family:ui-monospace,Consolas,monospace;font-size:11px;font-weight:700;color:var(--red-l);
+  background:rgba(208,32,47,.13);border-radius:5px;padding:1px 6px;
+}
+.gcard.bear .gcard-n{color:var(--green-l);background:rgba(18,160,106,.13)}
+.gcard.mix .gcard-n{color:var(--gold-l);background:rgba(201,162,39,.13)}
+.gcard-t{font-size:14px;font-weight:750;line-height:1.3}
+.gcard-r{display:flex;align-items:baseline;gap:8px;margin:2px 0 4px}
+.gcard-pct{font-family:ui-monospace,Consolas,monospace;font-size:19px;font-weight:800;color:var(--red-l)}
+.gcard.bear .gcard-pct{color:var(--green-l)}
+.gcard.mix .gcard-pct{color:var(--gold-l)}
+.gcard-pt{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;color:var(--dim)}
+.gcard-m{font-size:11.5px;color:var(--mute);font-family:ui-monospace,Consolas,monospace}
+
+/* ---------- 周期详情卡 ---------- */
+.era{
+  background:linear-gradient(170deg,var(--panel2),var(--panel));
+  border:1px solid var(--line);border-radius:var(--r);margin-bottom:16px;overflow:hidden;position:relative;
+}
+.era::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--red-l),var(--red-d))}
+.era.bear::before{background:linear-gradient(180deg,var(--green-l),#0a5f40)}
+.era.mix::before{background:linear-gradient(180deg,var(--gold-l),#7d6414)}
+.era-h{
+  padding:18px 22px 15px 26px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;cursor:pointer;user-select:none;
+}
+.era-h:hover{background:rgba(208,32,47,.05)}
+.era-n{
+  font-family:ui-monospace,Consolas,monospace;font-size:12px;font-weight:800;color:#fff;
+  background:var(--red);border-radius:7px;padding:3px 10px;letter-spacing:.04em;flex:none;
+}
+.era.bear .era-n{background:var(--green)}
+.era.mix .era-n{background:#9c7f18}
+.era-t{font-size:17.5px;font-weight:800;letter-spacing:-.01em}
+.era-k{font-size:11.5px;color:var(--dim);font-family:ui-monospace,Consolas,monospace;margin-left:auto;text-align:right;flex:none}
+.era-arrow{
+  flex:none;width:22px;height:22px;border-radius:50%;border:1px solid var(--line2);
+  display:grid;place-items:center;font-size:11px;color:var(--dim);transition:transform .25s;
+}
+.era.closed .era-arrow{transform:rotate(-90deg)}
+.era-body{padding:18px 22px 20px 26px;display:grid;grid-template-columns:230px 1fr;gap:24px}
+.era.closed .era-body{display:none}
+
+/* 左栏：数据 */
+.era-data{border-right:1px dashed var(--line2);padding-right:20px}
+.drow{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-bottom:1px dotted rgba(74,54,57,.5);font-size:12.5px;gap:8px}
+.drow:last-child{border-bottom:0}
+.drow .dk{color:var(--dim);flex:none}
+.drow .dv{font-family:ui-monospace,Consolas,monospace;font-weight:700;color:var(--ink);text-align:right}
+.dv.up{color:var(--red-l)}
+.dv.dn{color:var(--green-l)}
+.scale{margin-top:14px}
+.scale-t{font-size:11px;color:var(--mute);letter-spacing:.08em;margin-bottom:7px}
+.scale-bar{height:8px;border-radius:4px;background:#241b1b;overflow:hidden;position:relative}
+.scale-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--red-d),var(--red-l))}
+.era.bear .scale-fill{background:linear-gradient(90deg,#0a5f40,var(--green-l))}
+.scale-x{display:flex;justify-content:space-between;font-family:ui-monospace,Consolas,monospace;font-size:10.5px;color:var(--mute);margin-top:5px}
+
+/* 右栏：内容 */
+.era-c h4{
+  font-size:12.5px;letter-spacing:.1em;color:var(--gold-l);margin:16px 0 8px;font-weight:700;
+  display:flex;align-items:center;gap:8px;
+}
+.era-c h4:first-child{margin-top:0}
+.era-c h4::before{content:"";width:3px;height:12px;background:var(--gold);border-radius:2px;flex:none}
+.era-c p{font-size:13.8px;color:var(--ink2);margin-bottom:9px}
+.era-c p:last-child{margin-bottom:0}
+.era-c strong{color:var(--ink);font-weight:700}
+.era-c ul{list-style:none;margin:0 0 9px}
+.era-c li{
+  font-size:13.6px;color:var(--ink2);padding-left:17px;position:relative;margin-bottom:7px;
+}
+.era-c li::before{
+  content:"";position:absolute;left:3px;top:10px;width:5px;height:5px;border-radius:1px;
+  background:var(--red-l);transform:rotate(45deg);
+}
+.era.bear .era-c li::before{background:var(--green-l)}
+.era li b{color:var(--gold-l);font-weight:700}
+
+/* 注解块 */
+.anno{
+  margin-top:14px;padding:13px 16px;border-radius:10px;
+  background:rgba(201,162,39,.07);border-left:3px solid var(--gold);
+  font-size:13.2px;color:#dcD2b8;color:#ddd3ba;
+}
+.anno b{color:var(--gold-l)}
+.anno.warn{background:rgba(208,32,47,.09);border-left-color:var(--red-l);color:#efc8cb}
+.anno.warn b{color:var(--red-ll)}
+
+/* 关键事件行 */
+.evts{margin-top:12px}
+.evt{display:grid;grid-template-columns:96px 1fr;gap:12px;font-size:13px;padding:7px 0;border-bottom:1px dotted rgba(74,54,57,.45)}
+.evt:last-child{border-bottom:0}
+.evt .ed{font-family:ui-monospace,Consolas,monospace;color:var(--red-l);font-weight:700;font-size:12.5px}
+.era.bear .evt .ed{color:var(--green-l)}
+.evt .ec{color:var(--ink2)}
+.evt .ec b{color:var(--ink)}
+
+/* 术语提示 */
+.term{
+  border-bottom:1px dashed var(--gold);color:var(--gold-l);cursor:help;
+  background:rgba(201,162,39,.08);border-radius:2px;padding:0 2px;
+}
+#tip{
+  position:fixed;z-index:200;max-width:330px;padding:11px 14px;border-radius:10px;
+  background:#211717;border:1px solid var(--gold);box-shadow:var(--shadow);
+  font-size:12.6px;line-height:1.68;color:var(--ink2);pointer-events:none;opacity:0;
+  transition:opacity .16s;transform:translateY(4px);
+}
+#tip.on{opacity:1;transform:translateY(0)}
+#tip b{color:var(--gold-l);display:block;margin-bottom:3px;font-size:12.8px}
+
+/* ---------- 事件时间轴 ---------- */
+.tl{position:relative;padding-left:28px;margin-top:6px}
+.tl::before{content:"";position:absolute;left:8px;top:6px;bottom:6px;width:2px;background:linear-gradient(180deg,var(--red-l),var(--gold),var(--green-l))}
+.tli{position:relative;margin-bottom:16px}
+.tli::before{
+  content:"";position:absolute;left:-24px;top:7px;width:11px;height:11px;border-radius:50%;
+  background:var(--bg);border:2px solid var(--red-l);
+}
+.tli.gold::before{border-color:var(--gold)}
+.tli.green::before{border-color:var(--green-l)}
+.tli-d{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;color:var(--red-l);font-weight:800;letter-spacing:.03em}
+.tli.gold .tli-d{color:var(--gold-l)}
+.tli.green .tli-d{color:var(--green-l)}
+.tli-t{font-size:14.5px;font-weight:750;margin:2px 0 4px}
+.tli-c{font-size:13.4px;color:var(--ink2)}
+.tli-c b{color:var(--ink)}
+
+/* ---------- 三栏对照 ---------- */
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.col{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}
+.col h3{font-size:15px;margin-bottom:12px;display:flex;align-items:center;gap:9px}
+.col h3 span{
+  font-family:ui-monospace,Consolas,monospace;font-size:11px;padding:2px 7px;border-radius:5px;
+  background:rgba(208,32,47,.15);color:var(--red-l);
+}
+.col.g h3 span{background:rgba(18,160,106,.15);color:var(--green-l)}
+.col.y h3 span{background:rgba(201,162,39,.15);color:var(--gold-l)}
+.col ul{list-style:none}
+.col li{font-size:13.3px;color:var(--ink2);padding:8px 0;border-bottom:1px dotted rgba(74,54,57,.5)}
+.col li:last-child{border-bottom:0}
+.col li b{color:var(--ink)}
+
+/* ---------- 表格 ---------- */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:820px}
+th{
+  background:var(--panel3);text-align:left;padding:12px 14px;font-weight:750;font-size:12.3px;
+  color:var(--gold-l);letter-spacing:.05em;border-bottom:1px solid var(--line2);white-space:nowrap;
+}
+td{padding:11px 14px;border-bottom:1px solid rgba(74,54,57,.42);color:var(--ink2);vertical-align:top}
+tr:last-child td{border-bottom:0}
+tbody tr:hover{background:rgba(208,32,47,.06)}
+td.num{font-family:ui-monospace,Consolas,monospace;font-weight:700;color:var(--ink);white-space:nowrap}
+td.up{color:var(--red-l)}
+td.dn{color:var(--green-l)}
+td.nm{color:var(--ink);font-weight:650}
+
+/* ---------- 词条 ---------- */
+.gl{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:12px}
+.gl-i{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:15px}
+.gl-i h4{font-size:13.8px;color:var(--gold-l);margin-bottom:7px}
+.gl-i p{font-size:12.9px;color:var(--ink2)}
+
+/* ---------- 页脚 ---------- */
+.foot{
+  margin-top:66px;padding:32px 0 54px;border-top:1px solid var(--line);
+  font-size:12.6px;color:var(--mute);line-height:1.85;
+}
+.foot b{color:var(--ink2)}
+.foot .warn{
+  margin-top:16px;padding:14px 16px;border-radius:10px;background:rgba(208,32,47,.08);
+  border-left:3px solid var(--red);color:#d8c4c6;font-size:12.8px;
+}
+
+/* ---------- 返回顶部 ---------- */
+#top{
+  position:fixed;right:20px;bottom:22px;z-index:80;width:42px;height:42px;border-radius:50%;
+  background:var(--red);color:#fff;border:0;font-size:16px;cursor:pointer;box-shadow:0 8px 22px rgba(208,32,47,.42);
+  opacity:0;pointer-events:none;transition:opacity .25s;
+}
+#top.on{opacity:1;pointer-events:auto}
+#top:hover{background:var(--red-l)}
+
+/* ---------- 响应式 ---------- */
+@media(max-width:860px){
+  .era-body{grid-template-columns:1fr;gap:14px}
+  .era-data{border-right:0;border-bottom:1px dashed var(--line2);padding-right:0;padding-bottom:14px;
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0 18px}
+  .scale{grid-column:1/-1}
+  .chart{height:400px}
+  .sec-h .desc{margin-left:0;text-align:left;max-width:none}
+  .evt{grid-template-columns:84px 1fr;gap:9px}
+}
+@media(max-width:520px){
+  .wrap{padding:0 15px}
+  .hero{padding:42px 0 26px}
+  .era-h{padding:15px 16px 13px 20px}
+  .era-body{padding:15px 16px 17px 20px}
+  .panel{padding:13px}
+  .chart{height:330px}
+}
+@media print{
+  body::before{display:none}
+  .topbar,#top{display:none}
+  .era-body{display:grid!important}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar"><div class="wrap">
+  <div class="tb-brand">牛熊全史 <i>1990—2026</i></div>
+  <nav class="tb-nav">
+    <a href="#s1">全景</a>
+    <a href="#s2">总览</a>
+    <a href="#s3">逐轮详解</a>
+    <a href="#s4">大事记</a>
+    <a href="#s5">规律</a>
+    <a href="#s6">数据表</a>
+    <a href="#s7">术语</a>
+  </nav>
+</div></div>
+
+<!-- ============ HERO ============ -->
+<header class="hero"><div class="wrap">
+  <div class="hero-tag"><b></b>上证综合指数 · 三十六载 · 二十九轮</div>
+  <h1>中国股市牛熊全史</h1>
+  <p class="hero-sub">
+    从 1990 年 12 月 19 日上交所开市那一刻的 <b>96.05 点</b>，到 2007 年 10 月 16 日的 <b>6124.04 点</b>，
+    再到 2026 年 9 月 29 日的 <b>3830.45 点</b> —— 上证指数三十六年间走完了二十九轮完整的牛熊轮回。
+    每一轮暴涨背后都是同一个故事：制度变革、流动性宽松、增量资金入场；每一轮暴跌背后也都是同一个故事：估值透支、政策转向、杠杆反噬。
+  </p>
+  <div class="hero-date">数据截止 2026-09-29 收盘 ｜ 单位：点上证综指（000001.SH）</div>
+  <div class="hero-line"></div>
+  <div class="stats">
+    <div class="stat">
+      <div class="stat.k">起始点位</div>
+      <div class="stat.v">96.05</div>
+      <div class="stat.d">1990-12-19 开市基准</div>
+    </div>
+    <div class="stat">
+      <div class="stat.k">历史最高</div>
+      <div class="stat.v">6124.04</div>
+      <div class="stat.d">2007-10-16（距今 18.9 年）</div>
+    </div>
+    <div class="stat">
+      <div class="stat.k">最新收盘</div>
+      <div class="stat.v">3830.45</div>
+      <div class="stat.d">2026-09-29</div>
+    </div>
+    <div class="stat y">
+      <div class="stat.k">最大单轮涨幅</div>
+      <div class="stat.v">+1387<small>%</small></div>
+      <div class="stat.d">第 1 轮 · 1990-1992</div>
+    </div>
+    <div class="stat g">
+      <div class="stat.k">最深单轮跌幅</div>
+      <div class="stat.v">-79.1<small>%</small></div>
+      <div class="stat.d">第 4 轮 · 1993-1994</div>
+    </div>
+    <div class="stat">
+      <div class="stat.k">最长一轮</div>
+      <div class="stat.v">48<small>个月</small></div>
+      <div class="stat.d">第 10 轮熊市 · 2001-2005</div>
+    </div>
+  </div>
+</div></header>
+
+<main class="wrap">
+
+<!-- ============ S1 全景图 ============ -->
+<section class="sec" id="s1">
+  <div class="sec-h">
+    <span class="no">01</span>
+    <h2>三十六年全景走势</h2>
+    <div class="desc">对数坐标 · 红区为牛市、绿区为熊市 · 悬停查看每轮起止点位</div>
+  </div>
+  <p class="lede">
+    把 36 年的走势压缩到一张图上，最直观的感受是：<em>真正的长期牛市只有三段</em> ——
+    1996—2001 年、2005—2007 年、2019 年至今；其余时间市场都在做大幅度的往复摆动。
+    纵轴采用<em>对数刻度</em>，因为从 96 点到 6124 点是 64 倍的空间，线性坐标会把早期走势完全压平。
+  </p>
+  <div class="panel">
+    <div class="chart" id="chartAll"></div>
+    <div class="chart-legend">
+      <span><i class="lg-bull"></i>牛市区间（含反弹）</span>
+      <span><i class="lg-bear"></i>熊市区间（含调整）</span>
+      <span style="margin-left:auto">纵轴对数刻度 ｜ 曲线为<b style="color:var(--ink2)">月末收盘价</b>（430 个月），标注点为各轮周期历史极值（部分为盘中价，如 2007 年 6124.04、2015 年 5178.19）</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ S2 总览 ============ -->
+<section class="sec" id="s2">
+  <div class="sec-h">
+    <span class="no">02</span>
+    <h2>二十九轮周期总览</h2>
+    <div class="desc">点击卡片直达该轮详解</div>
+  </div>
+  <p class="lede">
+    划分口径：以<em>上证综指收盘价</em>的阶段极值点为准，一段连续同向运动（涨幅或跌幅超过 15%）计为一轮。
+    1990—1992 年的超早期行情因市场规模极小（最初仅 8 只股票），涨跌幅数字夸张，属正常现象。
+  </p>
+  <div class="grid" id="grid"></div>
+</section>
+
+<!-- ============ S3 逐轮详解 ============ -->
+<section class="sec" id="s3">
+  <div class="sec-h">
+    <span class="no">03</span>
+    <h2>逐轮深度详解</h2>
+    <div class="desc">每轮含：区间数据 / 驱动因素 / 关键事件 / 复盘注解</div>
+  </div>
+  <p class="lede">
+    下面二十九张卡片，是这部历史的肉身。每一轮都按同一套结构解剖：<em>先看数字，再看驱动，最后看当时的人做错了什么</em>。
+    点击标题栏可折叠 / 展开。文中带<span class="term" data-tip="悬停任意带下划虚线的词条，可查看该专业术语的解释。本文全篇标注了 60+ 处注解。">金色虚线下划线</span>的词语可直接悬停查看注解。
+  </p>
+  <div id="eras"></div>
+  <div style="text-align:center;margin-top:22px">
+    <button id="toggleAll" style="background:var(--panel2);border:1px solid var(--line2);color:var(--ink2);padding:9px 22px;border-radius:999px;cursor:pointer;font-size:13px">全部折叠 / 展开</button>
+  </div>
+</section>
+
+<!-- ============ S4 大事记 ============ -->
+<section class="sec" id="s4">
+  <div class="sec-h">
+    <span class="no">04</span>
+    <h2>制度大事记</h2>
+    <div class="desc">三十六年 · 改变市场走向的 48 个制度节点</div>
+  </div>
+  <p class="lede">
+    A 股被称为「政策市」，这不是贬义也不是褒义，而是一个事实描述：
+    <em>每一次大的转折，背后都有一份文件、一次会议或一条规则</em>。按时间顺序看这 48 个节点，等于把上面二十九轮周期的「因」重新排一遍。
+    时间轴起点早于上交所开市 —— 中国第一个股票指数诞生于 1987 年。
+  </p>
+  <div class="panel"><div class="tl" id="tl"></div></div>
+</section>
+
+<!-- ============ S5 规律 ============ -->
+<section class="sec" id="s5">
+  <div class="sec-h">
+    <span class="no">05</span>
+    <h2>三十六年的七条规律</h2>
+    <div class="desc">从二十九轮周期里提炼出的可复用观察</div>
+  </div>
+  <div class="cols" id="laws"></div>
+</section>
+
+<!-- ============ S6 数据表 ============ -->
+<section class="sec" id="s6">
+  <div class="sec-h">
+    <span class="no">06</span>
+    <h2>完整周期数据表</h2>
+    <div class="desc">二十九轮 · 起止点位 / 涨跌幅 / 时长 / 主因</div>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th>轮次</th><th>类型</th><th>起止时间</th><th>起点</th><th>终点</th>
+        <th>涨跌幅</th><th>时长</th><th>核心驱动 / 主因</th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <p class="lede" style="margin-top:14px;font-size:12.8px;color:var(--mute)">
+    注：各轮极值取该轮行情中实际出现的最高 / 最低点位，<b style="color:var(--ink2)">部分为盘中价</b>（如 2005 年 6 月 6 日 998.23 点、2008 年 10 月 28 日 1664.93 点、2013 年 6 月 25 日 1849.65 点均为当日盘中最低），
+    正文中已逐处标注；涨跌幅按两端点位直接计算，时长按自然月计。「核心驱动」列摘自该轮驱动因素的前三项标题，完整分析见上方逐轮详解。
+  </p>
+</section>
+
+<!-- ============ S7 术语 ============ -->
+<section class="sec" id="s7">
+  <div class="sec-h">
+    <span class="no">07</span>
+    <h2>术语注解表</h2>
+    <div class="desc">读懂本文需要的全部背景概念</div>
+  </div>
+  <div class="gl" id="gloss"></div>
+</section>
+
+</main>
+
+<footer class="foot"><div class="wrap">
+  <p><b>数据来源：</b>
+    上证综合指数（000001.SH）历史行情 —— 通达信 / 同花顺 iFinD 金融数据终端；
+    制度事件与政策文本 —— 中国证监会、上交所、深交所官方公告及历年《人民日报》公开报道；
+    2025—2026 年区间点位与月度涨跌 —— 交易所公开行情数据与主流财经媒体年度盘点。
+    所有点位与涨跌幅均经交叉核对；对存在口径分歧的数据（如盘中极值 vs 收盘极值）已在正文中分别标注。
+  </p>
+  <p style="margin-top:10px"><b>口径说明：</b>
+    全景走势图采用<b>月末收盘价</b>序列（共 430 个月，1990 年 12 月至 2026 年 9 月），因此曲线上的峰值会略低于同期的盘中最高点 ——
+    例如 2007 年 10 月盘中最高为 6124.04 点，当月收盘为 5954.77 点；2015 年 6 月盘中最高 5178.19 点，当月收盘 4611.74 点。
+    周期卡片与数据表中标注的起点、终点均为<b>该时点的收盘价</b>，故与盘中极值存在差异，属正常口径区别。
+  </p>
+  <p style="margin-top:10px"><b>编制说明：</b>
+    周期划分采用「收盘价极值 + 15% 最小幅度」双条件口径，共识别出 29 轮完整周期（含进行中的第 29 轮）。
+    涨跌幅为名义值，未做通胀调整；指数编制规则在 2020 年 7 月 22 日有过一次修订（剔除风险警示股、调整新股计入规则、纳入科创板），
+    跨该时点的长期比较需注意口径变化。本文所有「驱动因素」为事后归因，属分析判断而非唯一因果。
+  </p>
+  <p style="margin-top:10px"><b>版本：</b>v1.0 ｜ 生成日期 2026-09-29 ｜ 数据截止 2026-09-29 收盘</p>
+  <div class="warn">
+    <b>免责声明：</b>本页面为历史数据整理与研究性复盘，所有内容仅供研究参考，不构成任何投资建议或买卖推荐。
+    历史表现不预示未来收益。文中涉及的市场观点、归因分析均为基于公开信息的推断，可能存在偏差。
+    投资有风险，决策需自主独立判断并自行承担相应后果。
+  </div>
+</div></footer>
+
+<button id="top" title="返回顶部">↑</button>
+<div id="tip"></div>
+
+<script>/*__ECHARTS__*/</script>
+<script>
+/*__APP__*/
+</script>
+</body>
+</html>

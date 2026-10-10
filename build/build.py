@@ -9,7 +9,7 @@
 研报库也是独立成页，工作台侧栏的「研究报告」直接跳过去（不占 index 的体积）。
 用法： python build.py
 """
-import io, json, os, sys
+import io, json, os, sys, time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -126,10 +126,16 @@ def build_index():
     tpl = io.open(os.path.join(DEPLOY, "app.template.html"), encoding="utf-8").read()
     assert "/*__SEED__*/" in tpl, "app.template.html 缺少 __SEED__ 占位符"
     assert "/*__PY__*/" in tpl, "app.template.html 缺少 __PY__ 占位符"
+    assert "/*__BUILDVER__*/" in tpl, "app.template.html 缺少 __BUILDVER__ 占位符"
     payload = ("window.WB_CFG = " + json.dumps(CLOUD, ensure_ascii=False) + ";\n"
                + "window.WB_SEED = " + json.dumps(seed, ensure_ascii=False, separators=(",", ":")) + ";")
-    out = tpl.replace("/*__SEED__*/", payload).replace("/*__PY__*/", pinyin_js())
+    # 版本戳：侧栏底部那行小字。判别「用户拿到的是哪一版」——线上出问题时第一眼看它。
+    buildver = time.strftime("%m-%d %H:%M")
+    out = (tpl.replace("/*__SEED__*/", payload)
+              .replace("/*__PY__*/", pinyin_js())
+              .replace("/*__BUILDVER__*/", buildver))
     wr(os.path.join(DEPLOY, "index.html"), out)
+    print("  版本戳 %s（侧栏底部 #buildTag）" % buildver)
 
 
 def build_report():
@@ -150,7 +156,15 @@ def build_report():
     seedp = os.path.join(SEED, "report_600456.json")
     seed = rd(seedp) if os.path.exists(seedp) else None
 
-    for ph in ("/*__ECHARTS__*/", "/*__REPORTCSS__*/", "/*__RPTCFG__*/"):
+    # 合规世界地图：ECharts 官方 world 数据的中国画法不合国标（缺台湾、藏南归印度、
+    # 无九段线），所以改用 build/make_worldmap.py 生成的 world-cn.js（国标中国版图）。
+    # 体积约 240KB，只进 report 页。
+    wmp = os.path.join(HERE, "lib", "world-cn.js")
+    if not os.path.exists(wmp):
+        sys.exit("缺少 %s —— 先跑 python build/make_worldmap.py" % wmp)
+    worldmap = io.open(wmp, encoding="utf-8").read()
+
+    for ph in ("/*__ECHARTS__*/", "/*__REPORTCSS__*/", "/*__RPTCFG__*/", "/*__WORLDMAP__*/"):
         assert ph in tpl, "report.template.html 缺少占位符 " + ph
 
     cfg_js = ("window.RPT_CFG = " + json.dumps(CLOUD, ensure_ascii=False) + ";\n"
@@ -158,6 +172,7 @@ def build_report():
               + (json.dumps(seed, ensure_ascii=False, separators=(",", ":")) if seed else "null") + ";")
 
     out = (tpl.replace("/*__ECHARTS__*/", lib)
+              .replace("/*__WORLDMAP__*/", worldmap)
               .replace("/*__REPORTCSS__*/", css)
               .replace("/*__RPTCFG__*/", cfg_js))
     wr(os.path.join(DEPLOY, "report.html"), out)

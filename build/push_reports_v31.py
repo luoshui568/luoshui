@@ -138,9 +138,18 @@ def all_codes():
 def main():
     args = sys.argv[1:]
     dry = '--dry' in args
-    codes = all_codes() if '--all' in args else [a for a in args if not a.startswith('--')]
     ts = time.strftime('%Y%m%d-%H%M%S')
-    print('=== 1) 备份线上现状 ===' % ())
+    if '--all' in args:
+        codes = all_codes()
+    elif '--batch' in args:
+        # 只推第 1 批 30 家（_todo_96.json 的 0..N 切片），不动已升级的 5 份存量研报
+        i = args.index('--batch')
+        todo = json.load(io.open(os.path.join(SEED, '_todo_96.json'), encoding='utf-8'))['todo']
+        codes = [m['code'] for m in todo[int(args[i + 1]):int(args[i + 2])]]
+    else:
+        codes = [a for a in args if not a.startswith('--')]
+    print('=== 待推送 %d 份：%s ... %s ===' % (len(codes), codes[0], codes[-1]))
+    print('=== 1) 备份线上现状 ===')
     backup(codes, ts)
     print('\n=== 2) 推送 31 模块版%s ===' % ('（dry-run）' if dry else ''))
     allok = True

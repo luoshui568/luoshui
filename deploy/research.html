@@ -188,6 +188,37 @@ body{
 .lfoot .dl{margin-top:10px;padding:14px 16px;border-radius:13px;background:rgba(255,255,255,.72);
   border:1px solid rgba(200,16,46,.1)}
 
+/* ---------------- 友情链接 ---------------- */
+.frd{margin-top:15px}
+.frd-h{display:flex;align-items:center;gap:11px;margin-bottom:10px}
+.frd-h b{font-size:12px;font-weight:800;letter-spacing:1.6px;color:var(--gold-deep);
+  text-transform:uppercase;white-space:nowrap}
+.frd-h i{flex:1;height:1px;background:linear-gradient(90deg,rgba(201,162,39,.45),transparent)}
+.frd-a{display:flex;align-items:center;gap:14px;padding:14px 17px;border-radius:14px;
+  background:linear-gradient(135deg,#fffdfa,#fff7ef);border:1px solid rgba(201,162,39,.3);
+  text-decoration:none;color:inherit;transition:.2s cubic-bezier(.22,.8,.36,1);
+  box-shadow:0 2px 10px rgba(140,10,32,.05)}
+.frd-a:hover{border-color:var(--brand);transform:translateY(-2px);
+  background:linear-gradient(135deg,#fffaf8,#fdeef0);box-shadow:0 10px 26px rgba(200,16,46,.13)}
+.frd-ic{flex:none;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;
+  font-size:21px;line-height:1;background:linear-gradient(135deg,#fdecee,#fbe1e6);
+  border:1px solid rgba(200,16,46,.16)}
+.frd-tx{flex:1;min-width:0}
+.frd-tx b{display:block;font-size:15px;font-weight:800;color:#2b1a1e;margin-bottom:3px;
+  line-height:1.5;letter-spacing:-.2px}
+.frd-tx i{display:block;font-style:normal;font-size:12.5px;color:var(--muted);line-height:1.75}
+.frd-go{flex:none;font-size:13px;font-weight:800;color:var(--brand);white-space:nowrap;
+  transition:.2s}
+.frd-a:hover .frd-go{letter-spacing:.5px}
+@media (max-width:860px){
+  .frd-a{gap:11px;padding:12px 13px}
+  .frd-ic{width:38px;height:38px;font-size:18px;border-radius:10px}
+  .frd-tx b{font-size:14px}
+  .frd-tx i{font-size:12px}
+  .frd-go{font-size:12px}
+}
+@media print{ .frd{display:none!important} }
+
 /* ---------------- toast ---------------- */
 .toast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,20px);z-index:600;
   padding:11px 20px;border-radius:12px;font-size:14px;font-weight:600;color:#fff;
@@ -255,7 +286,20 @@ body{
 
   <div class="lfoot">
     <div><b>矿产战略工作台 · 研究报告库</b>　研报数据来自云端数据库 <code>wb_reports</code>（正文与图表同表分列存放）。</div>
-    <div class="dl">
+        <div class="frd">
+      <div class="frd-h"><b>友情链接</b><i></i></div>
+      <a class="frd-a" href="market-history.html" target="_blank" rel="noopener"
+         title="打开《中国股市牛熊全史 · 1990—2026》">
+        <span class="frd-ic">📈</span>
+        <span class="frd-tx">
+          <b>中国股市牛熊全史 · 1990—2026</b>
+          <i>三十六年走势复盘 · 29 轮牛熊逐轮详解 · 48 个制度节点 · 单文件离线可读</i>
+        </span>
+        <span class="frd-go">进入 →</span>
+      </a>
+    </div>
+
+<div class="dl">
       <b>免责声明</b>：本页所有研究内容基于公开数据与量化分析，仅供内部研究参考，不构成任何投资建议。
       市场有风险，决策需谨慎；数据可能存在延迟或误差，请以官方披露为准。
     </div>

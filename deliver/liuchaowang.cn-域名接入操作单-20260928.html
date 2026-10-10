@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>liuchaowang.cn 域名接入 · 最后一步操作单（2026-09-28）</title>
+<style>
+  :root{
+    --bg:#fafafa; --card:#fff; --line:#e6e5e3; --ink:#1a1a1c; --ink2:#5a5c60; --ink3:#8b8d91;
+    --red:#d0202f; --cyan:#00b0f0; --gold:#c9a227; --green:#0b8a5c;
+    --navy1:#0f1d3a; --navy2:#174a9e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:940px;margin:0 auto;padding:0 20px 80px}
+  header{background:linear-gradient(135deg,var(--navy1),var(--navy2));color:#fff;
+    padding:34px 20px 30px;margin-bottom:26px}
+  header .inner{max-width:940px;margin:0 auto}
+  header .kicker{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#9dc0f5;margin-bottom:10px}
+  header h1{margin:0 0 8px;font-size:25px;letter-spacing:.01em}
+  header p{margin:0;color:#c9d9f2;font-size:14px}
+  h2{font-size:17px;margin:34px 0 12px;padding-left:11px;border-left:4px solid var(--red);letter-spacing:.01em}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:14px 0}
+  .roles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
+  .role{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 15px;position:relative}
+  .role .dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:7px;vertical-align:1px}
+  .role b{font-size:13.5px}
+  .role p{margin:7px 0 0;font-size:13px;color:var(--ink2);line-height:1.6}
+  .ok .dot{background:var(--green)} .warn .dot{background:var(--red)} .todo .dot{background:var(--gold)}
+  .rec{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:13px 15px;border:1px dashed #d8d6d3;
+    border-radius:10px;background:#fcfcfb;margin:10px 0}
+  .rec .lab{font-size:12px;color:var(--ink3);min-width:66px}
+  .rec .val{flex:1;min-width:220px;font:13.5px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;
+    word-break:break-all;color:var(--ink)}
+  .rec .val.pick{background:#f1f6ff;border:1px solid #d5e3fb;border-radius:7px;padding:6px 9px}
+  button{font:inherit;font-size:12.5px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;
+    background:#fff;color:var(--ink2);cursor:pointer}
+  button:hover{border-color:#c9c7c4;color:var(--ink)}
+  button.cp{border-color:#cddffb;background:#f1f6ff;color:#174a9e}
+  button.danger{border-color:#f2d5d9;background:#fdf3f4;color:var(--red)}
+  .step{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--cyan);
+    border-radius:0 12px 12px 0;padding:15px 18px;margin:12px 0}
+  .step .n{display:inline-block;width:22px;height:22px;line-height:22px;text-align:center;border-radius:50%;
+    background:var(--navy2);color:#fff;font-size:12.5px;margin-right:8px;vertical-align:1px}
+  .step h3{display:inline;font-size:15px;margin:0}
+  .step p{margin:9px 0 0;font-size:13.5px;color:var(--ink2)}
+  .alert{background:#fdf3f4;border:1px solid #f2d5d9;border-left:4px solid var(--red);
+    border-radius:0 12px 12px 0;padding:14px 18px;margin:16px 0}
+  .alert b{color:var(--red)}
+  .tip{background:#f4f9ff;border:1px solid #d9e8fb;border-left:4px solid var(--cyan);
+    border-radius:0 12px 12px 0;padding:14px 18px;margin:16px 0;font-size:13.5px;color:var(--ink2)}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13.5px}
+  th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:#f5f5f4;font-weight:600;font-size:12.5px;color:var(--ink2);letter-spacing:.02em}
+  code{font:13px ui-monospace,SFMono-Regular,Consolas,monospace;background:#f3f3f2;
+    border:1px solid var(--line);border-radius:5px;padding:1.5px 5px}
+  .yes{color:var(--green);font-weight:600} .no{color:var(--red);font-weight:600}
+  footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);
+    font-size:12.5px;color:var(--ink3);line-height:1.8}
+  @media (max-width:640px){
+    .roles{grid-template-columns:1fr}
+    header h1{font-size:20px}
+    .rec .lab{min-width:100%}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="inner">
+    <div class="kicker">Last Mile · DNS</div>
+    <h1>liuchaowang.cn 接入 · 只剩 DNS 这一步</h1>
+    <p>备案已过，云端（域名绑定 + 网关路由 + 证书 + 跨域白名单）已全部就绪 —— 只在等解析指过来。</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="roles">
+    <div class="role ok"><span class="dot"></span><b>云端绑定</b>
+      <p>状态 <code>SUCCESS</code><br>今晚 23:35 创建</p></div>
+    <div class="role ok"><span class="dot"></span><b>网关路由</b>
+      <p><code>/</code> → 静态托管<br>刚由我建好并回读核对</p></div>
+    <div class="role warn"><span class="dot"></span><b>DNS 解析</b>
+      <p><code>DNSStatus: INVALID</code><br><b>← 当前唯一缺口</b></p></div>
+  </div>
+
+  <h2>先看这条：为什么必须删掉现在那条 A 记录</h2>
+  <div class="alert">
+    <b>不删就存不进去。</b> DNSPod 规则：<b>同一主机记录、同一线路下，A 记录与 CNAME 记录不能共存</b>，
+    保存时会直接提示「记录有冲突」。<br>
+    现在 <code>@</code> 上那条 A 记录指向 <code>182.254.219.216</code> —— 那是建域名时的默认占位，
+    80 / 443 全部超时，<b>上面没有任何服务</b>，删掉不影响任何东西。
+  </div>
+
+  <h2>要改的就两条（复制即用）</h2>
+
+  <div class="rec">
+    <span class="lab">主机记录</span>
+    <span class="val pick" id="v1">@</span>
+    <button class="cp" data-c="v1">复制</button>
+  </div>
+  <div class="rec">
+    <span class="lab">记录类型</span>
+    <span class="val pick" id="v2">CNAME</span>
+    <button class="cp" data-c="v2">复制</button>
+  </div>
+  <div class="rec">
+    <span class="lab">记录值</span>
+    <span class="val pick" id="v3">liuchaowang.cn.tcbaccess.tencentcloudbase.com</span>
+    <button class="cp" data-c="v3">复制</button>
+  </div>
+  <div class="rec">
+    <span class="lab">线路 / TTL</span>
+    <span class="val">线路「默认」 · TTL 600</span>
+  </div>
+
+  <h2>操作顺序</h2>
+
+  <div class="step">
+    <span class="n">1</span><h3>登录 DNSPod，进入解析页</h3>
+    <p>打开 <code>console.dnspod.cn</code>（或腾讯云控制台 → DNSPod）→「我的域名」→ 找到
+      <b>liuchaowang.cn</b> → 点「域名」进入【记录管理】。</p>
+  </div>
+
+  <div class="step">
+    <span class="n">2</span><h3>删掉那条 A 记录</h3>
+    <p>主机记录 <code>@</code>、类型 <code>A</code>、记录值 <code>182.254.219.216</code> 的那一条 → 删除。
+      这一步不做，下一步会报「记录有冲突」。</p>
+  </div>
+
+  <div class="step">
+    <span class="n">3</span><h3>添加 CNAME 记录</h3>
+    <p>点「添加记录」，按上面四条填写 → 保存。</p>
+  </div>
+
+  <div class="step">
+    <span class="n">4</span><h3>顺手处理 www（可选但建议）</h3>
+    <p>现在 <code>www</code> 是一条指向 <code>liuchaowang.cn</code> 的 CNAME。
+      云端<b>绑不了 www</b>（个人版自定义域名配额实测只有 1 个，已被 apex 占满），
+      所以 www 直连会报 <code>INVALID_HOST</code>。<b>建议把它改成「显性URL」类型，
+      记录值填 <code>https://liuchaowang.cn/</code></b>，这样 www 会自动 301 跳到主域名。</p>
+  </div>
+
+  <div class="step">
+    <span class="n">5</span><h3>告诉我一声</h3>
+    <p>保存后回我一句，我立刻跑端到端验收（DNS 指向 / 首页 / 子页 / 数据加载），
+      通常解析 1~10 分钟生效。</p>
+  </div>
+
+  <h2>我已经替你验过的部分</h2>
+  <table>
+    <thead><tr><th>检查项</th><th>结果</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>网关是否认这个域名</td><td class="yes">通过</td>
+        <td>绕过 DNS 直连网关 + 指定 Host，返回 <b>200</b>，内容就是你的工作台首页（549,660 B）</td></tr>
+      <tr><td>HTTPS 证书</td><td class="yes">已就位</td>
+        <td>证书覆盖 <code>liuchaowang.cn</code> 与 <code>www.liuchaowang.cn</code>，有效期至 <b>2026-12-15</b></td></tr>
+      <tr><td>网关路由</td><td class="yes">已建</td>
+        <td><code>/</code> → 静态托管，配置与默认域名逐字段一致</td></tr>
+      <tr><td>数据接口跨域</td><td class="yes">通过</td>
+        <td>数据网关对 <code>https://liuchaowang.cn</code> 已返回正确 CORS 头 —— <b>页面能开、数据也能读</b></td></tr>
+      <tr><td><b>DNS 解析</b></td><td class="no">未配置</td><td>就是本单要解决的事</td></tr>
+    </tbody>
+  </table>
+
+  <div class="tip">
+    <b>为什么我改不了 DNS：</b> 当前 CloudBase 登录态授权的是云开发范围的角色，
+    不含 DNSPod 权限（调用会返回 <code>dnspod:DescribeRecordList</code> 未授权）。
+    错误信息里能看到域名确实在你自己的账号下（<code>uin/100052692874</code>），所以只是权限范围问题 ——
+    这一步需要你在控制台点两下。
+  </div>
+
+  <footer>
+    生成于 2026-09-28 · 操作完成后回我一句，我跑 <code>_verify_live_domain.py</code> 做端到端验收<br>
+    生效判据：<code>https://liuchaowang.cn/</code> 返回 200 且内容为工作台 · 不再出现腾讯云「风险提醒」中间页
+  </footer>
+</div>
+
+<script>
+(function(){
+  document.querySelectorAll('button.cp').forEach(function(b){
+    b.addEventListener('click', function(){
+      var el = document.getElementById(b.getAttribute('data-c'));
+      if(!el) return;
+      var t = el.textContent.trim(), done = function(){
+        var o = b.textContent; b.textContent = '已复制 ✓';
+        setTimeout(function(){ b.textContent = o; }, 1400);
+      };
+      try{
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(t).then(done, function(){ fallback(t, el, done); });
+        } else { fallback(t, el, done); }
+      }catch(e){ fallback(t, el, done); }
+      function fallback(txt, node, cb){
+        try{
+          var r = document.createRange(); r.selectNodeContents(node);
+          var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+          document.execCommand('copy'); cb();
+        }catch(e2){ /* 复制失败就让用户手动选中 */ }
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>正文 Markdown 星号归一 · 改前/改后</title>
+<style>
+  :root{--bg:#fafafa;--line:#e6e5e3;--ink:#26262a;--dim:#6b6b72;
+        --red:#d0202f;--cyan:#00b0f0;--gold:#c9a227;--bad:#b3261e;--ok:#0b8a5c;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:34px 26px 60px;background:var(--bg);color:var(--ink);
+       font:14px/1.7 -apple-system,"Segoe UI","Microsoft YaHei",sans-serif}
+  .wrap{max-width:1180px;margin:0 auto}
+  h1{margin:0 0 6px;font-size:23px;letter-spacing:.5px}
+  .sub{color:var(--dim);font-size:13px;margin-bottom:22px}
+  .kpi{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:22px}
+  .kpi div{background:#fff;border:1px solid var(--line);border-radius:10px;padding:13px 15px}
+  .kpi b{display:block;font-size:21px;line-height:1.25;color:var(--red)}
+  .kpi span{font-size:12px;color:var(--dim)}
+  .kpi div.g b{color:var(--ok)}
+  h2{font-size:15px;margin:26px 0 10px;padding-left:9px;border-left:3px solid var(--red)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .pane{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .pane .hd{padding:9px 14px;font-size:12.5px;font-weight:600;border-bottom:1px solid var(--line);
+            display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .pane.bad .hd{background:#fdf3f3;color:var(--bad)}
+  .pane.good .hd{background:#f3faf6;color:var(--ok)}
+  .pane .bd{padding:14px 16px;height:440px;overflow:auto;font-size:13px}
+  .pane .bd table{border-collapse:collapse;width:100%;font-size:12.5px;margin:6px 0}
+  .pane .bd td,.pane .bd th{border:1px solid var(--line);padding:3px 7px}
+  .pane .bd h3{font-size:14px;margin:12px 0 7px}
+  .pane .bd ul{margin:6px 0 6px 18px}
+  .pane .bd li{margin:4px 0}
+  .pane .bd .src{color:var(--dim);font-size:12px}
+  .note{background:#fff;border:1px solid var(--line);border-left:3px solid var(--gold);
+        border-radius:8px;padding:13px 16px;margin:16px 0;font-size:13px}
+  .note b{color:var(--gold)}
+  .note code{background:#f2f1ef;padding:1px 5px;border-radius:4px;font-size:12.5px}
+  table.t{border-collapse:collapse;width:100%;background:#fff;font-size:13px;
+          border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  table.t th,table.t td{border-bottom:1px solid var(--line);padding:7px 11px;text-align:left}
+  table.t th{background:#f4f3f1;font-weight:600;font-size:12.5px}
+  table.t td.n{text-align:right;font-variant-numeric:tabular-nums}
+  table.t tr:last-child td{border-bottom:0}
+  .foot{margin-top:24px;color:var(--dim);font-size:12px;line-height:1.9}
+  .banner{background:#fff;border:1px solid var(--line);border-radius:10px;padding:15px 18px;
+          margin-bottom:22px;font-size:13.5px}
+  .banner b{color:var(--red)}
+</style></head><body><div class="wrap">
+
+<h1>正文 Markdown 星号归一 · 改前 / 改后</h1>
+<div class="sub">样本：002408 齐翔腾达 ｜ 模块 1 ｜ 改前取自落库前备份，改后从线上库现读</div>
+
+<div class="kpi">
+  <div><b>10</b><span>家研报</span></div>
+  <div><b>236</b><span>个模块被改</span></div>
+  <div><b>5348</b><span>处星号 → 加粗</span></div>
+  <div class="g"><b>0</b><span>残留星号</span></div>
+  <div class="g"><b>310 / 310</b><span>模块标签全配对</span></div>
+</div>
+
+<div class="banner">
+  <b>两处缺陷，一个根因。</b>壳里从来没有 <code>**</code> → <code>&lt;b&gt;</code> 的转换，
+  所以按 markdown 习惯写的 <code>**加粗**</code> 会<b>原样显示成星号</b>；
+  更麻烦的是 002408 模块 1 里有一处 <code>&lt;/b&gt;</code> 被写成了残留的 <code>**</code> ——
+  那个 <code>&lt;b&gt;</code> 从此不闭合，浏览器把<b>它后面的全部内容</b>都收成了它的子节点。
+</div>
+
+<h2>改前 vs 改后（同一段正文的真实渲染）</h2>
+<div class="grid">
+  <div class="pane bad">
+    <div class="hd"><span>改前 · 线上原貌</span>
+      <span>&lt;b&gt; 14 / &lt;/b&gt; 13（差 1）· 星号 9 处</span></div>
+    <div class="bd"><p>齐翔腾达（002408）为「寒武纪投资2026」板块成分股，细分行业归属「化工新材料（申万：基础化工 / 化学原料；核心为碳三、碳四深加工产业链；证监会：C26 化学原料和化学制品制造业）」。本节为标准化建档信息，所有字段均取自 iFinD 与板块成员表。</p>
+    <table>
+      <tr><th>项目</th><th>内容</th><th>项目</th><th>内容</th></tr>
+      <tr><td>证券简称</td><td>齐翔腾达</td><td>证券代码</td><td>002408.SZ</td></tr>
+      <tr><td>所属细分行业</td><td>化工新材料（申万：基础化工 / 化学原料；核心为碳三、碳四深加工产业链；证监会：C26 化学原料和化学制品制造业）</td><td>所属板块</td><td>寒武纪投资2026</td></tr>
+      <tr><td>最新股价</td><td>5.38 元</td><td>总市值</td><td>152.98 亿元</td></tr>
+      <tr><td>PE（TTM）</td><td>-31.79 倍</td><td>PB（MRQ）</td><td>1.37 倍</td></tr>
+    </table>
+    <h3>公司的三个身份：世界第一的碳四加工商、双链闭环的一体化厂、山东能源集团的化工平台</h3>
+    <ul style="margin-left:18px;font-size:13.5px;"><li>**身份一：世界最大的碳四深加工基地（这是最硬的一层）。** 公司在碳四（C4）领域的主导产品 <b>甲乙酮设计年产能 26 万吨、顺酐设计年产能 40 万吨，两者产销量多年稳居世界第一</b>；<b>MMA、丁腈胶乳产能全国最大</b>。公司自己的表述是「已经实现对碳四资源的『吃干榨净』，资源利用率国际领先」。⇒ <b>这层身份的价值在于「规模带来的单位成本优势」与「柔性切换能力」，而不在于定价权</b> —— 碳四是炼厂与乙烯装置的副产品，原料端并非公司独有，产品端又是标准化的通用化工品。</li><li>**身份二：碳三 + 碳四双链闭环的一体化厂（这是 2021 年之后新增的一层）。** 碳四链：甲乙酮、顺酐、丁二烯、顺丁橡胶、MTBE、异丁烯、叔丁醇、MMA、丁腈胶乳；碳三链：<b>丙烷脱氢制丙烯 70 万吨/年 → 环氧丙烷 30 万吨/年 → 丙烯酸 8 万吨/年 → 丙烯酸丁酯 6 万吨/年</b>。两条链共用储运、锅炉、污水处理、危废处置等配套装置。⇒ <b>这层身份的价值在于「多产品矩阵对抗单品周期」</b>：2026Q2 的环比改善，环氧丙烷装置在 2025 年 8 月复产是关键之一。</li><li>**身份三：山东能源集团的化工新材料上市平台（这是决定治理与融资的一层）。** 2023 年 5 月完成要约收购后，控股股东变更为 <b>山东能源集团新材料有限公司（直接持股 53.18%）</b>，实际控制人为 <b>山东省国资委</b>。齐翔腾达在集团内的定位是「化工新材料」板块的上市平台（同一板块下还有山东玻纤、泰星新材料、华利新材料、东辰瑞森、腾辉油脂等）。⇒ <b>这层身份的价值在于「低成本债务融资」与「集团信用背书」</b>；它的代价是经营决策要服从集团战略，且公司治理带有国企特征（详见第 17 槽管理层与治理）。</li></ul>
+    <p>**把三个身份排在一起，就能看到这家公司真正的「结构性问题」**：它是<b>世界第一的加工商</b>（规模壁垒真实），是<b>双链闭环的一体化厂</b>（成本壁垒真实），也是<b>国企集团的上市平台</b>（信用背书真实）—— <b>但三者叠加之后，它在产业链上的位置仍然是「加工环节」，即「两头在外」：原料（丙烷、混合碳四）来自上游炼化，产品（顺酐、甲乙酮、环氧丙烷）是同质化的标准品。</b>⇒ <b>这决定了齐翔的 ROIC 必然围绕 WACC 上下摆动：2021 年 +7.85pct，2022 年 −2.47pct，2025 年 −8.30pct（见第 18 槽）。要改变这个特征，唯一的路径是「往下游高附加值品种走」——所以它在建 20 万吨/年异壬醇（进度 52.25%）、让子公司齐鲁科力投产 8,000 吨/年高性能催化新材料。这两个项目才是「这家公司未来是不是一家好公司」的真正考题。**</p>
+    <p class="src"><b>来源：</b>公司《2025 年年度报告》（2026-04-10 披露）、《2026 年半年度报告》；联合资信《公开发行可转换公司债券 2026 年跟踪评级报告》（2026-04）；公司官网「关于我们」；国家企业信用信息公示系统（统一社会信用代码 913703007347051654）；iFinD 股本结构（最新一期）</p></b></div>
+  </div>
+  <div class="pane good">
+    <div class="hd"><span>改后 · 已落库</span>
+      <span>&lt;b&gt; 18 / &lt;/b&gt; 18（差 0）· 星号 0 处</span></div>
+    <div class="bd"><p>齐翔腾达（002408）为「寒武纪投资2026」板块成分股，细分行业归属「化工新材料（申万：基础化工 / 化学原料；核心为碳三、碳四深加工产业链；证监会：C26 化学原料和化学制品制造业）」。本节为标准化建档信息，所有字段均取自 iFinD 与板块成员表。</p>
+    <table>
+      <tr><th>项目</th><th>内容</th><th>项目</th><th>内容</th></tr>
+      <tr><td>证券简称</td><td>齐翔腾达</td><td>证券代码</td><td>002408.SZ</td></tr>
+      <tr><td>所属细分行业</td><td>化工新材料（申万：基础化工 / 化学原料；核心为碳三、碳四深加工产业链；证监会：C26 化学原料和化学制品制造业）</td><td>所属板块</td><td>寒武纪投资2026</td></tr>
+      <tr><td>最新股价</td><td>5.38 元</td><td>总市值</td><td>152.98 亿元</td></tr>
+      <tr><td>PE（TTM）</td><td>-31.79 倍</td><td>PB（MRQ）</td><td>1.37 倍</td></tr>
+    </table>
+    <h3>公司的三个身份：世界第一的碳四加工商、双链闭环的一体化厂、山东能源集团的化工平台</h3>
+    <ul style="margin-left:18px;font-size:13.5px;"><li><b>身份一：世界最大的碳四深加工基地（这是最硬的一层）。</b> 公司在碳四（C4）领域的主导产品 <b>甲乙酮设计年产能 26 万吨、顺酐设计年产能 40 万吨，两者产销量多年稳居世界第一</b>；<b>MMA、丁腈胶乳产能全国最大</b>。公司自己的表述是「已经实现对碳四资源的『吃干榨净』，资源利用率国际领先」。⇒ <b>这层身份的价值在于「规模带来的单位成本优势」与「柔性切换能力」，而不在于定价权</b> —— 碳四是炼厂与乙烯装置的副产品，原料端并非公司独有，产品端又是标准化的通用化工品。</li><li><b>身份二：碳三 + 碳四双链闭环的一体化厂（这是 2021 年之后新增的一层）。</b> 碳四链：甲乙酮、顺酐、丁二烯、顺丁橡胶、MTBE、异丁烯、叔丁醇、MMA、丁腈胶乳；碳三链：<b>丙烷脱氢制丙烯 70 万吨/年 → 环氧丙烷 30 万吨/年 → 丙烯酸 8 万吨/年 → 丙烯酸丁酯 6 万吨/年</b>。两条链共用储运、锅炉、污水处理、危废处置等配套装置。⇒ <b>这层身份的价值在于「多产品矩阵对抗单品周期」</b>：2026Q2 的环比改善，环氧丙烷装置在 2025 年 8 月复产是关键之一。</li><li><b>身份三：山东能源集团的化工新材料上市平台（这是决定治理与融资的一层）。</b> 2023 年 5 月完成要约收购后，控股股东变更为 <b>山东能源集团新材料有限公司（直接持股 53.18%）</b>，实际控制人为 <b>山东省国资委</b>。齐翔腾达在集团内的定位是「化工新材料」板块的上市平台（同一板块下还有山东玻纤、泰星新材料、华利新材料、东辰瑞森、腾辉油脂等）。⇒ <b>这层身份的价值在于「低成本债务融资」与「集团信用背书」</b>；它的代价是经营决策要服从集团战略，且公司治理带有国企特征（详见第 17 槽管理层与治理）。</li></ul>
+    <p><b>把三个身份排在一起，就能看到这家公司真正的「结构性问题」</b>：它是<b>世界第一的加工商</b>（规模壁垒真实），是<b>双链闭环的一体化厂</b>（成本壁垒真实），也是<b>国企集团的上市平台</b>（信用背书真实）—— <b>但三者叠加之后，它在产业链上的位置仍然是「加工环节」，即「两头在外」：原料（丙烷、混合碳四）来自上游炼化，产品（顺酐、甲乙酮、环氧丙烷）是同质化的标准品。</b>⇒ <b>这决定了齐翔的 ROIC 必然围绕 WACC 上下摆动：2021 年 +7.85pct，2022 年 −2.47pct，2025 年 −8.30pct（见第 18 槽）。要改变这个特征，唯一的路径是「往下游高附加值品种走」——所以它在建 20 万吨/年异壬醇（进度 52.25%）、让子公司齐鲁科力投产 8,000 吨/年高性能催化新材料。这两个项目才是「这家公司未来是不是一家好公司」的真正考题。</b></p>
+    <p class="src"><b>来源：</b>公司《2025 年年度报告》（2026-04-10 披露）、《2026 年半年度报告》；联合资信《公开发行可转换公司债券 2026 年跟踪评级报告》（2026-04）；公司官网「关于我们」；国家企业信用信息公示系统（统一社会信用代码 913703007347051654）；iFinD 股本结构（最新一期）</p></div>
+  </div>
+</div>
+
+<div class="note">
+  <b>连带伤害：</b>因为那个 <code>&lt;b&gt;</code> 一直张着，槽 29 评分卡的 <code>.criteria</code>
+  也被套进了它里面。壳侧取卡片原本是用 <code>.criteria.parentNode</code> 拿 <code>data-mod</code> ——
+  于是拿到的是那个 <code>&lt;b&gt;</code> 元素而不是模块卡，<code>mod.html</code> 取空，
+  「💾 提交到数据库」永远弹「拿不到模块原文」。<br>
+  <b>两层修：</b>① 正文这一处已收尾（本页所示）；② 壳侧改成<b>向上找最近的 <code>[data-mod]</code></b>，
+  对这类畸形嵌套彻底免疫 —— 已在线上。
+</div>
+
+<h2>逐家改动量</h2>
+<table class="t">
+  <thead><tr><th>代码</th><th>公司</th><th>被改模块</th><th>星号 → 加粗</th>
+  <th>未闭合收尾</th><th>碎片清理</th></tr></thead>
+  <tbody>
+      <tr><td>600456</td><td>宝钛股份</td><td class="n">5</td><td class="n">9</td><td class="n">0</td><td class="n">0</td></tr>
+      <tr><td>600459</td><td>贵研铂业</td><td class="n">29</td><td class="n">249</td><td class="n">0</td><td class="n">0</td></tr>
+      <tr><td>002237</td><td>恒邦股份</td><td class="n">27</td><td class="n">228</td><td class="n">0</td><td class="n">0</td></tr>
+      <tr><td>000731</td><td>四川美丰</td><td class="n">15</td><td class="n">172</td><td class="n">0</td><td class="n">0</td></tr>
+      <tr><td>000830</td><td>鲁西化工</td><td class="n">15</td><td class="n">182</td><td class="n">0</td><td class="n">0</td></tr>
+      <tr><td>603977</td><td>国泰集团</td><td class="n">29</td><td class="n">431</td><td class="n">0</td><td class="n">0</td></tr>
+      <tr><td>601118</td><td>海南橡胶</td><td class="n">29</td><td class="n">692</td><td class="n">0</td><td class="n">0</td></tr>
+      <tr><td>601958</td><td>金钼股份</td><td class="n">29</td><td class="n">1277</td><td class="n">0</td><td class="n">2</td></tr>
+      <tr><td>603599</td><td>广信股份</td><td class="n">29</td><td class="n">1004</td><td class="n">0</td><td class="n">0</td></tr>
+      <tr><td>002408</td><td>齐翔腾达</td><td class="n">29</td><td class="n">1104</td><td class="n">1</td><td class="n">3</td></tr>
+  </tbody>
+</table>
+
+<div class="foot">
+  归一规则：成对 <code>**x**</code> → <code>&lt;b&gt;x&lt;/b&gt;</code>，不跨块级边界、
+  <code>&lt;code&gt;/&lt;pre&gt;</code> 跳过；落单的 <code>**</code> ——
+  该模块有未闭合 <code>&lt;b&gt;</code> 就用它收尾，否则当碎片删掉（不拿它凭空造强调）。<br>
+  自检：改完必须行内标签全配对且零残留星号，一家有一处不过就整家跳过不写 —— 本次 0 家跳过。<br>
+  核验：<code>_sc_all.py</code> 610/610 · <code>_unclosed.py</code> 310/310 配对 ·
+  <code>_score_commit.py</code> 10 家逐字节相同 · <code>_btn_e2e.py</code> 10 家全链通过 ·
+  <code>live_check_v4.py</code> 70/70 · 168/168 · 27/27。
+</div>
+
+</div></body></html>
