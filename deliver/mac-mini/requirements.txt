@@ -1,0 +1,9 @@
+# 由 build/_mac_pack.py 自动分析生成
+# 仅含本机实测可导入的第三方库；误报已过滤
+Pillow
+numpy
+pdfplumber
+pymupdf
+pypinyin
+python-pptx
+shapely

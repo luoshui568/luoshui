@@ -1,0 +1,7 @@
+# ── 行尾策略（2026-10-10 加）──
+# 只声明「必须 LF」的脚本类，不写 `* text=auto`：
+#   仓库里既有 LF 也有 CRLF 的文件（如 deliver/*.html 是纯 CRLF），
+#   广域规则会在下次提交时把它们整篇重写，制造出巨大的伪 diff。
+#
+# Shell 脚本：CRLF 会让 macOS / Linux 报 `bad interpreter: /bin/bash^M`。
+*.sh text eol=lf

@@ -32,6 +32,48 @@ build/_*
 build/*.log
 build/src/
 
+# ── 例外：「系统心脏」必须入库（2026-10-10 补）──
+#    起因：只 clone 的话拿不到这批脚本 → 换机后**只能看不能改**。
+#    原则：①只放行**可复用的生产脚本**（建库/渲染/评分/上线/迁移/工具）
+#          ②绝不放行 一次诊断脚本(_diag_/_probe_单次/_mine/_nettest/_q) 与 过程产物
+#          ③任何通配符都不得匹配到 `_secret.py`（末尾已再兜一道）
+#    这批脚本含硬编码 Windows 路径，换机后由 build/_port_paths.py 批量改写。
+!build/_mk_*.py
+!build/_fill*.py
+!build/_goldify.py
+!build/_m29_unify.py
+!build/_norm_bold.py
+!build/_drop_sens.py
+!build/_ds_apply.py
+!build/_score*.py
+!build/_apply_score.py
+!build/_probe_lock29.py
+!build/_sc_all.py
+!build/_sc_shot.py
+!build/_sc_test.py
+!build/_lock29_fix.py
+!build/_rewire_m29.py
+!build/_add_score.py
+!build/_blank29.py
+!build/_do_upload.py
+!build/_mcp_upload.py
+!build/_mcp_login_upload.py
+!build/_push_maps*.py
+!build/_pull_*.py
+!build/_dump_*.py
+!build/_port_paths*.py
+!build/_mac_pack*.py
+!build/_mac_sim.py
+!build/_fixscan.py
+!build/_jscheck.py
+!build/_btn_e2e.py
+!build/_e2e_jump.py
+!build/_verify_deploy.py
+!build/_live_tip_check.py
+
+# ── 兜底：口令文件永远不得入库（防止上面通配符将来被改错）──
+build/_secret.py
+
 # ── 探针在 deploy/ 里就地清空的临时页（0 字节空壳，避免误提交成网页）──
 deploy/_*.html
 
@@ -69,3 +111,10 @@ deliver/*.png
 # ── 顶层诊断日志与一次性清单 ──
 /*.log
 待清理清单_*.txt
+
+# ── Mac 迁移包：两张 tar.gz 不入库（2026-10-10）──
+#    ⚠️ luoshui-secrets.tar.gz 内含明文凭据（mcp.json 的 API key / 同花顺 token、
+#       settings.json 的微信 bot token）⇒ 一旦进 git 历史就永久可检索，删文件也没用。
+#    工作区包 2.5 MB 二进制不可 diff，且内容与上面已入库的 build/_*.py 重复。
+#    两张包都可用 build/_mac_pack.py 随时重生成 ⇒ 只入库文档（手册 / bootstrap / 清单）。
+deliver/mac-mini/*.tar.gz
