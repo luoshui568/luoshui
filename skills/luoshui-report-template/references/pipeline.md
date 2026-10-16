@@ -161,7 +161,8 @@ python3 build_report_single.py <code>    # 9) 离线单文件 → deliver/<名>-
 | ★★ **第 7 步不能省（`_norm_bold`）** | 渲染器把正文按 markdown 习惯写成 `**加粗**`，而**壳里没有任何 `**` → `<b>` 的转换**（已 grep 确认）⇒ 不跑这一步，页面上**每一处强调都显示成字面星号**。603227 曾漏跑，线上残留 **1971 处**（其余 10 份为 0）。<br>★ 该脚本自带自检：换完必须**行内标签全配对 + 零残留 `**`**，任一处不过就整家跳过不写。<br>★ **可机检的收尾判据**（比事后看图快）：回读 `wb_report_mods` 的 31 个模块，`**` 计数必须 = **0** —— 2026-10-16 改 000762 时漏跑过这一步，线上残留 **1544 处**，直到看图才发现。<br>⚠️ `_norm_bold.py` 的 `ALL` 白名单只列了最早 10 家 ⇒ **新研报必须显式传 `<code>`**，否则静默不动。 |
 | ★★ **第 8 步不能省** | `mkmod11_ring.py` 的 `data-ringnote`、`apply_eps_to_11.py` 的 m28/m29 改动、`_norm_bold.py` 的 `<b>` 全部**只写库**。不同步 seed ⇒ 下次 push 会把它们全刷掉 |
 | ★★ **第 5 步要带 `--only`** | `mkmod11_ring.py` 原本每次都遍历全部 SPEC ⇒ 给新研报加条目后会**顺带重写其他 8 份**。已加 `--only <code[,code]>` 开关（**不加 = 原有全量行为**，向后兼容） |
-| ★ 第 6 步的前置数据 | 需要 `seed/_eps_steps_<code>.json`（westock `data_finance` type=income 的 `EPSTTM` + `InfoPublDate`）、`seed/_tdx_<code>_hfq.json`（**日线必须止于 `<code>` 报告的数据截止日，不要把当天的盘中活口算进去**）、`seed/_raw_last.json` 里的 `<code>`。再跑 `_eps_opt.py <code>` 出 opt |
+| ★ 第 6 步的前置数据 | 需要 `seed/_eps_steps_<code>.json`（westock `data_finance` type=income 的 `EPSTTM` + `InfoPublDate`；**单标的可用 `build/_build_eps_one.py <code> <落盘目录>`**，不必为 1 家重跑 12 家）、`seed/_tdx_<code>_hfq.json`（**日线必须止于 `<code>` 报告的数据截止日，不要把当天的盘中活口算进去**）、`seed/_raw_last.json` 里的 `<code>`。再跑 `_eps_opt.py <code>` 出 opt |
+| ★★ **新研报要「登记三处」**（漏了当场 `KeyError`，或图静默不出） | ① `mkmod11_ring.py` 的 `SPEC` —— 双环的外环/内环数据（第 5 步用）；② `_eps_opt.py` 的 `NAMES` —— 代码 → 名称（第 6 步用；2026-10-16 双环科技 000707 实踩 `KeyError: '000707'`）；③ `seed/_raw_last.json` 的 `raw_last` —— 不复权最新收盘（第 6 步算前复权归一因子 `k = raw_last / hfq_last` 用）。<br>⚠️ 另：`_build_eps_one.py` / `_eps_opt.py` / `_build_eps_steps.py` 等 `build/_*.py` 被 `.gitignore` 排除 ⇒ **只存在于本机**，换机需从本文档重建。 |
 
 **`verdict_std.py` 通常不用跑**：新研报的核心结论直接按标准块手写即可
 （`.vlead` 导语 / `.vkey` 判读 / `.vlist` 分点 / `.vrisk` 风险 / `.vtrack` 核心跟踪，按内容取用）。
