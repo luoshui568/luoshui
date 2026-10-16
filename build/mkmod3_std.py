@@ -215,6 +215,15 @@ def _table(t):
     for r in t['rows']:
         rows.append('          <tr>' + ''.join('<td>%s</td>' % c for c in r) + '</tr>')
     if t.get('sum'):
+        # ★★ 2026-10-16 血案：规格里把 sum 写成**字符串**（而不是列表）时，
+        #    `for c in t['sum']` 会**逐字符**迭代 ⇒ 合计行变成几十个单字格，
+        #    表格被撑到 1400+px、横向溢出卡片（探针报 card-overflow=1）。
+        #    实测 000707：sum 写成 "前十大股东合计 17,811.61 万股 · 占 30.46%"
+        #    ⇒ 31 个 <td>、表格 1467px > 卡片 1058px。此处显式拦住。
+        assert isinstance(t['sum'], (list, tuple)), \
+            'top10.sum 必须是列表（与 head 同列数），当前是 %s' % type(t['sum']).__name__
+        assert len(t['sum']) == len(head), \
+            'top10.sum 有 %d 列、head 有 %d 列，对不齐' % (len(t['sum']), len(head))
         rows.append('          <tr>%s</tr>'
                     % ''.join('<td>%s</td>' % (c if c == '—' else '<strong>%s</strong>' % c)
                               for c in t['sum']))

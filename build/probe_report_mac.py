@@ -92,12 +92,33 @@ setTimeout(function(){
       }
       return n; })());
   out.push('MODEL=' + (document.body.innerText.match(/模型输出/g) || []).length);
-  /* 溢出：正文是否横向溢出卡片 */
-  var ovf = 0;
+  /* 溢出：正文是否横向溢出卡片
+   * ★ 2026-10-16 增强：原来只给一个计数，定位不到是哪张卡 ⇒ 加 overflow-detail，
+   *   输出「卡片序号 : 标题( scrollWidth > clientWidth )」，便于直接改那一张表。 */
+  var ovf = 0, ovflist = [];
   for (var i = 0; i < cards.length; i++){
-    if (cards[i].scrollWidth > cards[i].clientWidth + 4) ovf++;
+    if (cards[i].scrollWidth > cards[i].clientWidth + 4){
+      ovf++;
+      var hh = cards[i].querySelector('h2,h3,.mod-no,.no');
+      ovflist.push('#' + i + ':' + (hh ? hh.textContent.trim().replace(/\s+/g,' ').slice(0,26) : '?')
+                   + '(' + cards[i].scrollWidth + '>' + cards[i].clientWidth + ')');
+      /* ★ 再往下一层：列这张卡里「自己就比卡片宽」的后代，直接指出元凶 */
+      var wd = [], lim = cards[i].clientWidth + 4;
+      var all = cards[i].querySelectorAll('*');
+      for (var j = 0; j < all.length && wd.length < 5; j++){
+        var e2 = all[j];
+        if (!(e2 instanceof HTMLElement)) continue;      // SVG 元素没有 scrollWidth
+        if (e2.scrollWidth > lim){
+          var cn = (typeof e2.className === 'string') ? e2.className : '';
+          wd.push(e2.tagName.toLowerCase() + (cn ? '.' + cn.split(' ')[0] : '')
+                  + '[' + e2.scrollWidth + ']');
+        }
+      }
+      if (wd.length) ovflist.push('    └ ' + wd.join(' , '));
+    }
   }
   out.push('card-overflow=' + ovf);
+  if (ovflist.length) out.push('overflow-detail=' + ovflist.join(' | '));
   var d = document.createElement('div');
   d.id = 'probeout'; d.textContent = out.join('\n');
   document.body.appendChild(d);
