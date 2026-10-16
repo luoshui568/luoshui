@@ -118,3 +118,35 @@ deliver/*.png
 #    工作区包 2.5 MB 二进制不可 diff，且内容与上面已入库的 build/_*.py 重复。
 #    两张包都可用 build/_mac_pack.py 随时重生成 ⇒ 只入库文档（手册 / bootstrap / 清单）。
 deliver/mac-mini/*.tar.gz
+
+# ── 改前改后对照截图目录（2026-10-16 补，约 18 MB）──
+#    原来只挡了 `deliver/*.png`（直属层），子目录没覆盖到 ⇒ 六个截图目录被漏进来。
+#    这些都是过程产物：用 _shot_module.py / _shot_chart_slot.py 可随时重拍。
+deliver/table-modern/
+deliver/table-brand/
+deliver/table-blue/
+deliver/ring_m11/
+deliver/chain_m22/
+deliver/blockstyle/
+build/shots/
+
+# ── 旧目录副本与过程目录（2026-10-16 补）──
+#    deploy.bak/ 是 10-10 迁移时的旧副本；deploy_site/ 会被并发会话静默回退
+#    （见项目铁律 8），从来不是权威内容 ⇒ 两者都不入库。
+deploy.bak/
+deploy_site/
+
+# ── 分发件的历史备份（当前包 luoshui-report-template.zip 本身保留入库）──
+deliver/*.zip.bak_*
+
+# ── 大宗商品百年页：测试渲染产物与原始数据（2026-10-16 补，约 83 MB）──
+#    t_*.html 是 39 个 × 1.8 MB 的调试渲染（文件名 t_ = test），data/ 是可重新
+#    下载的 USDA/世界银行原始 xlsx+csv。生产脚本（build_daily.py 等）仍入库。
+build/commodity100/t_*.html
+build/commodity100/data/
+
+# ── 我自己的配置备份（下划线+时间戳）──
+.gitignore.bak_*
+
+# ── seed 下的临时脚手架（build/_* 只匹配直属层，子目录要单独写）──
+build/seed/_tmp/

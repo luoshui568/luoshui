@@ -1,0 +1,458 @@
+/* ================================================================
+     模块视觉升级：堆叠文本分块 + 表格「红表头 + 浅蓝身」风
+     （2026-10-14 建 · 2026-10-15 四度改版 · 12:26 表头回红）
+     ----------------------------------------------------------------
+     用户口径演进（每一条都对应真实截图）：
+       ① 「这种文字居多堆在一起的继续修改样式，可以分成几小块；
+           这种表格做点背景色块区分」
+       ② 「这个样式太土了，帮我修改的好看一点，用主流的好看样式」
+       ③ 「现在直接没样式了，帮我加上样式并且要花里胡哨一点」
+       ④ 「不要金色系了，全部改成浅蓝色系」（附浅蓝参考图）
+       ⑤ 「是这个浅蓝色的版本，然后表头还是要以前的红色」
+     ★★ ⑤ = 当前终版：**「红表头 + 浅蓝身」双系**（表头红、其余浅蓝）。
+       别再把表头改蓝 —— 红表头是满屏蓝底里唯一的暖色锚点，
+       一眼定位「这是什么表」；全表都用蓝反而失去表头的功能色地位。
+     ★ ②→③ 的教训（这一版的设计依据，别再走回头路）：
+       ② 那一版把品牌色全撤了（表头浅灰、斑马纹全去、红色只留给模块标题条），
+          方向本身没错（数据要退后），但**退得太彻底** —— 整张表变成纯灰白细线，
+          在满屏 341 个模块里扫过去，跟没上样式一样。这是「极简」和「没样式」
+          之间那条极窄的分界线，本版就是回来跨过它。
+       ③ 的正解 = **保住现代细线骨架 + 把颜色以「装饰而非底色」的方式加回来**：
+          绝不用大面积色块（那是 ② 之前的土法），改用
+          **表头整行品牌红 + 首列浅蓝渐变 + 左侧色柱 +
+            极淡斑马纹 + 浅蓝投影 + 大圆角**，数据退后但眼睛有落点。
+     ★ ④ 配色口径（★ 全部色值都从用户给的参考图实测反推，不是凭感觉配的）：
+       用 PIL 统计参考图 210×124 像素得：
+         · 主导色 #eaf1f8 / #dbe9f1 / #cde0eb / #bed8e5
+         · 均值 #d7e6ef → H=202°S=43%L=89%；暗部 #bed8e5 → H=200°；
+           亮部 #eaf1f8 → H=210°；中间 #cde0eb → H=202°
+         ⇒ **色相锁 202~208°（青蓝偏冷）**，饱和度 36~62%（底层低、强调色高），
+           明度 86~100%（整体非常浅，底色绝不抢正文）。
+       本块所有颜色都是 HSL 反算出来的，见下方梯度表。
+     ★ 关键约束（都是踩过的坑）：
+       · 每条底色都要写 `background-image:none` —— 老规则用的是
+         `background:linear-gradient(...)` 简写，渐变优先级高于底色，
+         只写 `background:<颜色>` 会把旧渐变图留在下面。
+       · `<table>` 上的 `overflow:hidden` 是圆角裁切的必要条件。
+       · 任何行级配色叠加前**先比特异度**：斑马纹 `tr:nth-child(even) > td`
+         是 (0,2,4)，高于首列 `tbody td:first-child` 的 (0,2,3)
+         ⇒ 不写 `td:not(:first-child)` 排除首列就会「隔行颠倒」。
+       · `<tr>` 上只画**一层**背景：多层 `background-size:100% 3px,100% 100%`
+         在 `<tr>` 上第一层会被当 100% 100% 铺满整行。
+       · 本站表格是**裸 `<tr><th>`**（没有 `<thead>`）⇒ 表头只能靠 `tr:first-child`。
+       · 本块必须用**独立标签**承载（线上是 style id=rpt-blockstyle），
+         源文件也是独立的 `build/block_style.css`；**不要再放回
+         `report_theme.css`** —— 并发会话会把那个文件整个重写。
+     ★ 渲染层脚本块 id="rpt-blockscript"（同一份定点注入产物里的 script 块）负责：
+       · 正文里未渲染的 Markdown 粗体标记转成 <b>（全库 1,693 处）；
+       · 纯数字单元格打 is-num 类 ⇒ 右对齐 + tabular-nums 等宽数字。
+     ================================================================ */
+  /* ⑥ 整站金色 → 浅蓝（2026-10-15 用户令：「不要金色系了，全部改成浅蓝色系」）
+     ★ 为什么用「覆盖 :root 变量」而不是去改模板自带样式：
+       `--gold:#c9a227` 定义在模板自己的 `:root` 里，被 `.logic`（逻辑折叠条）、
+       `.hist .h-en`（时间轴英文标签）、`.dcards .dcard::before`（卡片色柱）等
+       十几处引用，那些 CSS 块是**并发会话的地盘**（线上是 style id=rpt-txtstyle
+       之外的模板样式），去改它们的源文件必然被回退。
+       而 CSS 变量是**运行时求值**的 ⇒ 在自己块里重新声明同名同值即可整体换色，
+       零侵入、不碰对方一个字。⚠️ 本块必须带 `!important`，因为模板的 `:root`
+       在同一特异度下按源码顺序决胜，本块未必排在它后面。 */
+  :root{
+    --gold:#337fc1 !important;      /* 原 #c9a227 金 */
+    --gold2:#337fc1 !important;
+    --amber:#2d81be !important;     /* 原 #b98f1f 琥珀 */
+  }
+  /* 直写金色字面量的少数几处也一并换蓝。
+     ⚠️ 下面这几条覆盖的是**并发会话的 rpt-txtstyle 块**里硬编码的金色：
+       它把「金」写成了字面量而不是变量（`.card > h3` 的 `color:#8a5a12`、
+        导语块的 `rgba(201,162,39,.13)`、正文色 `#5e5b52`、`.dcards` 的金色渐变），
+       所以光覆盖 `--gold` 变量换不掉它们。
+     ★ 特异度必须比对方**高**，且带 !important：
+       对方是 `.card > h3`（0,0,1,1），我这边写成 `.card > .rpt-ops + p`、
+       `.card > h3.card > h3` 之类只会更低 —— 正确做法是**重复选择器**
+       `.card.card > h3`（0,0,2,1）把它压过去。 */
+  .card > h3{
+    color:#1f5b8a !important;
+    background:linear-gradient(120deg,rgba(51,127,193,.11),rgba(51,127,193,.02)) !important;
+  }
+  .card.card > h3{color:#1f5b8a !important;}
+  .card > .rpt-ops + p:not(.muted):not(.src){
+    color:#243642 !important;
+    background:linear-gradient(120deg,rgba(51,127,193,.13),rgba(51,127,193,.03)) !important;
+  }
+  .card > p:not(.src):not(.muted){color:#4d5f6d !important;}
+  .card > ul > li,.card > ul,.logic .lv,.grid2 .gr-txt > ul,.mi-notes{
+    color:#4d5f6d !important;
+  }
+  /* 逻辑折叠条：金色左条 + 金底 → 蓝 */
+  .logic{
+    background:linear-gradient(90deg,#eef5f9,#fbfdfe) !important;
+  }
+  .logic{border-left-color:#337fc1 !important;}
+  /* 时间轴英文标签 / 卡片装饰柱 / 小卡渐变 */
+  .hist .h-en{color:#4a8cbd !important;}
+  .hist .h-title{color:#243642 !important;}
+  .dcards .dcard{
+    background:linear-gradient(180deg,#fbfdfe,#f2f7fa) !important;
+  }
+  .dcards .dcard::before{
+    background:linear-gradient(180deg,#559bce,#337fc1) !important;
+  }
+  /* ① 顶层列表 → 分块卡片（浅蓝渐变 + 上下渐变色柱） */
+  .card > ul{
+    list-style:none !important;padding:0 !important;margin:0 0 16px !important;
+    display:grid;gap:10px;
+  }
+  .card > ul > li{
+    position:relative;margin:0 !important;
+    padding:12px 16px 13px 19px !important;
+    font-size:13.6px !important;line-height:1.95;
+    background:linear-gradient(104deg,#f6fafc 0%,#edf3f8 52%,#dbe7f0 100%);
+    background-image:linear-gradient(104deg,#f6fafc 0%,#edf3f8 52%,#dbe7f0 100%);
+    border:1px solid #c7d9e6;border-left:0;
+    border-radius:0 13px 13px 0;
+    box-shadow:0 2px 8px rgba(28,72,110,.06),0 10px 26px rgba(28,72,110,.055);
+  }
+  /* 渐变色柱：border-left 做不出渐变，必须用伪元素 */
+  .card > ul > li::before{
+    content:"";position:absolute;left:0;top:-1px;bottom:-1px;width:4px;
+    border-radius:13px 0 0 13px;
+    background:linear-gradient(180deg,#73b1de 0%,#559bce 44%,#337fc1 100%);
+  }
+  /* ② 列表后的总括段 → 「小结」块（浅蓝渐变 + 更深的蓝柱） */
+  .card > ul + p:not(.src):not(.muted){
+    position:relative;
+    margin:0 0 16px !important;
+    background:linear-gradient(104deg,#eef5f9 0%,#e2edf4 55%,#d8e5ee 100%);
+    background-image:linear-gradient(104deg,#eef5f9 0%,#e2edf4 55%,#d8e5ee 100%);
+    border:1px solid #c4d7e3;border-left:0;
+    border-radius:0 13px 13px 0;padding:12px 16px 13px;
+    box-shadow:0 2px 8px rgba(28,72,110,.06);
+  }
+  .card > ul + p:not(.src):not(.muted)::before{
+    content:"";position:absolute;left:0;top:0;bottom:0;width:4px;
+    border-radius:13px 0 0 13px;
+    background:linear-gradient(180deg,#337fc1 0%,#2d81be 58%,#559bce 100%);
+  }
+  /* ③ 表格：现代骨架 + 浅蓝装饰（2026-10-15 第四版）
+     骨架 = Notion / Linear / Stripe 那一套（去竖线、去厚框、只留横线、
+     圆角收在容器、内边距放大）—— 这部分**从 ② 起就没动过**；
+     本版加的是**五层装饰**，都不牺牲可读性：
+       D1 表头行整行浅蓝渐变（亮→暗四段）+ 底部一条 3px 主蓝实线；
+       D2 表格外框浅蓝描边 + 蓝色光环 + 冷调投影 + 15px 圆角；
+       D3 首列浅蓝渐变 + 半粗 + 左侧 3px 主蓝小柱；
+       D4 斑马纹 `#f1f6f9` ↔ `#fff`（明度差 4 个色阶，看得出行界又不吵）；
+       D5 行分隔线 `#e2e9ee`，hover 改浅蓝渐变铺行、首列蓝柱加深。 */
+  .card table{
+    border-collapse:separate !important;border-spacing:0;
+    border:1px solid #d0dde7 !important;
+    border-top:1px solid #d0dde7 !important;
+    border-radius:15px !important;overflow:hidden;
+    background:#fff !important;background-image:none !important;
+    box-shadow:
+      0 0 0 1px rgba(51,127,193,.24),
+      0 1px 2px rgba(28,50,70,.045),
+      0 12px 30px rgba(28,72,110,.09),
+      0 0 26px rgba(51,127,193,.07) !important;
+    font-size:13.6px !important;
+  }
+  /* D1：表头行整行**品牌红渐变**（2026-10-15 12:26 用户令：「表头还是要以前的红色」）
+     ★ 一次「双系」配色：**表头红、其余浅蓝**。
+       原因（用户截图）：红表头在满屏蓝底里是唯一的暖色锚点，一眼定位「这是什么表」；
+       全表都用蓝反而失去表头的功能色地位。红色直接复用第一版的品牌色，不另配色：
+         底 `linear-gradient(135deg,#d0202f,#e43644 60%,#e43644)`（第一版原值）
+         字 `#fff` + `text-shadow:0 1px 1px rgba(0,0,0,.15)`（红底上白字才够清楚）
+         底线 `inset 0 -3px 0 0 #c81a33`（比表头更深一档的暗红，压得住）
+     ★ 依然只画在 `tr:first-child` 上、`<th>` 自身透明：
+       红底必须**连成整行**，若每个 `<th>` 各画一遍 135° 渐变，四列表会变成四段深浅不一。
+       （浅蓝版时代踩过：多层 `background-size:100% 3px,100% 100%` 在 `<tr>` 上第一层
+         会被当 100% 100% 铺满整行 ⇒ `<tr>` 上只画一层背景最稳，底线走 inset box-shadow。）
+     ★ 为什么用 `tr:first-child` 而不是 `thead`：本站表格是裸 `<tr><th>`。 */
+  .card table tr:first-child{
+    background:linear-gradient(135deg,#d0202f 0%,#e43644 60%,#e43644 100%) !important;
+    background-image:linear-gradient(135deg,#d0202f 0%,#e43644 60%,#e43644 100%) !important;
+    box-shadow:inset 0 -3px 0 0 #c81a33 !important;
+  }
+  .card table tr:first-child > th{
+    background:transparent !important;background-image:none !important;
+    box-shadow:none !important;
+    color:#fff !important;
+    font-weight:700 !important;font-size:12.4px !important;letter-spacing:.08em;
+    padding:13px 16px 11px !important;text-align:left;
+    border:none !important;
+    text-shadow:0 1px 1px rgba(0,0,0,.15) !important;white-space:nowrap;
+  }
+  /* 兜底：第一行没有 th（少数表直接是 td）的，补一条暗红压边 */
+  .card table tr:first-child:not(:has(> th)) > td:first-child{
+    box-shadow:inset 3px 0 0 0 #c81a33;
+  }
+  /* 其它行的 th（少数表有第二行也用 th）给回浅蓝底，避免裸白 */
+  .card table th{
+    background:transparent !important;background-image:none !important;
+  }
+  /* D4/D5：单元格极淡蓝斑马纹 + 冷蓝分隔线 */
+  .card table td{
+    padding:12px 16px !important;
+    border:none !important;border-bottom:1px solid #e2e9ee !important;
+    vertical-align:top !important;line-height:1.72;
+    background:transparent !important;background-image:none !important;
+  }
+  /* D4 斑马纹（极淡蓝）
+     ★⚠️ 必须写 `td:not(:first-child)` 排除首列（实测踩坑）：
+       `tr:nth-child(even) > td` 特异度 (0,2,4) **高于** 首列规则
+       `tbody td:first-child` 的 (0,2,3) ⇒ 偶数行纯白会盖掉首列底色，
+       现象是「斑马纹行白、非斑马纹行黄」的**隔行颠倒**。
+       排除首列后两套规则互不重叠，首列配色与行序彻底解耦。 */
+  .card table tbody tr:nth-child(odd) > td:not(:first-child){
+    background:#f1f6f9 !important;background-image:none !important;
+  }
+  .card table tbody tr:nth-child(even) > td:not(:first-child){
+    background:#fff !important;background-image:none !important;
+  }
+  .card table tbody tr:last-child > td{
+    border-bottom:none !important;
+    box-shadow:inset 0 2px 0 0 rgba(51,127,193,.55);
+  }
+  .card table tbody tr:last-child > td:first-child{
+    box-shadow:inset 0 2px 0 0 rgba(51,127,193,.55),inset 3px 0 0 0 rgba(51,127,193,.55);
+  }
+  /* D3 首列＝行标签列：浅蓝渐变 + 半粗 + 左侧主蓝小柱。
+     特异度必须压得住斑马纹：这里用 `tbody tr > td:first-child`（0,2,4）
+     而不是 `tbody td:first-child`（0,2,3）。 */
+  .card table tbody tr > td:first-child{
+    background:linear-gradient(100deg,#ecf3f8 0%,#e5eef5 62%,#eef4f8 100%) !important;
+    background-image:linear-gradient(100deg,#ecf3f8 0%,#e5eef5 62%,#eef4f8 100%) !important;
+    font-weight:600 !important;color:#243642 !important;
+    box-shadow:inset 3px 0 0 0 rgba(45,129,190,.55);
+  }
+  /* hover：浅蓝渐变铺一行；首列更深一档 + 蓝柱加亮 —— 一眼看出是哪一行 */
+  .card table tbody tr{transition:background .16s ease;}
+  .card table tbody tr:hover{box-shadow:none !important;}
+  .card table tbody tr:hover > td:not(:first-child){
+    background:linear-gradient(90deg,#e5eff6 0%,#eaf3f8 55%,#f0f6fa 100%) !important;
+    background-image:linear-gradient(90deg,#e5eff6 0%,#eaf3f8 55%,#f0f6fa 100%) !important;
+  }
+  .card table tbody tr:hover > td:first-child{
+    background:linear-gradient(90deg,#cce1f0 0%,#d7e8f3 62%,#e2eff7 100%) !important;
+    background-image:linear-gradient(90deg,#cce1f0 0%,#d7e8f3 62%,#e2eff7 100%) !important;
+    box-shadow:inset 3px 0 0 0 #3e90cc !important;
+  }
+  .card table tbody tr:last-child:hover > td:first-child{
+    box-shadow:inset 0 2px 0 0 rgba(51,127,193,.55),inset 3px 0 0 0 #3e90cc !important;
+  }
+  /* 数字列右对齐 + 等宽数字（is-num 由渲染层脚本按「整格都是数字/百分比/单位」
+     打标，见 script id=rpt-blockscript；打标失败也不影响可读性） */
+  .card table td.is-num{
+    text-align:right !important;
+    font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
+    white-space:nowrap;
+  }
+  /* ④ 窄屏：卡片内边距收一收 */
+  @media(max-width:560px){
+    .card > ul > li{padding:11px 13px 12px 17px !important;}
+    .card > ul + p{padding:11px 13px 12px 17px;}
+    .card table th{padding:10px 12px !important;}
+    .card table td{padding:10px 12px !important;}
+  }
+  /* ⑤ 打印 / 存 PDF：底色要打出来，否则首列只剩一条竖线 */
+  @media print{
+    .card > ul > li,.card > ul + p,
+    .card table th,.card table tbody tr > td,.card table tbody tr > td:first-child{
+      print-color-adjust:exact;-webkit-print-color-adjust:exact;
+    }
+  }
+
+  /* ================================================================
+     ⑥ 一句话本质（.essence）：深酒红 banner → 白底浅色卡
+     ----------------------------------------------------------------
+     用户口径：「这里重新排版一下看着太乱了，改成「核心结论」那种」。
+     病根不是配色而是**结构**：.ec 是一整块 19px 粗体白字长段（700+ 字），
+     满屏深红底 + 零层次 ⇒ 眼睛找不到落点。
+     修法 = 抄 .verdict 的骨架（三段式）：
+       顶部 3px 红→金渐变压条 + 左侧 4px 红柱（定位「这是全篇结论」）
+       → .et 标题改红字 + 红小方柱
+       → 正文：首段 = 导语（浅粉底 + 左红柱），其余按强标记边界切成编号卡片
+     ★ 编号卡片复刻 .verdict .vlist 的圆形序号，但改成**红色**渐变：
+       essence 属「一句话本质」，序号代表「一条支撑要点」，语义成立。
+     ⚠️ 深色底要彻底关干净：老规则用 background:linear-gradient 简写，
+        只写 background:<色> 会残留渐变图 ⇒ 必须 background-image:none。
+        同理 ::after 是原来的高光扫过、animation 是底色漂移，都要显式关。
+     ================================================================ */
+  .essence{
+    position:relative;overflow:hidden;
+    background:#fffdf9 !important;background-image:none !important;
+    animation:none !important;
+    border:1px solid #f0e6d2 !important;
+    border-left:4px solid #c8102e !important;
+    border-radius:14px !important;
+    padding:16px 22px 18px !important;margin-bottom:20px !important;
+    box-shadow:0 10px 30px rgba(120,96,40,.10) !important;
+  }
+  /* 顶部压条：与 .verdict::before 同一条渐变，两块视觉上成一套 */
+  .essence::before{
+    content:'' !important;position:absolute;left:0;right:0;top:0;height:3px;z-index:2;
+    background:linear-gradient(90deg,#c8102e,#d4541f 34%,#c9a227 70%,#e8d5a2) !important;
+  }
+  /* 关掉原来的白色高光扫过（深色 banner 的遗留装饰） */
+  .essence::after{content:none !important;display:none !important;}
+  .essence .et{
+    position:relative;
+    font-size:13px !important;letter-spacing:.06em !important;
+    color:#a5232f !important;font-weight:800 !important;
+    text-shadow:none !important;
+    margin:3px 0 12px !important;padding-left:12px !important;
+  }
+  .essence .et::before{
+    content:'' !important;position:absolute;left:0;top:50%;
+    transform:translateY(-50%);
+    width:4px;height:13px;border-radius:2px;
+    background:linear-gradient(180deg,#c8102e,#c9a227) !important;
+  }
+  /* 正文：从 19px/700 白字 降到 14.6px/500 深墨 —— 长段可读的前提 */
+  .essence .ec{
+    font-size:14.6px !important;font-weight:500 !important;
+    line-height:1.98 !important;color:#3a382f !important;
+    counter-reset:ebk;
+  }
+  .essence .ec .ebk{position:relative;margin:0 0 11px !important;padding:0 !important;}
+  .essence .ec .ebk:last-child{margin-bottom:0 !important;}
+  /* 首段 = 导语：浅粉底 + 左红柱（对应 .verdict .vlead） */
+  .essence .ec .ebk:first-child{
+    background:linear-gradient(120deg,rgba(200,16,46,.075),rgba(200,16,46,.018)) !important;
+    border-left:3px solid #c8102e !important;
+    border-radius:0 10px 10px 0 !important;
+    padding:12px 16px 13px !important;margin-bottom:13px !important;
+  }
+  /* 其余分点 = 编号卡片（对应 .verdict .vlist > li） */
+  .essence .ec .ebk + .ebk{
+    counter-increment:ebk;
+    background:#fcfaf5 !important;
+    border:1px solid #f0ead9 !important;border-radius:10px !important;
+    padding:11px 15px 11px 44px !important;
+  }
+  .essence .ec .ebk + .ebk::before{
+    content:counter(ebk) !important;
+    position:absolute;left:13px;top:12px;
+    width:21px;height:21px;border-radius:50%;
+    background:linear-gradient(135deg,#c8102e,#d8353f) !important;
+    color:#fff !important;font-size:11.5px !important;font-weight:800 !important;
+    line-height:21px !important;text-align:center;
+    font-variant-numeric:tabular-nums;
+  }
+  .essence .ec strong,.essence .ec b{color:#a5232f !important;font-weight:800 !important;}
+  .essence .ec u{text-decoration-color:rgba(200,16,46,.4) !important;text-underline-offset:3px;}
+
+  /* 窄屏：编号卡片左侧留白收窄，否则正文被挤成一条 */
+  @media(max-width:560px){
+    .essence{padding:14px 15px 16px !important;}
+    .essence .ec{font-size:14px !important;line-height:1.9 !important;}
+    .essence .ec .ebk + .ebk{padding:10px 12px 10px 38px !important;}
+    .essence .ec .ebk + .ebk::before{left:10px !important;}
+    .essence .ec .ebk:first-child{padding:11px 13px 12px !important;}
+  }
+  /* 打印：浅底 + 卡片边框必须打出来 */
+  @media print{
+    .essence,.essence .ec .ebk,.essence .ec .ebk + .ebk,.essence .ec .ebk:first-child{
+      print-color-adjust:exact;-webkit-print-color-adjust:exact;
+    }
+    .essence{animation:none !important;}
+  }
+
+  /* ================================================================
+     长文本单元格居中 + 表格溢出兜底 + 区间按钮组视觉分隔
+     （2026-10-15 用户三条令）
+     ----------------------------------------------------------------
+     ★ 为什么在本块而不是 report_theme.css：
+       后者的 `_patch_txtstyle.py` 只从「模块正文可读性版式」那个 MARK
+       抽到**文件末尾**，表格样式域排在 MARK **之前** ⇒ 写在那里永远不注入线上。
+       表现为「本地 build.py 产物有、线上没有」，探针量到打标成功但 align 不变。
+     ================================================================ */
+  /* ① 长文本单元格居中 —— 用户令：「一行的文字太多了就还行居中」
+     起因：模块 17「三大募投项目对照」4 列宽表（维度 + 3 个项目），
+     项目名本身 24 字（「宇航级钛及钛合金智能锻造产线及供应链协同建设」），
+     列宽只有 ~230px 必然折行；折行后文字顶到列边缘，视觉上像「右边溢出」。
+     —— 判据由渲染层打标（`is-txt`，见 block_style.js 的 markTxt），
+        CSS 判不了「这格文字多不多」：`td:nth-child(n+2)` 这类猜测规则
+        会把「陕西省宝鸡市高新区」这种 11 字短文本也居中，与同表其他列不一致。
+     —— ⚠️ 数字格（`is-num`）保持右对齐：数字要对齐小数点，
+        居中会把 146,628.00 / 125,827.50 排成锯齿。 */
+  .card table td.is-txt{text-align:center !important;}
+  /* ② 横向溢出兜底：维持 table-layout:auto（fixed 会让「维度」列
+     和三个项目列等宽，而维度列只有 4 个字，很难看），
+     只给可断点。`overflow-wrap:anywhere` 比 `word-break:break-all` 温和：
+     优先在正常断点断开，整段都放不下才在字符中间切。 */
+  .card table{table-layout:auto !important;max-width:100% !important;}
+  .card table th,.card table td{overflow-wrap:anywhere;word-break:normal;}
+  /* ③ 区间按钮组视觉分隔 —— 用户令：「1 位置重复了」
+     —— ★ 这**不是 bug**：模块 23「上游原料价格」用 grid2 并排放两张图
+        （左＝海绵钛价格走势 chart4、右＝全球海绵钛产量 chart8），
+        两张点数都 ≥5 ⇒ renderToolbars() 各自插一组「3年/5年/10年/全部」。
+        grid2 在窄屏塌成单列后两组上下紧贴，看着像同一位置重复。
+        实测 chart4@30127 / chart8@30127：toolbar 与各自的图 top 完全相同，
+        St.slots 28 个 key 无重复 ⇒ 两组都是真的，各服务自己那张图。
+     —— 所以不改逻辑，只加视觉分隔：淡下边框 + 拉开组间距。
+     —— 特异度：模板自带块是 `.rpt-toolbar` 单类，本块注入更晚，用 2 类压它。 */
+  .card .rpt-toolbar{
+    padding:0 0 5px !important;margin:2px 0 7px !important;
+    border-bottom:1px solid #eef0f3;
+  }
+  .card .rpt-toolbar + .rpt-toolbar{margin-top:12px !important;}
+  /* ④ 打印：淡下边框在纸上没意义，去掉免得每张图下都多一条线 */
+  @media print{
+    .card .rpt-toolbar{border-bottom:0 !important;margin:0 !important;padding:0 !important;}
+  }
+
+  /* ================================================================
+     表格「宽度具约束」：固定布局 + 显式列宽
+     治「右边溢出 + 行高虚高」（2026-10-15 用户第二条令）
+     ----------------------------------------------------------------
+     ★ 起因：截图「三大募投项目详细对照表」——用户原话：
+       「这个溢出还是没有解决，而且这个表格行高太高了，选择换行显示」
+     ★ 实测（build/probe_table_fit.py，视口 1092，线上真字节）：
+         表宽 1003 / 容器内容宽 889  ⇒ 右溢 115px（**真溢出**，不是观感）
+         表 min-content = 979 > 容器 889 ⇒ auto 布局按 min-content 分配列宽，
+         「维度」列被压成 **59px**（作者意图 150px，见 .mi-dim 的 width:150px）
+         ⇒ 该格净宽 27px，只放得下 1 个汉字 ⇒ 标签逐字竖排。
+     ★★ 关键洞察（决定修法的那条）：
+         该表 12 行的行高 = (维度标签字数 + 1) × 24px，完全线性 ——
+           回收期（含建设期）9 字 → 235px ｜ 核心建设内容 6 字 → 165px
+           实施主体 4 字 → 119px      ｜ 建设期 3 字 → 95px
+         ⇒ 行高虚高的根因**不是内容多，而是标签列被挤成竖排**。
+        （先按「内容太多」去缩字号 / 减 padding 都是治错方向。）
+     ⇒ 修法：table-layout:fixed + width:100% ⇒ 表宽恒等于容器宽，彻底不溢出；
+        首列显式给 160px ⇒ 「回收期（含建设期）」一行放下，行高回落到内容真实高度。
+     ⚠️ 固定布局下**只有第一行（thead）的宽度生效** ⇒ 必须写在 th 上。
+        `.mi-dim{width:150px}` 写在 tbody 的 td 上，固定布局**不认**（这正是
+        它一直没生效、列被压到 59px 的原因）。
+     ⚠️ 只作用于 `.mi-card`（M12 内嵌模块）里的表：实测 600456 全 43 张表
+        只有这一张溢出，000762 全 46 张 0 溢出 ⇒ 不做全局改动。
+     ⚠️ 特异性要压过本文件前面的 `.card table{table-layout:auto !important}`：
+        那条是 (0,1,1)，本条 (0,2,1) ⇒ 赢。
+     ================================================================ */
+  .card .mi-card > table{
+    table-layout:fixed !important;
+    width:100% !important;
+    max-width:100% !important;
+  }
+  .card .mi-card > table > thead th:first-child{width:160px !important;}
+  /* ★★ 放开表头换行 —— 这条才是「溢出」的正面解（用户原话「选择换行显示」）
+     —— 全局「现代细线风」规则 `.card table th{…white-space:nowrap;}` 特异性 (0,1,2)，
+        压过了模块自带的 `.mi-card th{white-space:normal}` (0,1,1)
+        ⇒ 三个项目表头被锁成不换行，单格 max-content 达 278/387/278px
+        ⇒ 表 min-content = 979 > 容器 889 ⇒ 整表右溢 115px，
+          且「维度」列被挤到 59px（标签逐字竖排、行高虚高）。
+     —— 放开后每个表头在 242px 列里折成 2 行，不再溢出、也不再挤邻列。
+     —— ⚠️ 只放开 `.mi-card` 内的表头：其余表格的表头（年份、「2025E」等）
+        靠 nowrap 保持单行是**对的**，全局放开会把几十年份挤成两行。 */
+  .card .mi-card > table > thead th{
+    white-space:normal !important;
+    line-height:1.45;
+    padding-left:10px;padding-right:10px;
+  }
+  /* 标签列内边距收一收：160px - 20px = 140px 净宽，9 个全角字（≈122px）一行放得下 */
+  .card .mi-card > table > tbody td.mi-dim{padding-left:10px;padding-right:10px;}
+  /* 行高再压一档：该表 12 行，上下内边距从 12px 收到 9px ⇒ 少 72px */
+  .card .mi-card > table > tbody td{padding-top:9px;padding-bottom:9px;}
+  /* 窄屏：首列收窄，让三个项目列还留得住可读宽度 */
+  @media(max-width:860px){
+    .card .mi-card > table > thead th:first-child{width:104px !important;}
+  }

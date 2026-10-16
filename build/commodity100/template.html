@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大宗商品百年周期全景 · 1900—2025</title>
+<style>
+:root{
+  --bg:#080b12; --bg2:#0d1220; --panel:rgba(255,255,255,.038); --panel2:rgba(255,255,255,.06);
+  --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.16);
+  --tx:#e8edf7; --tx2:#9aa8c0; --tx3:#63708a;
+  --gold:#F5C542; --copper:#E07B39; --cyan:#4AA3DF; --green:#4ADE80; --violet:#A78BFA; --rose:#F08AA8;
+  --up:#ff5a5a; --down:#28c98a;
+  --r:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:
+    radial-gradient(1100px 620px at 12% -8%, rgba(245,197,66,.10), transparent 62%),
+    radial-gradient(900px 560px at 88% 2%, rgba(74,163,223,.10), transparent 60%),
+    radial-gradient(760px 620px at 50% 108%, rgba(167,139,250,.08), transparent 62%),
+    linear-gradient(170deg,var(--bg),var(--bg2) 55%,#070a10);
+  background-attachment:fixed;
+  color:var(--tx);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  line-height:1.65; min-height:100vh; padding:0 0 72px;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1420px;margin:0 auto;padding:0 26px}
+
+/* ---------- header ---------- */
+header.hero{padding:52px 0 30px;position:relative}
+.eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:12.5px;letter-spacing:.22em;
+  color:var(--gold);text-transform:uppercase;font-weight:600;margin-bottom:18px}
+.eyebrow::before{content:'';width:30px;height:1px;background:linear-gradient(90deg,transparent,var(--gold))}
+h1{font-size:clamp(31px,4.6vw,53px);line-height:1.1;font-weight:800;letter-spacing:-.02em;
+  background:linear-gradient(96deg,#fff 8%,#ffe9a8 42%,#f5c542 62%,#c98b3f 92%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:14px}
+.sub{color:var(--tx2);font-size:15.5px;max-width:900px}
+.sub b{color:var(--tx);font-weight:600}
+.srcline{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+.srcchip{font-size:12px;padding:5px 12px;border-radius:999px;border:1px solid var(--line2);
+  background:var(--panel);color:var(--tx2);white-space:nowrap}
+.srcchip b{color:var(--gold);font-weight:600}
+
+/* ---------- headline stats ---------- */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:13px;margin:30px 0 6px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 17px;
+  position:relative;overflow:hidden;transition:.25s}
+.stat:hover{border-color:var(--line2);background:var(--panel2);transform:translateY(-2px)}
+.stat::after{content:'';position:absolute;left:0;top:0;width:3px;height:100%;background:var(--accent,var(--gold));opacity:.85}
+.stat .k{font-size:12px;color:var(--tx3);letter-spacing:.06em}
+.stat .v{font-size:26px;font-weight:800;margin:5px 0 2px;font-variant-numeric:tabular-nums;color:var(--accent,#fff)}
+.stat .d{font-size:12px;color:var(--tx2)}
+
+/* ---------- tabs ---------- */
+nav.tabs{display:flex;gap:7px;margin:34px 0 22px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:0}
+.tab{appearance:none;border:1px solid transparent;border-bottom:none;background:transparent;color:var(--tx2);
+  font-size:14.5px;font-weight:600;padding:11px 19px;border-radius:12px 12px 0 0;cursor:pointer;
+  transition:.2s;font-family:inherit;position:relative;top:1px}
+.tab:hover{color:var(--tx);background:var(--panel)}
+.tab.on{color:#0a0d14;background:linear-gradient(160deg,var(--gold),#d9a52f);font-weight:700}
+.pane{display:none;animation:fade .38s ease}
+.pane.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+
+/* ---------- cards ---------- */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px;margin-bottom:18px}
+.card h2{font-size:17.5px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.card h2 .tag{font-size:11px;font-weight:600;padding:3px 9px;border-radius:6px;
+  background:rgba(245,197,66,.14);color:var(--gold);border:1px solid rgba(245,197,66,.25);letter-spacing:.04em}
+.card .desc{color:var(--tx2);font-size:13.5px;margin-bottom:16px;max-width:1000px}
+.card .desc b{color:var(--tx);font-weight:600}
+
+/* ---------- controls ---------- */
+.ctrls{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-bottom:16px}
+.ctl-label{font-size:12.5px;color:var(--tx3);margin-right:2px}
+.chip{appearance:none;font-family:inherit;font-size:12.5px;font-weight:600;padding:6px 13px;border-radius:999px;
+  border:1px solid var(--line2);background:var(--panel);color:var(--tx2);cursor:pointer;transition:.18s;
+  display:inline-flex;align-items:center;gap:6px}
+.chip:hover{border-color:var(--line2);color:var(--tx);background:var(--panel2)}
+.chip .dot{width:9px;height:9px;border-radius:50%;background:currentColor;opacity:.35;transition:.18s}
+.chip.on{color:#0a0d14;font-weight:700}
+.chip.on .dot{background:#0a0d14;opacity:.9}
+.chip.mini{font-size:11.5px;padding:4px 10px}
+.sep{width:1px;height:20px;background:var(--line2);margin:0 5px}
+select,input[type=number]{font-family:inherit;font-size:12.5px;background:var(--panel2);color:var(--tx);
+  border:1px solid var(--line2);border-radius:9px;padding:6px 10px;cursor:pointer;outline:none}
+select:focus,input:focus{border-color:var(--gold)}
+
+/* ---------- chart ---------- */
+.chartbox{position:relative;width:100%;height:520px}
+.chartbox.tall{height:600px}
+.chartbox.short{height:360px}
+
+/* ---------- rotation timeline ---------- */
+.era{margin-bottom:34px}
+.era-title{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.era-title h3{font-size:19px;font-weight:800;letter-spacing:-.01em}
+.era-title .badge{font-size:11.5px;font-weight:700;padding:4px 11px;border-radius:7px;letter-spacing:.05em}
+.badge.w70{background:rgba(245,197,66,.15);color:var(--gold);border:1px solid rgba(245,197,66,.3)}
+.badge.w00{background:rgba(74,163,223,.15);color:var(--cyan);border:1px solid rgba(74,163,223,.3)}
+.tl{position:relative;padding-left:30px}
+.tl::before{content:'';position:absolute;left:9px;top:6px;bottom:6px;width:2px;
+  background:linear-gradient(180deg,var(--gold),var(--copper) 38%,var(--cyan) 72%,transparent)}
+.stage{position:relative;margin-bottom:14px;background:var(--panel);border:1px solid var(--line);
+  border-radius:13px;padding:15px 18px;transition:.22s}
+.stage:hover{border-color:var(--line2);background:var(--panel2);transform:translateX(4px)}
+.stage::before{content:'';position:absolute;left:-25px;top:22px;width:11px;height:11px;border-radius:50%;
+  background:var(--sc,var(--gold));box-shadow:0 0 0 3px rgba(8,11,18,.92),0 0 14px var(--sc,var(--gold))}
+.stage .hd{display:flex;align-items:baseline;gap:11px;flex-wrap:wrap;margin-bottom:6px}
+.stage .no{font-size:11.5px;font-weight:800;color:var(--sc,var(--gold));letter-spacing:.08em;
+  padding:2px 8px;border-radius:5px;background:color-mix(in srgb,var(--sc,var(--gold)) 14%,transparent)}
+.stage .ttl{font-size:15px;font-weight:700}
+.stage .yr{font-size:12.5px;color:var(--tx3);font-variant-numeric:tabular-nums;margin-left:auto;white-space:nowrap}
+.stage .bd{font-size:13.5px;color:var(--tx2);line-height:1.72}
+.stage .bd b{color:var(--tx);font-weight:600}
+.stage .lead{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px}
+.pill{font-size:11.5px;padding:3px 10px;border-radius:6px;background:rgba(255,255,255,.055);
+  border:1px solid var(--line);color:var(--tx2)}
+.pill.up{background:rgba(255,90,90,.13);border-color:rgba(255,90,90,.3);color:#ff9c9c;font-weight:600}
+.pill.dn{background:rgba(40,201,138,.13);border-color:rgba(40,201,138,.3);color:#7fe0b6;font-weight:600}
+.kv{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+
+/* ---------- order strip ---------- */
+.order{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:18px;border-radius:13px;
+  background:linear-gradient(120deg,rgba(245,197,66,.09),rgba(224,123,57,.07),rgba(74,163,223,.07));
+  border:1px solid var(--line2);margin-bottom:18px}
+.order .oi{font-size:13.5px;font-weight:700;padding:7px 15px;border-radius:9px;
+  background:rgba(10,13,20,.6);border:1px solid var(--line2)}
+.order .ar{color:var(--gold);font-weight:800;font-size:15px}
+.order .lb{font-size:12.5px;color:var(--tx2);width:100%;margin-bottom:4px}
+
+/* ---------- legend / table ---------- */
+table.tb{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+table.tb th{text-align:left;padding:9px 11px;color:var(--tx3);font-weight:600;font-size:12px;
+  border-bottom:1px solid var(--line2);white-space:nowrap}
+table.tb td{padding:9px 11px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+table.tb tr:hover td{background:var(--panel)}
+table.tb td.n{text-align:right}
+.pos{color:var(--up);font-weight:600}
+.neg{color:var(--down);font-weight:600}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:15px}
+.mini-note{font-size:12px;color:var(--tx3);line-height:1.75;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+.mini-note b{color:var(--tx2)}
+footer{color:var(--tx3);font-size:12px;padding:36px 0 0;border-top:1px solid var(--line);margin-top:40px;line-height:1.85}
+footer b{color:var(--tx2)}
+@media(max-width:720px){
+  .wrap{padding:0 15px}
+  .chartbox{height:400px}.chartbox.tall{height:430px}
+  .stat .v{font-size:22px}
+  h1{font-size:29px}
+  .sub{font-size:14.5px}
+  .stage .yr{margin-left:0;width:100%}
+  .srcchip{white-space:normal;max-width:100%}
+  .stats{grid-template-columns:repeat(auto-fit,minmax(148px,1fr))}
+  .grid2{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="eyebrow">Macro Commodities · 1900 — 2025</div>
+  <h1>大宗商品百年周期全景</h1>
+  <p class="sub">横跨 <b>125 年</b>、覆盖 <b>贵金属 / 有色金属 / 农产品 / 能源化工</b> 四大类 <b>20 个主力品种</b>的价格长河。
+  不只是价格曲线——更拆解了每一轮涨跌的<b>传导次序与轮动节奏</b>：谁先动、谁接力、谁最后补涨，以及行情在哪里见顶。</p>
+  <div class="srcline" id="srcline"></div>
+  <div class="stats" id="stats"></div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button class="tab on" data-p="panorama">① 百年全景</button>
+  <button class="tab" data-p="prices">② 价格走势</button>
+  <button class="tab" data-p="index">③ 归一化对比</button>
+  <button class="tab" data-p="cycle">④ 轮动节奏</button>
+  <button class="tab" data-p="method">⑤ 数据与方法</button>
+</nav>
+
+<!-- ================= ① 百年全景 ================= -->
+<section class="pane on" id="p-panorama">
+  <div class="card">
+    <h2>剔除通胀后的百年真实购买力 <span class="tag">1900 — 2015 · 实际价格指数</span></h2>
+    <p class="desc">一张图看清一个世纪的真相：<b>多数商品的实际价格在长期是下行的</b>（技术进步压低成本），
+    只有<b>能源与贵金属</b>走出了系统性上行。纵轴为对数刻度，基期 <b>1900 = 100</b>——数值 200 表示相对 1900 年实际上涨了一倍。</p>
+    <div class="ctrls" id="ctrl-lr"><span class="ctl-label">选择商品</span></div>
+    <div class="chartbox tall"><canvas id="cv-lr"></canvas></div>
+    <div class="mini-note"><b>读图提示：</b>黄金在 1980 年初的实际价格指数冲到 250 附近（美元与黄金脱钩 + 两次石油危机 + 滞胀），
+    2011—2012 年再度逼近这一水平；而小麦、棉花、糖的实际价格在百年尺度上大幅回落——这正是「工业品通缩、资源品抗通胀」分野的量化证据。</div>
+  </div>
+
+  <div class="card">
+    <h2>黄金 · 183 年名义价格 <span class="tag">1833 — 2025 · 美元/盎司</span></h2>
+    <p class="desc">全场唯一可回溯至 19 世纪的超长序列。金本位时代价格被钉死在 <b>约 19—35 美元/盎司</b>长达一个多世纪，
+    1971 年布雷顿森林体系瓦解后进入自由定价，此后 54 年上涨逾 <b>83 倍</b>（40.95 → 3,442 美元/盎司）。</p>
+    <div class="chartbox"><canvas id="cv-gold"></canvas></div>
+    <div class="mini-note"><b>三个台阶：</b>① 1833—1933 金本位，价格恒定在 18.93—26.33 美元；
+    ② 1934—1971 美元贬值后官方价锚定 35 美元；③ 1971 年至今自由浮动，1979—80、2005—11、2019—25 三轮主升。</div>
+  </div>
+</section>
+
+<!-- ================= ② 价格走势 ================= -->
+<section class="pane" id="p-prices">
+  <div class="card">
+    <h2>分品种名义价格走势 <span class="tag">1960 — 2024</span></h2>
+    <p class="desc">按四大类自由切换、多选叠加。注意不同品种单位差异巨大（黄金用美元/盎司、铜用美元/吨、农产品用美元/吨或公斤），
+    同图对比时建议切换<b>对数刻度</b>，或改用「归一化对比」页签。</p>
+    <div class="ctrls" id="ctrl-wb"></div>
+    <div class="ctrls">
+      <span class="ctl-label">刻度</span>
+      <button class="chip mini on" data-scale="logarithmic">对数</button>
+      <button class="chip mini" data-scale="linear">线性</button>
+    </div>
+    <div class="chartbox tall"><canvas id="cv-wb"></canvas></div>
+  </div>
+</section>
+
+<!-- ================= ③ 归一化对比 ================= -->
+<section class="pane" id="p-index">
+  <div class="card">
+    <h2>同一把尺子：归一化涨幅对比 <span class="tag">基期 = 100</span></h2>
+    <p class="desc">把所有品种换算成「以某一年为 100」的相对涨幅，直接比出<b>谁涨得更凶</b>。
+    默认以 <b>1960 年</b>为基期（World Bank 序列起点），可自由切换基期年份。</p>
+    <div class="ctrls">
+      <span class="ctl-label">基期年份</span>
+      <input type="number" id="baseyear" value="1960" min="1960" max="2024" step="1">
+      <button class="chip mini" data-preset="1970">1970</button>
+      <button class="chip mini" data-preset="1990">1990</button>
+      <button class="chip mini" data-preset="2000">2000</button>
+      <button class="chip mini" data-preset="2020">2020</button>
+      <span class="sep"></span>
+      <span class="ctl-label">口径</span>
+      <button class="chip mini on" data-iact="nominal">名义价格</button>
+    </div>
+    <div class="ctrls" id="ctrl-norm"></div>
+    <div class="chartbox tall"><canvas id="cv-norm"></canvas></div>
+    <div class="grid2" style="margin-top:22px">
+      <div>
+        <h2 style="font-size:15px;margin-bottom:8px">1960 → 2024 累计涨幅排行</h2>
+        <div class="scroll"><table class="tb" id="tb-rank"></table></div>
+      </div>
+      <div>
+        <h2 style="font-size:15px;margin-bottom:8px">关键节点涨幅（阶段高低点）</h2>
+        <div class="scroll"><table class="tb" id="tb-phase"></table></div>
+        <div class="mini-note" id="phase-note"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ④ 轮动节奏 ================= -->
+<section class="pane" id="p-cycle">
+  <div class="card">
+    <h2>轮动总纲 <span class="tag">谁先动 · 谁接力 · 谁殿后</span></h2>
+    <p class="desc">综合招商证券《70-80 年代大宗商品牛市复盘》与国联期货《商品市场历史回顾》两篇研究的核心结论：
+    <b>涨价先后顺序并不固定</b>，与各品种自身供需高度相关，但遵循一条稳定的传导链——
+    <b>货币驱动贵金属 → 能源成本驱动化工 → 农业与化肥互相强化</b>。</p>
+    <div class="order">
+      <div class="lb">冲顶（见顶）先后顺序 · 涨价行情的经典次序</div>
+      <span class="oi" style="color:#7C8CA8">油气</span><span class="ar">→</span>
+      <span class="oi" style="color:#F5C542">贵金属</span><span class="ar">→</span>
+      <span class="oi" style="color:#E07B39">工业金属</span><span class="ar">→</span>
+      <span class="oi" style="color:#C084FC">化肥</span><span class="ar">→</span>
+      <span class="oi" style="color:#E8B84B">农产品</span><span class="ar">→</span>
+      <span class="oi" style="color:#9AA5B1">煤炭</span>
+    </div>
+    <div class="order" style="background:linear-gradient(120deg,rgba(74,163,223,.09),rgba(167,139,250,.07))">
+      <div class="lb">1973—1974 第一次石油危机 · 实测触顶顺序</div>
+      <span class="oi" style="color:#8FBC5A">大豆</span><span class="ar">→</span>
+      <span class="oi" style="color:#7C8CA8">石油</span><span class="ar">→</span>
+      <span class="oi" style="color:#F5C542">金 / 银</span><span class="ar">→</span>
+      <span class="oi" style="color:#E07B39">铜 / 锌</span><span class="ar">→</span>
+      <span class="oi" style="color:#56C596">尿素</span><span class="ar">→</span>
+      <span class="oi" style="color:#9AA5B1">煤炭</span>
+    </div>
+    <div class="mini-note"><b>两个次序的差别很关键：</b>经典次序是「货币先动、能源接力」的<b>总纲</b>；
+    而 1973—74 那次是由<b>粮食歉收先点火</b>（大豆领涨），随后石油危机引爆能源——说明<b>点火源不同，起始顺序会改变，但中后段的接力次序高度稳定</b>。</div>
+  </div>
+
+  <div class="card">
+    <div class="era">
+      <div class="era-title">
+        <h3>第一轮超级周期 · 1970—1980 十年滞胀型大牛市</h3>
+        <span class="badge w70">五阶段 · 超级牛市</span>
+      </div>
+      <div class="desc" style="margin-bottom:16px">货币信用体系崩塌 + 两次石油危机 + 美国政策失误 + 投机资本，四重共振把商品推成十年牛市。
+      终结点：沃尔克把联邦基金利率从 10.94% 干到 18.9%。</div>
+      <div class="tl" id="tl-70s"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="era">
+      <div class="era-title">
+        <h3>第二轮超级周期 · 2001—2026 十七轮涨跌接力</h3>
+        <span class="badge w00">十七阶段 · 货币与需求双驱动</span>
+      </div>
+      <div class="desc" style="margin-bottom:16px">国联期货的复盘把 2000 年以来的行情切成 17 个阶段。一条主线贯穿始终：
+      <b>牛市起点几乎总是货币</b>（流动性宽松把价格中枢抬起来），<b>主升段无一例外由需求完成</b>，<b>而趋势拐点总出现在需求由强转弱之时</b>。供给冲击只是这条主线之外的扰动。</div>
+      <div class="mini-note" style="margin:0 0 16px;padding-top:0;border-top:0">下方每阶段的彩色标签为<b>区间首末年年度均价涨跌幅</b>（World Bank Pink Sheet 口径，红涨绿跌），按涨幅由高到低排列，用于直观看清<b>每一轮里谁涨得最多、谁在跌</b>。第 17 阶段数据窗口尚未走完，仅列已可得数据。</div>
+      <div class="tl" id="tl-00s"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>三轮超级周期对照 <span class="tag">共性规律</span></h2>
+    <div class="scroll"><table class="tb" id="tb-cycle"></table></div>
+    <div class="mini-note"><b>规律一（起点）：</b>三轮超级周期都始于货币体系或货币条件的重大变化——1971 布雷顿森林体系瓦解、2001 降息+美元走弱、2020 无限量宽松。
+    <b>规律二（接力）：</b>需求从不是发令枪，而是第二棒；它决定行情的高度与长度。
+    <b>规律三（终点）：</b>需求由强转弱 + 货币转向收紧，二者叠加时行情终结；单一供给冲击（如 2022 俄乌、2026 中东）只能造成脉冲，无法扭转趋势。</div>
+  </div>
+</section>
+
+<!-- ================= ⑤ 数据与方法 ================= -->
+<section class="pane" id="p-method">
+  <div class="card">
+    <h2>数据来源与口径说明 <span class="tag">透明可追溯</span></h2>
+    <div id="srcdetail"></div>
+    <div class="mini-note">
+      <b>关于 iFinD 取数的说明：</b>同花顺 iFinD 宏观行业经济数据库（EDB）的取数接口对单次返回长度有限制（实测仅返回最新约 35 条年度记录，
+      时间范围参数不生效），无法直接导出百年序列。因此本页 <b>1960—2024 年分品种价格</b>采用 World Bank Pink Sheet 年度数据，
+      并用 iFinD 序列做了<b>逐点交叉校验</b>；iFinD 同时提供了各品种<b>指标元数据</b>（如黄金年均价指标可追溯至 1833 年），用于确认长历史的可得性边界。
+    </div>
+  </div>
+  <div class="card">
+    <h2>iFinD 交叉校验结果 <span class="tag">一致性验证</span></h2>
+    <p class="desc">下表演示 iFinD 序列与页面主数据在同一年的对齐情况，用于验证数据可信度。</p>
+    <div class="scroll"><table class="tb" id="tb-ifind"></table></div>
+  </div>
+</section>
+
+<footer>
+  <b>大宗商品百年周期全景</b> · 单文件离线页面 · 构建于 <span id="fdate"></span><br>
+  数据口径：名义价格为当年美元计价年均价；实际价格指数以 1900 = 100 为基期。<br>
+  本页用于宏观周期研究与历史复盘，所有涨幅均为历史统计，<b>不构成任何投资建议</b>。
+</footer>
+</div>
+
+<script>/*__CHARTJS__*/</script>
+<script>const DATA = /*__DATA__*/;</script>
+<script>
+/* ============================================================
+   0. 基础
+   ============================================================ */
+const S = DATA.series, CATS = DATA.cats, CCODE = ['gold','silver','platinum','copper','aluminum','zinc','lead','tin','nickel','wheat','maize','soybean','cotton','sugar','coffee','crude','gas','rubber','urea','dap'];
+const byCode = c => S[c];
+const YEARS = (o) => Object.keys(o).map(Number).sort((a,b)=>a-b);
+const fmt = (v) => v==null?'—':(Math.abs(v)>=1000? v.toLocaleString('zh-CN',{maximumFractionDigits:0}) : (Math.abs(v)>=10? v.toFixed(1) : v.toFixed(2)));
+const catColor = {'贵金属':'#F5C542','有色金属':'#E07B39','农产品':'#4ADE80','能源化工':'#4AA3DF'};
+
+/* Chart.js 全局风格 */
+Chart.defaults.color = '#9aa8c0';
+Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+Chart.defaults.font.size = 11.5;
+Chart.defaults.borderColor = 'rgba(255,255,255,.07)';
+const TIP = {
+  backgroundColor:'rgba(10,14,22,.94)', borderColor:'rgba(255,255,255,.16)', borderWidth:1,
+  titleColor:'#fff', bodyColor:'#dfe6f2', padding:11, cornerRadius:9, displayColors:true,
+  boxWidth:9, boxHeight:9, boxPadding:5, titleFont:{size:12.5,weight:'700'}, bodyFont:{size:12},
+  callbacks:{ label:(c)=>` ${c.dataset.label}：${fmt(c.parsed.y)}` }
+};
+const LEGEND = {position:'top', align:'start', labels:{boxWidth:9, boxHeight:9, padding:13, usePointStyle:true, pointStyle:'circle', font:{size:11.5}}};
+
+/* ============================================================
+   1. Header
+   ============================================================ */
+document.getElementById('srcline').innerHTML =
+  DATA.meta.sources.map(s=>`<span class="srcchip"><b>${s.k}</b> · ${s.v.split('；')[0].split('——')[0].slice(0,44)}</span>`).join('');
+document.getElementById('fdate').textContent = DATA.meta.built;
+
+const g=S.gold, u=g.ultra, g1980=u['1980'], g2025=u['2025'];
+document.getElementById('stats').innerHTML = `
+  <div class="stat" style="--accent:#F5C542"><div class="k">时间跨度</div><div class="v">125 年</div><div class="d">1900 — 2025 · 黄金可溯至 1833</div></div>
+  <div class="stat" style="--accent:#E07B39"><div class="k">覆盖品种</div><div class="v">20 个</div><div class="d">贵金属 3 · 有色 6 · 农产品 6 · 能化 5</div></div>
+  <div class="stat" style="--accent:#4ADE80"><div class="k">黄金百年涨幅</div><div class="v">${Math.round(g2025/19*10)/10} 倍</div><div class="d">1900 年 18.96 → 2025 年 ${fmt(g2025)} 美元/盎司</div></div>
+  <div class="stat" style="--accent:#A78BFA"><div class="k">经历超级周期</div><div class="v">3 轮</div><div class="d">1970-80 · 2001-11 · 2020-至今</div></div>
+  <div class="stat" style="--accent:#F08AA8"><div class="k">复盘周期段</div><div class="v">22 段</div><div class="d">1970s 五阶段 + 2000s 十七轮</div></div>`;
+
+/* ============================================================
+   2. Tabs —— 切换时按需重绘（隐藏 pane 的 canvas 尺寸为 0，必须懒加载）
+   ============================================================ */
+function drawPane(p){
+  if(p==='panorama'){ if(typeof drawLR==='function') drawLR(); if(typeof drawGold==='function') drawGold(); }
+  else if(p==='prices'){ if(typeof drawWB==='function') drawWB(); }
+  else if(p==='index'){ if(typeof drawNorm==='function') drawNorm(); }
+}
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick=()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+    document.querySelectorAll('.pane').forEach(x=>x.classList.remove('on'));
+    t.classList.add('on');
+    const pane=document.getElementById('p-'+t.dataset.p);
+    pane.classList.add('on');
+    // 同步绘制：pane 已是 display:block，Chart.js 测量容器会强制 reflow 拿到正确尺寸。
+    // 不用 requestAnimationFrame —— 帧调度在部分环境（无头/后台标签）会停摆，导致图表永不渲染。
+    drawPane(t.dataset.p);
+  };
+});
+window.addEventListener('load',()=>{
+  document.querySelectorAll('.pane.on').forEach(p=>drawPane(p.id.replace('p-','')));
+});
+
+/* ============================================================
+   3. 通用：多选 chip 组
+   ============================================================ */
+function buildChips(host, codes, active, colors, onchange){
+  host.querySelectorAll('.chip-sc').forEach(e=>e.remove());
+  const anchor = host.querySelector('.sep') || null;
+  codes.forEach(c=>{
+    const b=document.createElement('button');
+    b.className='chip chip-sc'+(active.has(c)?' on':'');
+    const col = colors[c] || catColor[S[c].cat];
+    b.style.borderColor = active.has(c)? col : '';
+    b.style.background = active.has(c)? col : '';
+    b.innerHTML=`<span class="dot" style="${active.has(c)?'':'background:'+col+';opacity:.75'}"></span>${S[c].name}`;
+    b.onclick=()=>{ active.has(c)?active.delete(c):active.add(c); onchange(); };
+    host.appendChild(b);
+  });
+}
+
+/* ============================================================
+   4. Chart 集合
+   ============================================================ */
+const charts = {};
+const COL = {}; CCODE.forEach(c=>COL[c]=S[c].color);
+const LRCODES = CCODE.filter(c=>Object.keys(S[c].lr).length>0);
+
+/* ---- ① 百年实际价格指数 ---- */
+const lrActive = new Set(['gold','copper','wheat','crude','sugar','silver']);
+function lrDataset(c){
+  const o=S[c].lr; const pts=YEARS(o).map(y=>({x:y,y:o[y]}));
+  return {label:S[c].name, data:pts, borderColor:S[c].color, backgroundColor:S[c].color,
+    borderWidth: c==='gold'?2.6:1.8, pointRadius:0, pointHoverRadius:5, tension:.15, spanGaps:true};
+}
+function drawLR(){
+  const ctx=document.getElementById('cv-lr');
+  const ds=LRCODES.filter(c=>lrActive.has(c)).map(lrDataset);
+  if(charts.lr) charts.lr.destroy();
+  charts.lr = new Chart(ctx,{type:'line',data:{datasets:ds},options:{
+    responsive:true, maintainAspectRatio:false,
+    interaction:{mode:'nearest',intersect:false},
+    plugins:{legend:LEGEND, tooltip:{...TIP, callbacks:{label:c=>` ${c.dataset.label}：指数 ${fmt(c.parsed.y)}`}}},
+    scales:{
+      x:{type:'linear', min:1900, max:2015, title:{display:true,text:'年份',color:'#63708a'},
+         ticks:{stepSize:10, callback:v=>v}},
+      y:{type:'logarithmic', title:{display:true,text:'实际价格指数（1900 = 100，对数）',color:'#63708a'},
+         ticks:{callback:v=>{const a=[10,20,30,50,80,100,150,200,300,500]; return a.includes(v)?v:''}}}
+    },
+    animation:{duration:600}
+  }});
+}
+buildChips(document.getElementById('ctrl-lr'), LRCODES, lrActive, COL, drawLR);
+
+/* ---- ①b 黄金 183 年 ---- */
+function drawGold(){
+  const o=S.gold.ultra, ys=YEARS(o);
+  if(charts.gold) charts.gold.destroy();
+  charts.gold = new Chart(document.getElementById('cv-gold'),{type:'line',data:{datasets:[{
+    label:'黄金名义年均价', data:ys.map(y=>({x:y,y:o[y]})),
+    borderColor:'#F5C542', backgroundColor:'rgba(245,197,66,.12)', fill:true,
+    borderWidth:2.2, pointRadius:0, pointHoverRadius:5, tension:.12
+  }]},options:{
+    responsive:true, maintainAspectRatio:false, interaction:{mode:'nearest',intersect:false},
+    plugins:{legend:{display:false}, tooltip:{...TIP, callbacks:{title:c=>c[0].parsed.x+' 年', label:c=>` 黄金：${fmt(c.parsed.y)} 美元/盎司`}}},
+    scales:{
+      x:{type:'linear',min:1833,max:2025,ticks:{stepSize:25},
+         title:{display:true,text:'年份',color:'#63708a'},
+         grid:{color:ctx=>[1971,1933].includes(ctx.tick.value)?'rgba(245,197,66,.45)':'rgba(255,255,255,.05)'}},
+      y:{type:'logarithmic',title:{display:true,text:'美元/盎司（对数）',color:'#63708a'}}
+    }
+  }});
+}
+
+/* ---- ② 分品种名义价格 ---- */
+const wbActive = new Set(['gold','copper','crude','wheat','sugar','maize']);
+let wbScale='logarithmic';
+function wbDataset(c){
+  const o=S[c].wb; const pts=YEARS(o).map(y=>({x:y,y:o[y]}));
+  return {label:S[c].name+' '+(S[c].unit||''), data:pts, borderColor:S[c].color, backgroundColor:S[c].color,
+    borderWidth:1.9, pointRadius:0, pointHoverRadius:5, tension:.15, spanGaps:true};
+}
+function drawWB(){
+  const ds=CCODE.filter(c=>wbActive.has(c)).map(wbDataset);
+  if(charts.wb) charts.wb.destroy();
+  charts.wb=new Chart(document.getElementById('cv-wb'),{type:'line',data:{datasets:ds},options:{
+    responsive:true,maintainAspectRatio:false,interaction:{mode:'nearest',intersect:false},
+    plugins:{legend:LEGEND, tooltip:{...TIP, callbacks:{title:c=>c[0].parsed.x+' 年', label:c=>` ${c.dataset.label.split(' ')[0]}：${fmt(c.parsed.y)}`}}},
+    scales:{
+      x:{type:'linear',min:1960,max:2024,ticks:{stepSize:5},title:{display:true,text:'年份',color:'#63708a'}},
+      y:{type:wbScale, title:{display:true,text:wbScale==='logarithmic'?'价格（对数刻度）':'价格（线性刻度）',color:'#63708a'}}
+    }
+  }});
+}
+buildChips(document.getElementById('ctrl-wb'), CCODE, wbActive, COL, drawWB);
+document.querySelectorAll('[data-scale]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('[data-scale]').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); wbScale=b.dataset.scale; drawWB();
+});
+
+/* ---- ③ 归一化 ---- */
+const normActive = new Set(['gold','copper','crude','wheat','sugar','coffee','gas','nickel']);
+let baseYear=1960;
+function normDataset(c){
+  const o=S[c].wb; const pts=[];
+  const b=o[String(baseYear)] ?? o[YEARS(o).find(y=>y>=baseYear)];
+  if(!b) return null;
+  YEARS(o).filter(y=>y>=baseYear).forEach(y=>pts.push({x:y,y:+(o[y]/b*100).toFixed(1)}));
+  if(pts.length<2) return null;
+  return {label:S[c].name,data:pts,borderColor:S[c].color,backgroundColor:S[c].color,
+    borderWidth:1.9,pointRadius:0,pointHoverRadius:5,tension:.15};
+}
+function drawNorm(){
+  const ds=CCODE.filter(c=>normActive.has(c)).map(normDataset).filter(Boolean);
+  if(charts.norm) charts.norm.destroy();
+  charts.norm=new Chart(document.getElementById('cv-norm'),{type:'line',data:{datasets:ds},options:{
+    responsive:true,maintainAspectRatio:false,interaction:{mode:'nearest',intersect:false},
+    plugins:{legend:LEGEND, tooltip:{...TIP, callbacks:{title:c=>c[0].parsed.x+' 年', label:c=>` ${c.dataset.label}：${fmt(c.parsed.y)}（基期=100）`}}},
+    scales:{
+      x:{type:'linear',min:baseYear,max:2024,ticks:{stepSize:5},title:{display:true,text:'年份',color:'#63708a'}},
+      y:{type:'logarithmic',title:{display:true,text:`相对 ${baseYear} 年 = 100（对数）`,color:'#63708a'}}
+    }
+  }});
+  renderRank();
+}
+buildChips(document.getElementById('ctrl-norm'), CCODE, normActive, COL, drawNorm);
+document.getElementById('baseyear').onchange=e=>{
+  const v=Math.max(1960,Math.min(2024,+e.target.value||1960)); e.target.value=v; baseYear=v; drawNorm();
+};
+document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>{
+  baseYear=+b.dataset.preset; document.getElementById('baseyear').value=baseYear; drawNorm();
+});
+
+/* 累计涨幅排行 */
+function renderRank(){
+  const rows=[];
+  CCODE.forEach(c=>{
+    const o=S[c].wb, ys=YEARS(o);
+    if(!o['1960']) return;
+    const end=ys[ys.length-1];
+    rows.push({n:S[c].name,cat:S[c].cat,s:o['1960'],e:o[String(end)],endY:end,r:o[String(end)]/o['1960']*100-100});
+  });
+  rows.sort((a,b)=>b.r-a.r);
+  document.getElementById('tb-rank').innerHTML =
+    '<tr><th>#</th><th>品种</th><th>类别</th><th class="n">1960</th><th class="n">最新</th><th class="n">累计涨幅</th></tr>'+
+    rows.map((r,i)=>`<tr><td style="color:${i<3?'#F5C542':'#63708a'}">${i+1}</td>
+      <td style="color:${S[CCODE.find(c=>S[c].name===r.n)].color};font-weight:600">${r.n}</td>
+      <td style="color:${catColor[r.cat]};font-size:12px">${r.cat}</td>
+      <td class="n">${fmt(r.s)}</td><td class="n">${fmt(r.e)}</td>
+      <td class="n ${r.r>=0?'pos':'neg'}">${r.r>=0?'+':''}${(r.r/100).toFixed(2)} 倍</td></tr>`).join('');
+}
+renderRank();
+
+/* 阶段涨跌（关键周期） */
+(function(){
+  const phases=[
+    {n:'1971—1980 十年大牛市',s:1971,e:1980,note:'布雷顿森林体系瓦解 + 两次石油危机'},
+    {n:'1980—1999 二十年熊市',s:1980,e:1999,note:'沃尔克加息后漫长出清'},
+    {n:'2001—2008 中国超级周期',s:2001,e:2008,note:'中国重工业化需求爆发'},
+    {n:'2011—2015 产能过剩熊市',s:2011,e:2015,note:'页岩油 + 矿山产能集中释放'},
+    {n:'2020—2022 疫情冲顶',s:2020,e:2022,note:'无限量宽松 + 俄乌冲突'},
+  ];
+  let h='<tr><th>周期</th><th class="n">黄金</th><th class="n">原油</th><th class="n">铜</th><th class="n">小麦</th><th class="n">白糖</th></tr>';
+  phases.forEach(p=>{
+    const cells=['gold','crude','copper','wheat','sugar'].map(c=>{
+      const o=S[c].wb; const a=o[String(p.s)],b=o[String(p.e)];
+      if(!a||!b) return '<td class="n">—</td>';
+      const r=(b/a-1)*100;
+      return `<td class="n ${r>=0?'pos':'neg'}">${r>=0?'+':''}${r.toFixed(0)}%</td>`;
+    }).join('');
+    h+=`<tr><td>${p.n}<div style="font-size:11.5px;color:#63708a">${p.note}</div></td>${cells}</tr>`;
+  });
+  document.getElementById('tb-phase').innerHTML=h;
+  document.getElementById('phase-note').innerHTML=
+    '涨幅按周期<b>首年→末年</b>年均价计算，仅示意量级。可以清晰看到：<b>2001—2008 那一轮几乎所有品种同步大涨</b>（典型的需求驱动型普涨），'+
+    '而 <b>1980 年代之后的长周期里，黄金与原油相对抗跌、农产品反而跑输</b>——这就是「货币属性 vs 实体需求」在长周期里的分野。';
+})();
+
+/* ============================================================
+   5. 轮动节奏时间轴
+   ============================================================ */
+const S70=[
+ {c:'#F5C542',n:'01',t:'货币体系重构 · 金价领涨',y:'1970 — 1972',
+  b:'<b>1971.8.15「尼克松冲击」</b>：单方面终止美元兑换黄金，布雷顿森林体系瓦解，全球进入信用货币时代。美国黄金储备已从战后 2 万吨降至 9069.7 吨，而政府总负债达 6739 亿美元。',
+  lead:['黄金 +16.1%(1971)','黄金 +47.0%(1972)','尿素 +82.8%','磷酸二铵 +50.0%','白银 +42.4%']},
+ {c:'#E07B39',n:'02',t:'第一次石油危机 · 全面暴涨',y:'1973 — 1974',
+  b:'<b>1973.10 第四次中东战争</b>爆发，阿拉伯国家减产禁运，OPEC 将油价从 5.12 抬到 11.65 美元/桶。同期全球粮食歉收爆发粮荒。成本推动 + 货币贬值 + 通胀预期自我实现，四力叠加。<b>实测触顶顺序：大豆 &gt; 石油 &gt; 金银 &gt; 铜锌 &gt; 尿素 &gt; 煤炭</b>。',
+  lead:['布伦特原油 +381.5%','尿素 +341.3%','磷矿石 +205.5%','天然气 +150.7%','白银 +98.9%']},
+ {c:'#4ADE80',n:'03',t:'衰退滞胀 · 高位震荡分化',y:'1975 — 1977',
+  b:'高油价高通胀把经济拖入滞胀：美国实际 GDP 1974 年降 0.5%、1975 年再降 0.2%，CPI 连续 15 个月两位数（1974.11 见顶 12.2%），失业率破 8%。<b>商品内部剧烈分化</b>——化肥、大豆、铅领跌，而能源与钢铁刚需品种逆势走强。',
+  lead:['磷酸二铵 -62%','尿素 -41%','铅 -38%','大豆 -36%','澳煤 +59%','镍 +24%']},
+ {c:'#A78BFA',n:'04',t:'第二次石油危机 · 大宗冲顶',y:'1978 — 1980 初',
+  b:'<b>伊斯兰革命</b>使伊朗日产量从 650 万桶崩到不足 100 万桶，油价从 13 涨到 36.5 美元；1979.12 苏联入侵阿富汗，避险与通胀预期同步冲顶。<b>白银成为投机狂潮主角</b>——亨特兄弟囤积数亿盎司试图操纵市场。黄金创下 675 美元/盎司峰值。',
+  lead:['白银 +554.5%','布伦特原油 +211.3%','黄金 +196.9%','铂金 +143.1%','欧洲天然气 +83.5%','铜 +72.7%']},
+ {c:'#F08AA8',n:'05',t:'沃尔克冲击 · 牛市终结',y:'1980 Q2 — 1980 末',
+  b:'新任美联储主席<b>保罗·沃尔克</b>为遏制恶性通胀，把有效联邦基金利率从 10.94% 一路推至 18.9%。持有黄金等非生息资产的机会成本骤升，资本回流美国、美元急升，十年牛市就此落幕。',
+  lead:['联邦基金利率 10.94% → 18.9%','黄金 675 → 315 美元（-53%）','化肥 / 农化拐点滞后']},
+];
+function pillCls(t){
+  if(/[+＋]\s*\d/.test(t)) return 'pill up';
+  if(/[-\u2212]\s*\d/.test(t)) return 'pill dn';
+  return 'pill';
+}
+function rot(items, host){
+  document.getElementById(host).innerHTML = items.map(s=>`
+    <div class="stage" style="--sc:${s.c}">
+      <div class="hd"><span class="no">${s.n}</span><span class="ttl">${s.t}</span><span class="yr">${s.y}</span></div>
+      <div class="bd">${s.b}</div>
+      <div class="lead">${(s.lead||[]).map(x=>`<span class="${pillCls(x)}">${x}</span>`).join('')}</div>
+    </div>`).join('');
+}
+rot(S70,'tl-70s');
+
+const S00=[
+ {c:'#4AA3DF',n:'01',t:'货币启动',y:'2001 底 — 2003',b:'牛市第一棒，推手是<b>货币而非需求</b>。美联储把利率压到 1%，美元自 2002 年转入贬值通道。工业需求并不强劲，但充裕流动性与弱美元已把价格从底部抬起。',lead:['黄金 +34%','原油 +19%','小麦 +15%','铜 +13%','白糖 -18%']},
+ {c:'#4AA3DF',n:'02',t:'需求驱动主升',y:'2004 — 2006 上',b:'<b>超级周期的核心上升段</b>。中国重工业化加速，钢铁铜铝原油消耗大幅增长。铜价 2006.5 逼近 8800 美元，油价 2006 年站上 70 美元。美联储同期连续十几次加息至 5.25%——<b>利率与商品同涨，因为同源于需求过热</b>。',lead:['铜 +278%','原油 +122%','白糖 +109%','黄金 +66%','小麦 +31%']},
+ {c:'#7EC8E3',n:'03',t:'需求见顶 · 高位平台',y:'2006 下 — 2007 上',b:'全球增长进入顶部平台期。中国 2007 年 GDP 增速达 14.2% 峰值。需求增速停止加快但仍在高位，价格靠需求惯性支撑，油价 50—70 美元反复，铜价高位整理。',lead:['小麦 +33%','黄金 +15%','原油 +11%','铜 +6%','白糖 -32%']},
+ {c:'#F5C542',n:'04',t:'货币驱动冲顶',y:'2007 下 — 2008.7',b:'<b>最后一程由货币主导</b>。2007 夏次贷危机爆发，美联储 9 月开启降息（5.25%→2%），美元指数跌至 71 的数十年低位。<b>实体需求已转弱、制造业 PMI 回落，但商品仍创新高</b>——货币宽松 + 美元贬值 + 通胀对冲。',lead:['原油 +36%','小麦 +28%','白糖 +27%','黄金 +25%','铜 -2%']},
+ {c:'#F08AA8',n:'05',t:'金融海啸 · 商品崩跌',y:'2008.7 — 2009.1',b:'2008.9 雷曼倒闭，去杠杆成主线。需求崩塌与流动性枯竭叠加，<b>商品半年接近腰斩</b>：油价 147→35 美元，铜价 9000→3000 美元以下，抹去五年牛市大部分涨幅。',lead:['白糖 +42%','黄金 +12%','铜 -26%','小麦 -31%','原油 -36%']},
+ {c:'#4ADE80',n:'06',t:'货币主导反弹',y:'2009 — 2010 上',b:'反弹首先由货币推动。美联储启动 QE1，中国 11 月推出<b>四万亿</b>。铜价 3000→7000 美元上方，油价 40→80 美元。此阶段实体需求仍在恢复初期，<b>货币是主要驱动</b>。',lead:['铜 +46%','原油 +28%','黄金 +26%','白糖 +17%']},
+ {c:'#F5C542',n:'07',t:'货币需求双共振 · 冲顶',y:'2010 下 — 2011.4',b:'四万亿效果显现，中国经济重回两位数增长；美联储 11 月启动 QE2。<b>货币与需求两股力量叠加</b>，铜价 2011.2 突破 1 万美元触及 10190 美元历史高位，油价 2011.4 升至 123 美元。',lead:['小麦 +41%','原油 +32%','黄金 +28%','白糖 +22%','铜 +17%']},
+ {c:'#28c98a',n:'08',t:'需求走弱+供给过剩 · 长期阴跌',y:'2011 — 2015',b:'长达四年半的熊市。上半程由需求走弱主导（欧债危机 + 中国连续 12 次上调存准率至 21.5%）；2014 年起<b>供给过剩</b>成为另一股力量——页岩油革命 + OPEC 不减产，油价 115→27 美元，铁矿石 130→40 美元。',lead:['黄金 -26%','小麦 -35%','铜 -38%','白糖 -48%','原油 -51%']},
+ {c:'#8FBC5A',n:'09',t:'供给收缩+需求复苏',y:'2016 — 2017 下',b:'中国<b>供给侧结构性改革</b>压减煤炭钢铁产能，OPEC 与非 OPEC 2016.11 达成减产协议。需求端全球久违同步复苏。铜价回到 7000 美元上方，油价回升至 70 美元附近。<b>货币端相对中性</b>。',lead:['白糖 +19%','铜 +12%','黄金 +8%','原油 +4%','小麦 -15%']},
+ {c:'#28c98a',n:'10',t:'需求预期回落+货币收紧',y:'2018 — 2019.1',b:'美联储 2018 年四次加息并缩表；中美贸易摩擦自 3 月升级。<b>需求预期与流动性双重收紧</b>，铜价 6 月率先见顶，油价 10 月冲高 86 美元后急跌至 50 美元附近。',lead:['原油 +16%','小麦 +16%','黄金 +11%','铜 -3%','白糖 -21%']},
+ {c:'#9AA5B1',n:'11',t:'僵持与分化',y:'2019',b:'货币宽松与需求疲弱僵持。美联储三次降息，但全球制造业全年收缩。<b>工业品与避险资产显著分化</b>：铜油偏弱，铁矿石因淡水河谷矿难大涨，黄金在宽松与避险下走强。',lead:['黄金 +10%','白糖 +2%','小麦 -4%','铜 -8%','原油 -10%']},
+ {c:'#F08AA8',n:'12',t:'疫情冲击 · 商品崩盘',y:'2020 初 — 2020.4',b:'疫情是<b>性质不同的需求冲击</b>——封锁直接中断经济活动，需求瞬时收缩且全球同步。能源受创最重，库存在极短时间累积至极限，<b>近月合约出现极端定价（负油价）</b>。央行紧急宽松也无法阻止，直到封锁解除。',lead:['黄金 +27%','小麦 +15%','铜 +3%','白糖 +1%','原油 -33%']},
+ {c:'#4ADE80',n:'13',t:'货币宽松 · V 型反转',y:'2020.4 — 2021 上',b:'史上规模最大、速度最快的宽松。美联储零利率 + 无限量购债，资产负债表一年多接近翻倍。<b>货币启动、需求接续</b>，幅度与速度均超此前几轮，也为随后高通胀埋下伏笔。',lead:['原油 +67%','铜 +51%','白糖 +38%','小麦 +36%','黄金 +2%']},
+ {c:'#E07B39',n:'14',t:'需求过热+供给瓶颈 · 冲顶',y:'2021 下 — 2022.6',b:'需求过热 + 供给瓶颈共振，货币环境却已转向。<b>三股力量错位</b>是本阶段特征。2022.2 俄乌冲突构成典型外生供给冲击，能源价格脉冲式上行，商品指数 2022 年中见顶。',lead:['原油 +41%','小麦 +36%','白糖 +5%','铜 -5%']},
+ {c:'#28c98a',n:'15',t:'货币收紧+需求降温 · 调整',y:'2022.6 — 2023.7',b:'美联储数十年来最快紧缩，同时缩表。美元大幅走强，前期由货币扩张推升的价格中枢系统性回落。<b>供给冲击形成的价格脉冲难以对抗货币与需求主导的下行方向</b>。',lead:['白糖 +27%','黄金 +8%','铜 -4%','原油 -17%','小麦 -21%']},
+ {c:'#9AA5B1',n:'16',t:'双缺支撑 · 弱势震荡',y:'2023 下 — 2025.3',b:'货币与需求两端均无趋势性支撑。美联储虽 2024.9 开启降息，但资产负债表未扩，流动性总量并未实质宽松。<b>黄金是少数例外</b>——央行储备多元化 + 美元信用担忧，走出独立上行行情。',lead:['黄金 +23%','铜 +8%','原油 -3%','白糖 -13%','小麦 -21%']},
+ {c:'#F5C542',n:'17',t:'需求修复+供给冲击',y:'2025.4 — 2026',b:'全球需求自低位修复，供给端冲击再起。区别于以往由宽松流动性率先启动的反弹，<b>本轮回升更多建立在实际消耗回暖的基础上</b>，需求重新成为行情主导变量，商品价格重心逐步抬升。',lead:['黄金 +44%（2024→2025）','其余品种数据窗口至 2024']},
+];
+rot(S00,'tl-00s');
+
+/* 三轮超级周期对照表 */
+document.getElementById('tb-cycle').innerHTML=`
+<tr><th>维度</th><th>1970 — 1980</th><th>2001 — 2011</th><th>2020 — 至今</th></tr>
+<tr><td>触发货币条件</td><td>布雷顿森林体系瓦解<br><span style="color:#63708a;font-size:12px">美元与黄金脱钩</span></td><td>美联储降息至 1%<br><span style="color:#63708a;font-size:12px">美元 2002 年起贬值</span></td><td>零利率 + 无限量 QE<br><span style="color:#63708a;font-size:12px">资产负债表翻倍</span></td></tr>
+<tr><td>第一棒（领涨）</td><td style="color:#F5C542;font-weight:600">黄金 / 小麦 / 化肥</td><td style="color:#E07B39;font-weight:600">原油 / 铜（需求驱动）</td><td style="color:#F5C542;font-weight:600">黄金 / 能源</td></tr>
+<tr><td>核心供给冲击</td><td>两次石油危机</td><td>中国需求爆发（需求侧）</td><td>俄乌冲突 + 中东局势</td></tr>
+<tr><td>需求接力来源</td><td>战后重建与工业化</td><td>中国重工业化 + 城镇化</td><td>疫后消费回补 + 供应链修复</td></tr>
+<tr><td>见顶标志</td><td>沃尔克加息至 18.9%</td><td>欧债危机 + 中国紧缩 + QE 退出</td><td>美联储激进加息 + 缩表</td></tr>
+<tr><td>黄金峰值</td><td>675 美元/盎司（1980）</td><td>1900 美元/盎司（2011.9）</td><td>—（本轮进行中）</td></tr>
+<tr><td>滞后补涨品种</td><td>化肥 / 农产品 / 煤炭</td><td>农产品 / 贵金属</td><td>农产品 / 化肥</td></tr>`;
+
+/* ============================================================
+   6. 数据与方法
+   ============================================================ */
+document.getElementById('srcdetail').innerHTML = '<div class="grid2">'+DATA.meta.sources.map(s=>`
+  <div style="padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--panel)">
+    <div style="font-weight:700;color:var(--gold);font-size:13.5px;margin-bottom:5px">${s.k}</div>
+    <div style="font-size:13px;color:var(--tx2);line-height:1.7">${s.v}</div>
+  </div>`).join('')+'</div>';
+
+(function(){
+  const ic=DATA.ifind_check, rows=[
+    {c:'gold',k:'gold',u:'美元/盎司',conv:v=>v},
+    {c:'copper',k:'copper',u:'千美元/吨',conv:v=>v*1000},
+    {c:'crude',k:'oil',u:'美元/桶',conv:v=>v},
+  ];
+  let h='<tr><th>品种</th><th>年份</th><th class="n">页面主数据<br><span style="font-weight:400;color:#63708a">World Bank</span></th><th class="n">iFinD 序列</th><th class="n">偏差</th><th>数据源</th></tr>';
+  rows.forEach(r=>{
+    const wb=S[r.c].wb, ifd=ic[r.k].data;
+    [1995,2008,2015,2022,2024].forEach(y=>{
+      const a=wb[String(y)], b=ifd[String(y)];
+      if(a==null||b==null) return;
+      const bv=r.conv(b), dev=Math.abs(a-bv)/a*100;
+      h+=`<tr><td style="color:${S[r.c].color};font-weight:600">${S[r.c].name}</td><td>${y}</td>
+        <td class="n">${fmt(a)}</td><td class="n">${fmt(bv)}</td>
+        <td class="n ${dev<3?'pos':'neg'}">${dev.toFixed(1)}%</td>
+        <td style="font-size:12px;color:#63708a">iFinD · ${ic[r.k].src}</td></tr>`;
+    });
+  });
+  document.getElementById('tb-ifind').innerHTML=h;
+})();
+</script>
+</body>
+</html>

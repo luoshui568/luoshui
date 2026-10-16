@@ -130,10 +130,12 @@ rv['2024'], rv['2025'] = 45.54, 37.15
 np_['2024'], np_['2025'] = 2.72, -1.22
 npk_['2024'], npk_['2025'] = 2.02, -1.54
 ry = [str(y) for y in range(2011, 2026)]
-opt = R.axis(ry, '营收(亿元)', right='净利(亿元)')
+# ★ 2026-10-14 用户口径：营收与净利**都画柱**、各占左右一根轴（净利原来是压在同轴上的折线）
+opt = R.axis(ry, '营业收入（亿元）', right='净利（亿元）')
+opt['grid']['right'] = 68
 R.bar(opt, '营业总收入', [rv.get(y) for y in ry], K['bar'])
-R.line(opt, '归母净利润', [np_.get(y) for y in ry], K['main'], yidx=1)
-R.line(opt, '扣非净利润', [npk_.get(y) for y in ry], K['gold'], yidx=1)
+R.bar(opt, '归母净利润', [np_.get(y) for y in ry], K['main'], yidx=1)
+R.bar(opt, '扣非净利润', [npk_.get(y) for y in ry], K['gold'], yidx=1)
 add(5, 'chartRev', '公司营业收入与利润', opt)
 
 # ---- 6. 收入结构（2026H1）

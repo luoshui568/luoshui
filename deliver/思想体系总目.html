@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="no-js">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>思想体系总目 · 七部典籍与思想体系模块化图谱</title>
+<style>
+:root{
+  --ink:#14100e; --ink-2:#2a2422; --ink-3:#4a423e; --ink-4:#6b6259;
+  --paper:#f5f1e8; --paper-2:#efe9dc; --paper-3:#e6dfd0; --card:#fbf8f2;
+  --red:#8b1a1a; --red-2:#a82020; --red-3:#c0392b; --red-soft:#f2e2e0;
+  --gold:#a8862c; --gold-2:#c9a227; --gold-3:#e6c558;
+  --line:#d8d0bf; --line-2:#c4b9a3;
+  --serif:"Songti SC","SimSun","Noto Serif SC",Georgia,serif;
+  --sans:"PingFang SC","Microsoft YaHei","Hiragino Sans GB",system-ui,sans-serif;
+  --sh-1:0 1px 2px rgba(20,16,14,.06),0 8px 24px rgba(20,16,14,.07);
+  --sh-2:0 2px 6px rgba(20,16,14,.09),0 18px 48px rgba(20,16,14,.14);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--serif); background:var(--paper); color:var(--ink-2);
+  line-height:1.85; font-size:16px; -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+/* ============ 背景 ============ */
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bg-grad{
+  position:absolute;inset:-20%;
+  background:
+    radial-gradient(ellipse 60% 45% at 12% 8%, rgba(60,72,96,.10), transparent 60%),
+    radial-gradient(ellipse 55% 45% at 88% 88%, rgba(139,26,26,.055), transparent 62%),
+    radial-gradient(ellipse 70% 50% at 50% 50%, rgba(245,241,232,.6), transparent 70%);
+  animation:drift 34s ease-in-out infinite alternate;
+}
+@keyframes drift{
+  0%{transform:translate(0,0) scale(1)}
+  50%{transform:translate(-2.4%,1.8%) scale(1.05)}
+  100%{transform:translate(2%,-1.6%) scale(1.02)}
+}
+.bg-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(139,26,26,.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139,26,26,.045) 1px, transparent 1px);
+  background-size:56px 56px;
+  mask-image:radial-gradient(ellipse 80% 70% at 50% 50%, #000 20%, transparent 78%);
+  -webkit-mask-image:radial-gradient(ellipse 80% 70% at 50% 50%, #000 20%, transparent 78%);
+}
+.bg-orb{position:absolute;border-radius:50%;filter:blur(60px);opacity:.5}
+.orb1{width:420px;height:420px;left:-90px;top:-70px;
+  background:radial-gradient(circle,rgba(139,26,26,.13),transparent 68%);
+  animation:float1 26s ease-in-out infinite}
+.orb2{width:380px;height:380px;right:-80px;bottom:-90px;
+  background:radial-gradient(circle,rgba(201,162,39,.13),transparent 68%);
+  animation:float2 32s ease-in-out infinite}
+@keyframes float1{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,44px)}}
+@keyframes float2{0%,100%{transform:translate(0,0)}50%{transform:translate(-52px,-38px)}}
+
+/* ============ 容器 ============ */
+.wrap{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:64px 28px 90px}
+
+/* ============ 顶部工具条：返回工作台 + 友情链接 ============ */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:18px;flex-wrap:wrap;
+  padding-bottom:16px;margin-bottom:48px;
+  border-bottom:1px solid var(--line);position:relative;
+}
+.topbar::after{
+  content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(201,162,39,.55),transparent);
+}
+.tb-back{
+  display:inline-flex;align-items:center;gap:9px;text-decoration:none;
+  font-family:var(--sans);font-size:12.5px;letter-spacing:1.4px;color:var(--ink-3);
+  padding:8px 16px 8px 13px;border:1px solid var(--line);border-radius:999px;
+  background:rgba(251,248,242,.7);backdrop-filter:blur(6px);
+  transition:color .3s,border-color .3s,background .3s,transform .3s,box-shadow .3s;
+}
+.tb-back .ic{font-size:13px;transition:transform .3s}
+.tb-back:hover{
+  color:var(--red);border-color:rgba(192,57,43,.5);background:#fffdf8;
+  transform:translateX(-3px);box-shadow:var(--sh-1);
+}
+.tb-back:hover .ic{transform:translateX(-2px)}
+
+.tb-fr{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.tb-fr-lb{
+  font-family:var(--sans);font-size:10px;letter-spacing:3px;color:var(--ink-3);
+  padding-right:13px;margin-right:2px;border-right:1px solid var(--line);
+}
+.tb-lk{
+  display:inline-flex;align-items:center;gap:9px;text-decoration:none;
+  padding:6px 12px 6px 7px;border:1px solid var(--line);border-radius:999px;
+  background:rgba(251,248,242,.72);backdrop-filter:blur(6px);
+  transition:border-color .3s,background .3s,transform .3s,box-shadow .3s;
+}
+.tb-lk-mk{
+  flex:0 0 26px;width:26px;height:26px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-family:var(--serif);font-size:13px;font-weight:700;color:#fdf8f0;
+  background:linear-gradient(150deg,var(--red),var(--red-3));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.3);
+  transition:transform .34s;
+}
+.tb-lk.gold .tb-lk-mk{background:linear-gradient(150deg,var(--gold),var(--gold-3))}
+.tb-lk.ink .tb-lk-mk{background:linear-gradient(150deg,var(--ink-3),var(--ink))}
+.tb-lk.azure .tb-lk-mk{background:linear-gradient(150deg,#3a6ea5,#1d3f66)}
+.tb-lk-tx b{
+  display:block;font-family:var(--sans);font-size:12.5px;font-weight:600;
+  color:var(--ink-2);line-height:1.3;letter-spacing:.3px;transition:color .3s;
+}
+.tb-lk-tx i{
+  display:block;font-style:normal;font-family:var(--sans);font-size:8.5px;
+  letter-spacing:1.2px;color:var(--ink-4);text-transform:uppercase;
+}
+.tb-out{
+  font-family:var(--sans);font-size:10px;color:var(--line-2);line-height:1;
+  transition:color .3s,transform .3s;
+}
+.tb-lk:hover{
+  border-color:rgba(201,162,39,.65);background:#fffdf8;
+  transform:translateY(-2px);box-shadow:var(--sh-1);
+}
+.tb-lk:hover .tb-lk-mk{transform:rotate(-8deg) scale(1.06)}
+.tb-lk:hover .tb-lk-tx b{color:var(--red)}
+.tb-lk:hover .tb-out{color:var(--red);transform:translate(2px,-2px)}
+
+/* ============ 页头 ============ */
+.hero{text-align:center;margin-bottom:52px;position:relative}
+.hero-seal{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:78px;height:78px;border-radius:6px;
+  background:linear-gradient(150deg,var(--red) 0%,var(--red-2) 60%,var(--red-3) 100%);
+  color:#fdf8f0;font-size:40px;font-weight:700;font-family:var(--serif);
+  box-shadow:0 10px 32px rgba(139,26,26,.30), inset 0 1px 0 rgba(255,255,255,.28);
+  margin-bottom:20px;letter-spacing:2px;
+}
+.hero h1{
+  font-size:clamp(30px,4.6vw,46px);font-weight:700;letter-spacing:3px;
+  color:var(--ink);line-height:1.3;margin-bottom:10px;
+}
+.hero .h-en{
+  font-family:var(--sans);font-size:11px;letter-spacing:4px;
+  color:var(--ink-4);text-transform:uppercase;margin-bottom:18px;
+}
+.hero .h-rule{
+  width:88px;height:2px;margin:0 auto 20px;
+  background:linear-gradient(90deg,transparent,var(--gold-2),transparent);
+}
+.hero .h-desc{
+  max-width:620px;margin:0 auto;color:var(--ink-3);font-size:15.5px;line-height:1.95;
+}
+.hero .h-desc b{color:var(--red);font-weight:700}
+
+/* ============ 总览数字 ============ */
+.tally{
+  display:flex;flex-wrap:wrap;justify-content:center;gap:0;
+  margin:34px auto 0;max-width:760px;
+  border:1px solid var(--line);border-radius:12px;background:rgba(251,248,242,.72);
+  backdrop-filter:blur(6px);overflow:hidden;
+}
+.tally div{
+  flex:1 1 130px;padding:16px 12px;text-align:center;
+  border-right:1px solid var(--line);
+}
+.tally div:last-child{border-right:none}
+.tally b{
+  display:block;font-size:26px;font-weight:700;color:var(--red);
+  font-family:var(--sans);line-height:1.2;
+}
+.tally i{
+  display:block;font-style:normal;font-size:11.5px;color:var(--ink-4);
+  letter-spacing:1.5px;margin-top:3px;
+}
+
+/* ============ 书卡 ============ */
+.list{display:flex;flex-direction:column;gap:20px}
+.bk{
+  position:relative;display:flex;align-items:stretch;gap:0;
+  text-decoration:none;color:inherit;
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  box-shadow:var(--sh-1);overflow:hidden;
+  transition:transform .38s cubic-bezier(.2,.8,.25,1),box-shadow .38s,border-color .38s;
+  opacity:1;
+}
+/* 入场动画仅在 JS 可用时启用：渐进增强，避免动画未完成时内容不可见 */
+html.js .bk{animation:rise .6s cubic-bezier(.2,.8,.25,1) backwards}
+html.js .bk:nth-child(1){animation-delay:.04s}
+html.js .bk:nth-child(2){animation-delay:.10s}
+html.js .bk:nth-child(3){animation-delay:.16s}
+html.js .bk:nth-child(4){animation-delay:.22s}
+html.js .bk:nth-child(5){animation-delay:.28s}
+html.js .bk:nth-child(6){animation-delay:.34s}
+html.js .bk:nth-child(7){animation-delay:.40s}
+@keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+.bk:hover{transform:translateY(-4px);box-shadow:var(--sh-2);border-color:var(--line-2)}
+.bk-glow{
+  position:absolute;inset:0;opacity:0;pointer-events:none;
+  background:radial-gradient(ellipse 60% 130% at 0% 50%, rgba(139,26,26,.10), transparent 62%);
+  transition:opacity .42s;
+}
+.bk:hover .bk-glow{opacity:1}
+
+/* 印鉴 */
+.bk-mark{
+  flex:0 0 108px;display:flex;align-items:center;justify-content:center;
+  font-size:44px;font-weight:700;color:#fdf8f0;font-family:var(--serif);
+  background:linear-gradient(155deg,var(--red) 0%,var(--red-2) 55%,var(--red-3) 100%);
+  letter-spacing:2px;position:relative;
+  text-shadow:0 2px 10px rgba(0,0,0,.22);
+}
+.bk-mark::after{
+  content:"";position:absolute;right:0;top:0;bottom:0;width:1px;
+  background:linear-gradient(180deg,transparent,rgba(255,255,255,.30),transparent);
+}
+.bk:nth-child(2) .bk-mark{background:linear-gradient(155deg,#7a2418,#9a3020 55%,#c04030)}
+.bk:nth-child(3) .bk-mark{background:linear-gradient(155deg,#96180f,#b02020 55%,#cf3030)}
+/* 第 7 部：巴菲特股东信 —— 走金调（呼应其页面本身的黑金配色），与六部典籍的红印区分 */
+.bk:nth-child(7) .bk-mark{background:linear-gradient(155deg,#6f5514,#a8862c 55%,#d4af37)}
+
+/* 主体 */
+.bk-body{flex:1;padding:22px 26px 20px;display:flex;flex-direction:column;gap:7px;min-width:0}
+.bk-en{
+  font-family:var(--sans);font-size:10px;letter-spacing:3px;
+  color:var(--ink-4);text-transform:uppercase;
+}
+.bk-name{
+  font-size:25px;font-weight:700;color:var(--ink);letter-spacing:1.5px;line-height:1.35;
+  display:flex;align-items:baseline;flex-wrap:wrap;gap:12px;
+}
+.bk-sub{
+  font-size:13px;font-weight:400;color:var(--ink-4);letter-spacing:.5px;
+}
+.bk-note{font-size:14px;color:var(--ink-3);line-height:1.85;margin-top:2px}
+.bk-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:6px}
+.bk-tag{
+  font-family:var(--sans);font-size:11.5px;padding:3px 10px;border-radius:20px;
+  background:var(--red-soft);color:var(--red);border:1px solid rgba(139,26,26,.16);
+  letter-spacing:.5px;
+}
+.bk-stats{
+  display:flex;gap:22px;margin-top:11px;padding-top:12px;
+  border-top:1px dashed var(--line);
+}
+.bk-stat b{
+  display:block;font-family:var(--sans);font-size:19px;font-weight:700;
+  color:var(--red);line-height:1.25;
+}
+.bk-stat i{display:block;font-style:normal;font-size:11px;color:var(--ink-4);letter-spacing:1.2px}
+
+/* 箭头 */
+.bk-arrow{
+  flex:0 0 62px;display:flex;align-items:center;justify-content:center;
+  font-size:20px;color:var(--line-2);
+  transition:color .34s,transform .34s;
+}
+.bk:hover .bk-arrow{color:var(--red);transform:translateX(5px)}
+
+/* ============ 页脚 ============ */
+.foot{
+  margin-top:56px;padding-top:26px;border-top:1px solid var(--line);
+  text-align:center;color:var(--ink-4);font-size:12.5px;line-height:2;
+}
+.foot b{color:var(--ink-3);font-weight:600}
+.foot .disc{
+  max-width:660px;margin:12px auto 0;font-size:11.5px;color:#8a8175;line-height:1.9;
+}
+
+/* ============ 响应式 ============ */
+@media (max-width:720px){
+  .wrap{padding:40px 16px 64px}
+  .topbar{flex-direction:column;align-items:stretch;gap:14px;margin-bottom:36px}
+  .tb-back{align-self:center}
+  .tb-fr{justify-content:center}
+  .tb-fr-lb{border-right:none;padding-right:0;width:100%;text-align:center;margin:0 0 2px}
+  .bk{flex-direction:column}
+  .bk-mark{flex:0 0 76px;font-size:32px}
+  .bk-mark::after{display:none}
+  .bk-body{padding:16px 18px}
+  .bk-name{font-size:21px}
+  .bk-arrow{display:none}
+  .bk-stats{gap:16px}
+  .tally div{flex:1 1 50%;border-bottom:1px solid var(--line)}
+  .tally div:nth-child(2n){border-right:none}
+}
+</style>
+</head>
+<body>
+
+<div class="bg" aria-hidden="true">
+  <div class="bg-grad"></div>
+  <div class="bg-grid"></div>
+  <div class="bg-orb orb1"></div>
+  <div class="bg-orb orb2"></div>
+</div>
+
+<div class="wrap">
+
+  <nav class="topbar">
+    <a class="tb-back" href="index.html" title="返回矿产战略执行工作台">
+      <span class="ic">←</span><span>返回工作台</span>
+    </a>
+    <div class="tb-fr">
+      <span class="tb-fr-lb">友 情 链 接</span>
+      <a class="tb-lk" href="https://terminals.hanwujideeyu.com/" target="_blank" rel="noopener noreferrer"
+         title="寒武纪投研终端">
+        <span class="tb-lk-mk">终</span>
+        <span class="tb-lk-tx"><b>寒武纪投研终端</b><i>Investment Terminal</i></span>
+        <span class="tb-out">↗</span>
+      </a>
+      <a class="tb-lk gold" href="https://life.chenzexin.com/" target="_blank" rel="noopener noreferrer"
+         title="寒武纪的鳄鱼 · 人生经验教训与投资经验教训">
+        <span class="tb-lk-mk">鳄</span>
+        <span class="tb-lk-tx"><b>寒武纪的鳄鱼</b><i>Life &amp; Investing</i></span>
+        <span class="tb-out">↗</span>
+      </a>
+      <a class="tb-lk ink" href="wuhezhizhong.html" title="乌合之众 · 费曼精华库机器人（本站页面）">
+        <span class="tb-lk-mk">众</span>
+        <span class="tb-lk-tx"><b>乌合之众 · 问答</b><i>Feynman Bot</i></span>
+        <span class="tb-out">→</span>
+      </a>
+      <a class="tb-lk ink" href="zizhitongjian-feynman.html" title="资治通鉴 · 费曼精华库机器人（本站页面）">
+        <span class="tb-lk-mk">鉴</span>
+        <span class="tb-lk-tx"><b>资治通鉴 · 问答</b><i>Feynman Bot</i></span>
+        <span class="tb-out">→</span>
+      </a>
+      <a class="tb-lk azure" href="zizhitongjian.html" title="资治通鉴 · 文白对照机器人（本站页面）">
+        <span class="tb-lk-mk">鉴</span>
+        <span class="tb-lk-tx"><b>资治通鉴 · 文白对照</b><i>Parallel Text</i></span>
+        <span class="tb-out">→</span>
+      </a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-seal">目</div>
+    <h1>思想体系总目</h1>
+    <div class="h-en">A MODULAR ATLAS OF SEVEN WORKS</div>
+    <div class="h-rule"></div>
+    <p class="h-desc">
+      七部典籍、思想体系与投资文献，各自拆解为数十个知识模块，以<b>卡片图谱</b>的方式呈现：
+      点击进入任一书目，即可按篇目浏览模块，逐条展开文本、图表与表格。
+      全部页面<b>单文件离线可用</b>，双击即可打开。
+    </p>
+
+    <div class="tally">
+      <div><b>7</b><i>部 图 谱</i></div>
+      <div><b>305</b><i>知 识 模 块</i></div>
+      <div><b>275</b><i>交 互 图 表</i></div>
+      <div><b>364</b><i>数 据 表 格</i></div>
+    </div>
+  </header>
+
+  <main class="list">
+  <a class="bk" href="bianzheng.html" data-i="0">
+    <span class="bk-glow" aria-hidden="true"></span>
+    <span class="bk-mark" aria-hidden="true">辩</span>
+    <span class="bk-body">
+      <span class="bk-en">MATERIALIST DIALECTICS</span>
+      <span class="bk-name">唯物辩证法<span class="bk-sub">一核心 · 两观点 · 三规律 · 四方法 · 五范畴</span></span>
+      <span class="bk-note">按「一个核心、两对观点、三大规律、四大思维方法、五大范畴」五级骨架展开，兼收二十世纪四条批判路径与当代复杂性科学。</span>
+      <span class="bk-tags"><span class="bk-tag">矛盾法则</span><span class="bk-tag">联系与发展</span><span class="bk-tag">三大规律</span><span class="bk-tag">四大方法</span><span class="bk-tag">五对范畴</span></span>
+      <span class="bk-stats"><div class="bk-stat"><b>46</b><i>模块</i></div><div class="bk-stat"><b>46</b><i>图表</i></div><div class="bk-stat"><b>45</b><i>表格</i></div></span>
+    </span>
+    <span class="bk-arrow" aria-hidden="true">→</span>
+  </a>
+  <a class="bk" href="marx.html" data-i="1">
+    <span class="bk-glow" aria-hidden="true"></span>
+    <span class="bk-mark" aria-hidden="true">马</span>
+    <span class="bk-body">
+      <span class="bk-en">THE MARXIST SYSTEM OF THOUGHT</span>
+      <span class="bk-name">马克思主义思想体系<span class="bk-sub">从哲学到政治经济学的整体结构</span></span>
+      <span class="bk-note">以三大来源与三个组成部分为骨架，贯通哲学、政治经济学与科学社会主义。</span>
+      <span class="bk-tags"><span class="bk-tag">辩证唯物主义</span><span class="bk-tag">历史唯物主义</span><span class="bk-tag">剩余价值</span><span class="bk-tag">科学社会主义</span></span>
+      <span class="bk-stats"><div class="bk-stat"><b>31</b><i>模块</i></div><div class="bk-stat"><b>9</b><i>图表</i></div><div class="bk-stat"><b>8</b><i>表格</i></div></span>
+    </span>
+    <span class="bk-arrow" aria-hidden="true">→</span>
+  </a>
+  <a class="bk" href="kapital.html" data-i="2">
+    <span class="bk-glow" aria-hidden="true"></span>
+    <span class="bk-mark" aria-hidden="true">资</span>
+    <span class="bk-body">
+      <span class="bk-en">DAS KAPITAL</span>
+      <span class="bk-name">资本论<span class="bk-sub">政治经济学批判 · 三卷体系</span></span>
+      <span class="bk-note">按三卷结构展开：资本的生产过程、流通过程、资本主义生产的总过程。</span>
+      <span class="bk-tags"><span class="bk-tag">商品与价值</span><span class="bk-tag">剩余价值生产</span><span class="bk-tag">资本积累</span><span class="bk-tag">利润率下降</span></span>
+      <span class="bk-stats"><div class="bk-stat"><b>31</b><i>模块</i></div><div class="bk-stat"><b>30</b><i>图表</i></div><div class="bk-stat"><b>33</b><i>表格</i></div></span>
+    </span>
+    <span class="bk-arrow" aria-hidden="true">→</span>
+  </a>
+  <a class="bk" href="maozedong.html" data-i="3">
+    <span class="bk-glow" aria-hidden="true"></span>
+    <span class="bk-mark" aria-hidden="true">毛</span>
+    <span class="bk-body">
+      <span class="bk-en">SELECTED WORKS OF MAO ZEDONG</span>
+      <span class="bk-name">毛泽东选集<span class="bk-sub">实践与理论 · 四个历史时期</span></span>
+      <span class="bk-note">以四卷文章的写作时间为序，呈现从革命实践到理论建构的完整脉络。</span>
+      <span class="bk-tags"><span class="bk-tag">矛盾论</span><span class="bk-tag">实践论</span><span class="bk-tag">持久战</span><span class="bk-tag">新民主主义论</span></span>
+      <span class="bk-stats"><div class="bk-stat"><b>40</b><i>模块</i></div><div class="bk-stat"><b>40</b><i>图表</i></div><div class="bk-stat"><b>107</b><i>表格</i></div></span>
+    </span>
+    <span class="bk-arrow" aria-hidden="true">→</span>
+  </a>
+  <a class="bk" href="tongjian.html" data-i="4">
+    <span class="bk-glow" aria-hidden="true"></span>
+    <span class="bk-mark" aria-hidden="true">鉴</span>
+    <span class="bk-body">
+      <span class="bk-en">ZIZHI TONGJIAN</span>
+      <span class="bk-name">资治通鉴<span class="bk-sub">治乱与史法 · 一千三百六十二年</span></span>
+      <span class="bk-note">依时代分期为纲，以关键事件为目，兼收司马光的史法与编纂旨趣。</span>
+      <span class="bk-tags"><span class="bk-tag">战国秦汉</span><span class="bk-tag">魏晋南北朝</span><span class="bk-tag">隋唐五代</span><span class="bk-tag">资治之鉴</span></span>
+      <span class="bk-stats"><div class="bk-stat"><b>72</b><i>模块</i></div><div class="bk-stat"><b>72</b><i>图表</i></div><div class="bk-stat"><b>79</b><i>表格</i></div></span>
+    </span>
+    <span class="bk-arrow" aria-hidden="true">→</span>
+  </a>
+  <a class="bk" href="shiji.html" data-i="5">
+    <span class="bk-glow" aria-hidden="true"></span>
+    <span class="bk-mark" aria-hidden="true">史</span>
+    <span class="bk-body">
+      <span class="bk-en">SHIJI</span>
+      <span class="bk-name">史记<span class="bk-sub">五体与史法 · 三千年通史</span></span>
+      <span class="bk-note">以五体为纲、以人物为目，兼具太史公曰的史法讨论与列传的思想史脉络。</span>
+      <span class="bk-tags"><span class="bk-tag">本纪</span><span class="bk-tag">表</span><span class="bk-tag">书</span><span class="bk-tag">世家</span><span class="bk-tag">列传</span></span>
+      <span class="bk-stats"><div class="bk-stat"><b>74</b><i>模块</i></div><div class="bk-stat"><b>74</b><i>图表</i></div><div class="bk-stat"><b>86</b><i>表格</i></div></span>
+    </span>
+    <span class="bk-arrow" aria-hidden="true">→</span>
+  </a>
+  <a class="bk" href="buffett.html" data-i="6">
+    <span class="bk-glow" aria-hidden="true"></span>
+    <span class="bk-mark" aria-hidden="true">巴</span>
+    <span class="bk-body">
+      <span class="bk-en">WARREN BUFFETT · SHAREHOLDER LETTERS</span>
+      <span class="bk-name">巴菲特股东信<span class="bk-sub">十一个维度 · 六十年自传（1957–2026）</span></span>
+      <span class="bk-note">以六十年、上百封致股东信为底本，把散落其间的线索收拢成十一张卡片：他写下的从来不只是收益率，还有怎么活、怎么花钱、怎么养孩子、怎么交朋友、怎么面对错误、怎么老去。</span>
+      <span class="bk-tags"><span class="bk-tag">人生长期主义</span><span class="bk-tag">生活减法</span><span class="bk-tag">家庭与遗产</span><span class="bk-tag">友谊与伙伴</span><span class="bk-tag">投资哲学</span><span class="bk-tag">传承与告别</span></span>
+      <span class="bk-stats"><div class="bk-stat"><b>11</b><i>模块</i></div><div class="bk-stat"><b>4</b><i>图表</i></div><div class="bk-stat"><b>6</b><i>表格</i></div></span>
+    </span>
+    <span class="bk-arrow" aria-hidden="true">→</span>
+  </a>
+  </main>
+
+  <footer class="foot">
+    <p><b>七部图谱</b> · 模块化图谱系列</p>
+    <p class="disc">
+      本页为纯静态单文件页面，不含任何外部依赖，可离线浏览。
+      各书目页面的模块划分为便于研读所做的整理，图表与统计为基于文本结构的可视化呈现，
+      引文以通行本为准；如需用于学术引用，请复核原典与权威注疏。
+    </p>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  document.documentElement.className = 'js';
+  // 卡片键盘可达 + 轻微视差
+  var cards = document.querySelectorAll('.bk');
+  for (var i = 0; i < cards.length; i++){
+    (function(c){
+      c.addEventListener('keydown', function(e){
+        if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); c.click(); }
+      });
+    })(cards[i]);
+  }
+  // 卡片默认可见；入场动画由 CSS 在 html.js 下接管（渐进增强）
+})();
+</script>
+</body>
+</html>

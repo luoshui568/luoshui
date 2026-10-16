@@ -9,7 +9,7 @@
 研报库也是独立成页，工作台侧栏的「研究报告」直接跳过去（不占 index 的体积）。
 用法： python build.py
 """
-import io, json, os, sys, time
+import io, json, os, subprocess, sys, time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -197,9 +197,85 @@ def build_research():
        tpl.replace("/*__LIBCFG__*/", cfg_js).replace("/*__PY__*/", pinyin_js()))
 
 
+def build_datalib():
+    """数据文库（独立页面）。
+
+    与研报库同一个套路：只注入云端配置与拼音表，模块清单 / 上传的数据集 /
+    行情序列全部由页面自己从 wb_data_mods / wb_data_files / wb_data_series 拉，
+    所以「再加一个模块页面」只是往库里插一行，不用重新构建。
+    """
+    print("[4/4] 数据文库 datalib.html")
+    tplp = os.path.join(DEPLOY, "datalib.template.html")
+    tpl = io.open(tplp, encoding="utf-8").read()
+    for ph in ("/*__LIBCFG__*/", "/*__PY__*/"):
+        assert ph in tpl, "datalib.template.html 缺少占位符 " + ph
+    cfg_js = "window.WB_CFG = " + json.dumps(CLOUD, ensure_ascii=False) + ";"
+    wr(os.path.join(DEPLOY, "datalib.html"),
+       tpl.replace("/*__LIBCFG__*/", cfg_js).replace("/*__PY__*/", pinyin_js()))
+
+
+def build_memoir():
+    """回忆录（独立页面）。
+
+    私人笔记写作台：三栏布局（笔记本/标签 · 笔记列表 · 富文本编辑器）。
+    与数据文库同套路 —— 只注入云端配置与版本戳，笔记与笔记本全部由页面自己
+    从 wb_memoirs / wb_memoir_books 拉，所以内容更新完全不用重新构建。
+    """
+    print("[5/5] 回忆录 memoir.html")
+    tplp = os.path.join(DEPLOY, "memoir.template.html")
+    tpl = io.open(tplp, encoding="utf-8").read()
+    for ph in ("/*__LIBCFG__*/", "/*__BUILDVER__*/"):
+        assert ph in tpl, "memoir.template.html 缺少占位符 " + ph
+    cfg_js = "window.WB_CFG = " + json.dumps(CLOUD, ensure_ascii=False) + ";"
+    wr(os.path.join(DEPLOY, "memoir.html"),
+       tpl.replace("/*__LIBCFG__*/", cfg_js)
+          .replace("/*__BUILDVER__*/", time.strftime("%m-%d %H:%M")))
+
+
+def patch_blockstyle():
+    """★ 给 `deploy/report.html` 补上「不经模板生成」的两块（2026-10-16 固化）。
+
+    线上 `report.html` = 本文件的模板渲染结果 **+** `_patch_blockstyle.py` 注入的：
+
+      · `<style  id="rpt-blockstyle">`   模块堆叠文本分块 + 表格「红表头 + 浅蓝身」全套餐
+      · `<script id="rpt-blockscript">`  配套渲染层（Markdown 粗体 / 数字列标注 / 长文块分拆）
+
+    这两块**不在模板里**（20 KB + 19 KB，且与并发会话的地盘分开用独立标签承载），
+    只有 `_patch_blockstyle.py` 会写。
+
+    ★★ 为什么必须焊进 build：真实踩过一次 ——「跑完 build.py，把 deploy/report.html 直接发上线」，
+       结果 **928 行 / 39 753 字符**的两块一起消失，**12 份研报的表格样式与粗体渲染同时失效**，
+       而且页面**不报错**（只是全体「没样式」），diff 之外没有任何提示。原地补一下成本近乎零。
+
+    ⚠️ 失败只警告、不阻断构建（缺 `block_style.css` 的环境仍应能出页面），
+       但会把「别直接发布」这句话打出来。
+    """
+    p = os.path.join(DEPLOY, "report.html")
+    try:
+        r = subprocess.run([sys.executable, os.path.join(HERE, "_patch_blockstyle.py"),
+                            "--base", p, "--out", p],
+                           capture_output=True, text=True, timeout=180)
+    except Exception as e:                                        # noqa: BLE001
+        print("  ! blockstyle 注入异常：%s" % e)
+        print("    ⚠️ deploy/report.html 未含 rpt-blockstyle，**别直接发布**")
+        return
+    if r.returncode != 0:
+        print("  ! blockstyle 注入失败（rc=%d）" % r.returncode)
+        tail = (r.stderr or r.stdout or "").strip().split("\n")[-1:]
+        if tail:
+            print("    " + tail[0][:170])
+        print("    ⚠️ deploy/report.html 未含 rpt-blockstyle，**别直接发布**")
+        return
+    out = [x.strip() for x in (r.stdout or "").split("\n") if x.startswith("产物")]
+    print("  已补 rpt-blockstyle + rpt-blockscript%s" % ("：%s" % out[0] if out else ""))
+
+
 if __name__ == "__main__":
     print("envId = %s" % CFG["envId"])
     build_index()
     build_report()
+    patch_blockstyle()          # ★ 紧跟 build_report：给 report.html 补那两块
     build_research()
+    build_datalib()
+    build_memoir()
     print("完成。")

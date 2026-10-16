@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数据文库 · 矿产战略工作台</title>
+<script>
+/* 最早注入错误钩子：脚本块语法错之外的运行时错误都能抓到（探针用） */
+window.__DL_ERR = [];
+window.onerror = function(m, s, l, c){ window.__DL_ERR.push(String(m) + ' @' + l + ':' + c); };
+window.addEventListener('unhandledrejection', function(e){ window.__DL_ERR.push('unhandled: ' + String(e.reason && e.reason.message || e.reason)); });
+</script>
+<style>
+/* ============================================================================
+   数据文库 · 独立页面（不塞进 index.html）
+   —— 与「研究报告库」同一套视觉：正红 #c8102e · 深红 #8c0a20 · 鎏金 #c9a227，暖白底
+   —— 三块内容：文库模块（跳转到已上线的页面）/ 上传的商品数据集 / 内置行情序列
+   —— 模块清单存库（wb_data_mods）：以后新增一个模块页面 = 后台加一行，不用改代码
+   ============================================================================ */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --brand:#c8102e; --brand-deep:#8c0a20; --brand-bright:#e63946;
+  --brand-soft:#fdecee; --brand-line:rgba(200,16,46,.18);
+  --gold:#c9a227; --gold-deep:#8a6d10; --gold-soft:#fdf7e6;
+  --ink:#3a2a2e; --ink2:#5d444c; --muted:#8b7378;
+  --up:#c8102e; --down:#0b8a5c;
+  --card:#ffffff;
+  --shadow:0 6px 22px rgba(140,10,32,.07);
+  --shadow2:0 14px 38px rgba(140,10,32,.14);
+}
+html,body{margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:16.5px;line-height:1.7;color:var(--ink);
+  background:
+    radial-gradient(circle at 10% -4%, #fff6f1 0%, transparent 52%),
+    radial-gradient(circle at 92% 4%, #fdeef0 0%, transparent 46%),
+    linear-gradient(176deg,#fffaf7 0%,#fdf1f2 58%,#fbeef0 100%);
+  background-attachment:fixed;-webkit-font-smoothing:antialiased;min-height:100vh;
+}
+.bg-orbs{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.bg-orbs i{position:absolute;border-radius:50%;filter:blur(46px);opacity:.42;animation:orbF 22s ease-in-out infinite}
+.bg-orbs i:nth-child(1){width:340px;height:340px;left:-90px;top:6%;background:#ffd9de}
+.bg-orbs i:nth-child(2){width:280px;height:280px;right:-70px;top:24%;background:#fbe6b8;animation-delay:-6s}
+.bg-orbs i:nth-child(3){width:300px;height:300px;left:38%;bottom:-120px;background:#ffd2d8;animation-delay:-11s}
+.bg-orbs i:nth-child(4){width:200px;height:200px;right:16%;bottom:8%;background:#f9e2c6;animation-delay:-16s}
+@keyframes orbF{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(16px,-22px) scale(1.08)}}
+.wrap{position:relative;z-index:1;max-width:1360px;margin:0 auto;padding:16px 22px 70px}
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* ---------------- 顶部操作条 ---------------- */
+.lbar{position:sticky;top:10px;z-index:60;display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+  padding:9px 13px;margin:0 0 20px;border-radius:15px;background:rgba(255,255,255,.94);
+  backdrop-filter:saturate(180%) blur(12px);-webkit-backdrop-filter:saturate(180%) blur(12px);
+  border:1px solid var(--brand-line);box-shadow:var(--shadow)}
+.lbar .brand{font-weight:800;color:var(--brand-deep);font-size:15px;letter-spacing:.2px;white-space:nowrap}
+.lbar .brand em{font-style:normal;color:var(--brand)}
+.lbar .tag{font-size:12px;padding:2.5px 10px;border-radius:999px;background:var(--brand-soft);
+  color:var(--brand-deep);border:1px solid var(--brand-line);white-space:nowrap;font-weight:600}
+.lbar .tag.ok{background:#eefaf3;color:var(--down);border-color:rgba(11,138,92,.25)}
+.lbar .tag.warn{background:var(--gold-soft);color:var(--gold-deep);border-color:rgba(201,162,39,.38)}
+.lbar .sp{flex:1;min-width:8px}
+.rbtn{font:inherit;font-size:13px;line-height:1;padding:8px 13px;border-radius:10px;cursor:pointer;
+  border:1px solid var(--brand-line);background:#fff;color:var(--brand-deep);transition:.16s;white-space:nowrap;font-weight:600}
+.rbtn:hover{background:var(--brand-soft);border-color:var(--brand);transform:translateY(-1px)}
+.rbtn.pri{background:linear-gradient(135deg,var(--brand),var(--brand-deep));color:#fff;border-color:transparent;
+  box-shadow:0 4px 14px rgba(200,16,46,.26)}
+.rbtn.pri:hover{filter:brightness(1.08)}
+.rbtn.gh{background:transparent;border-color:rgba(140,10,32,.2);color:#7d5b60}
+.rbtn.gh:hover{background:#fff}
+.rbtn[disabled]{opacity:.45;cursor:not-allowed;transform:none}
+
+/* ---------------- Hero ---------------- */
+.hero{position:relative;padding:20px 4px 22px;animation:up .5s cubic-bezier(.22,.8,.36,1) both}
+.hero .kick{display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:800;
+  letter-spacing:1.6px;color:var(--gold-deep);text-transform:uppercase;
+  background:linear-gradient(135deg,#fdf7e6,#fbeecd);border:1px solid rgba(201,162,39,.35);
+  padding:5px 13px;border-radius:999px;margin-bottom:14px}
+.hero .kick::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 4px rgba(201,162,39,.2)}
+.hero h1{margin:0 0 10px;font-size:40px;line-height:1.22;letter-spacing:-.5px;font-weight:900;color:#2b1a1e}
+.hero h1 span{background:linear-gradient(135deg,#e63946,#c8102e 45%,#8c0a20);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero h1::after{content:'';display:block;width:76px;height:4px;margin-top:14px;border-radius:3px;
+  background:linear-gradient(90deg,var(--brand),var(--gold))}
+.hero .sub{margin:14px 0 0;font-size:15.5px;color:var(--ink2);max-width:940px;line-height:1.9}
+.hero .sub b{color:var(--brand-deep)}
+
+/* ---------------- 统计条 ---------------- */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin:6px 0 22px}
+.st{position:relative;background:var(--card);border:1px solid rgba(200,16,46,.1);border-radius:16px;
+  padding:15px 17px 15px 20px;box-shadow:var(--shadow);overflow:hidden;
+  animation:up .5s cubic-bezier(.22,.8,.36,1) both;transition:.18s}
+.st:hover{transform:translateY(-3px);box-shadow:var(--shadow2)}
+.st::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--brand),var(--gold))}
+.st .lb{font-size:12.5px;color:var(--muted);font-weight:700;letter-spacing:.3px}
+.st .vl{font-size:33px;font-weight:900;line-height:1.25;color:var(--brand-deep);
+  font-variant-numeric:tabular-nums;letter-spacing:-.5px;margin-top:2px}
+.st .vl small{font-size:13px;font-weight:700;color:var(--muted);margin-left:3px}
+.st .nt{font-size:11.5px;color:var(--muted);margin-top:2px}
+.st.gold::before{background:linear-gradient(180deg,var(--gold),#e6c558)}
+.st.gold .vl{color:var(--gold-deep)}
+
+/* ---------------- 区块标题 ---------------- */
+.sec{margin:26px 0 12px;display:flex;align-items:center;gap:11px;flex-wrap:wrap}
+.sec h2{margin:0;font-size:21px;font-weight:900;color:#2b1a1e;letter-spacing:-.3px;display:flex;align-items:center;gap:9px}
+.sec h2 i{font-style:normal;font-size:17px}
+.sec .n{font-size:12.5px;font-weight:800;color:var(--brand-deep);background:var(--brand-soft);
+  border:1px solid var(--brand-line);padding:2.5px 10px;border-radius:999px}
+.sec .sp{flex:1}
+.sec .hint{font-size:12.5px;color:var(--muted)}
+
+/* ---------------- 模块卡片 ---------------- */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:15px}
+.mod{position:relative;display:flex;flex-direction:column;background:var(--card);border-radius:18px;
+  border:1px solid rgba(200,16,46,.11);box-shadow:var(--shadow);overflow:hidden;
+  transition:.22s cubic-bezier(.22,.8,.36,1);animation:up .45s cubic-bezier(.22,.8,.36,1) both}
+.mod::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--brand),var(--brand-bright) 40%,var(--gold));opacity:.85;transition:.22s}
+.mod:hover{transform:translateY(-5px);box-shadow:var(--shadow2);border-color:rgba(200,16,46,.28)}
+.mod:hover::before{height:4px;opacity:1}
+.mod .hd{display:flex;align-items:center;gap:12px;padding:17px 18px 0}
+.mod .ico{flex:none;width:50px;height:50px;border-radius:14px;display:grid;place-items:center;font-size:25px;
+  background:linear-gradient(135deg,#fff3f4,#fde3e6);border:1px solid rgba(200,16,46,.14);
+  box-shadow:inset 0 1px 0 #fff}
+.mod .tt{min-width:0;flex:1}
+.mod .tt b{display:block;font-size:18px;font-weight:900;color:#2b1a1e;letter-spacing:-.2px;line-height:1.35}
+.mod .tt span{display:block;font-size:11.5px;color:var(--muted);font-family:ui-monospace,SFMono-Regular,Consolas,monospace;margin-top:2px}
+.mod .tag{margin-left:auto;flex:none;font-size:11.5px;font-weight:800;padding:3px 10px;border-radius:999px;
+  background:var(--gold-soft);color:var(--gold-deep);border:1px solid rgba(201,162,39,.36);white-space:nowrap}
+.mod .sub{margin:12px 18px 0;font-size:13.5px;color:var(--ink2);line-height:1.85;flex:1}
+.mod .mt{display:flex;gap:6px;flex-wrap:wrap;margin:12px 18px 0}
+.mod .mt span{font-size:11.5px;padding:3px 9px;border-radius:7px;background:#faf6f7;color:#7d6369;
+  border:1px solid rgba(140,10,32,.09);white-space:nowrap}
+.mod .mt span.k{background:var(--brand-soft);color:var(--brand-deep);border-color:var(--brand-line);font-weight:700}
+.mod .ft{display:flex;align-items:center;gap:9px;padding:13px 18px;margin-top:14px;
+  border-top:1px dashed rgba(200,16,46,.14);background:linear-gradient(180deg,#fffdfd,#fff8f9)}
+.mod .ft .go{font-size:13.5px;font-weight:800;color:var(--brand);text-decoration:none;transition:.18s}
+.mod .ft .go:hover{letter-spacing:.4px}
+.mod .ft .sp{flex:1}
+.mod .mini{font:inherit;font-size:12px;padding:5px 10px;border-radius:8px;cursor:pointer;font-weight:700;
+  border:1px solid var(--brand-line);background:#fff;color:var(--brand-deep);transition:.15s}
+.mod .mini:hover{background:var(--brand-soft);border-color:var(--brand)}
+.mod .mini.dg{color:#a3122a;border-color:rgba(200,16,46,.26)}
+.mod.off{opacity:.62}
+.mod.off .ft .go{color:var(--muted)}
+
+/* ---------------- 表格 ---------------- */
+.tbox{background:var(--card);border:1px solid rgba(200,16,46,.11);border-radius:16px;
+  box-shadow:var(--shadow);overflow:hidden}
+.tbox .ttl{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid rgba(200,16,46,.1);
+  background:linear-gradient(180deg,#fffdfd,#fff7f8)}
+.tbox .ttl b{font-size:15px;color:var(--brand-deep)}
+.tbox .ttl .sp{flex:1}
+.tbox .ttl .hint{font-size:12px;color:var(--muted)}
+.tscroll{max-height:520px;overflow:auto}
+table.tb{width:100%;border-collapse:collapse;font-size:13.5px}
+table.tb th{position:sticky;top:0;z-index:2;text-align:left;font-size:11.5px;color:var(--muted);font-weight:800;
+  padding:9px 12px;background:#fff9fa;border-bottom:1px solid rgba(200,16,46,.12);white-space:nowrap;letter-spacing:.3px}
+table.tb td{padding:9px 12px;border-bottom:1px solid rgba(140,10,32,.07);font-variant-numeric:tabular-nums;vertical-align:middle}
+table.tb tr:hover td{background:#fffafb}
+.n{text-align:right}
+.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12.5px}
+.pill{display:inline-block;font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:999px;
+  background:var(--brand-soft);color:var(--brand-deep);border:1px solid var(--brand-line);white-space:nowrap}
+.pill.g{background:var(--gold-soft);color:var(--gold-deep);border-color:rgba(201,162,39,.36)}
+.pill.gr{background:#eefaf3;color:var(--down);border-color:rgba(11,138,92,.25)}
+.acts{display:flex;gap:6px;justify-content:flex-end}
+
+/* ---------------- 骨架 / 空态 ---------------- */
+.sk{background:#fff;border-radius:18px;border:1px solid rgba(200,16,46,.08);padding:19px;box-shadow:var(--shadow)}
+.sk i{display:block;height:13px;border-radius:7px;margin-bottom:11px;
+  background:linear-gradient(90deg,#f6ecee 25%,#fdf5f6 37%,#f6ecee 63%);background-size:400% 100%;animation:shim 1.3s ease-in-out infinite}
+.sk i:nth-child(1){width:34%;height:22px}
+.sk i:nth-child(2){width:82%}
+.sk i:nth-child(3){width:66%;height:44px;border-radius:12px}
+@keyframes shim{0%{background-position:100% 0}100%{background-position:0 0}}
+.empty{background:#fff;border:1px dashed var(--brand-line);border-radius:18px;padding:44px 26px;text-align:center;
+  color:var(--ink2);box-shadow:var(--shadow)}
+.empty .big{font-size:40px;line-height:1;margin-bottom:12px}
+.empty h3{font-size:19px;color:var(--brand-deep);margin:0 0 9px;font-weight:900}
+.empty p{font-size:13.5px;line-height:2;max-width:660px;margin:0 auto;color:var(--muted)}
+.empty code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12.5px;
+  background:var(--brand-soft);color:var(--brand-deep);padding:2px 7px;border-radius:6px}
+
+/* ---------------- 弹窗 ---------------- */
+.mask{position:fixed;inset:0;z-index:500;background:rgba(43,26,30,.44);backdrop-filter:blur(3px);
+  display:none;align-items:flex-start;justify-content:center;padding:38px 16px;overflow:auto}
+.mask.on{display:flex}
+.dlg{width:100%;max-width:860px;background:#fff;border-radius:20px;box-shadow:0 26px 70px rgba(43,26,30,.3);
+  overflow:hidden;animation:up .28s cubic-bezier(.22,.8,.36,1) both}
+.dlg.wide{max-width:1080px}
+.dlg.narrow{max-width:520px}
+.dlg .dh{display:flex;align-items:center;gap:10px;padding:16px 20px;
+  background:linear-gradient(135deg,var(--brand),var(--brand-deep));color:#fff}
+.dlg .dh b{font-size:17px;font-weight:900;letter-spacing:.2px}
+.dlg .dh .sp{flex:1}
+.dlg .dh .x{font:inherit;font-size:20px;line-height:1;background:transparent;border:0;color:#fff;cursor:pointer;opacity:.86;padding:2px 6px}
+.dlg .dh .x:hover{opacity:1}
+.dlg .db{padding:18px 20px;max-height:66vh;overflow:auto}
+.dlg .df{display:flex;align-items:center;gap:10px;padding:13px 20px;border-top:1px solid rgba(200,16,46,.12);
+  background:#fffafb;flex-wrap:wrap}
+.dlg .df .sp{flex:1}
+.dlg .df .note{font-size:12.5px;color:var(--muted)}
+.drop{border:2px dashed rgba(200,16,46,.28);border-radius:16px;padding:26px 20px;text-align:center;
+  background:linear-gradient(135deg,#fffdfd,#fff6f8);cursor:pointer;transition:.18s}
+.drop:hover,.drop.over{border-color:var(--brand);background:#fff3f5}
+.drop .big{font-size:34px;line-height:1;margin-bottom:10px}
+.drop b{display:block;font-size:15.5px;color:var(--brand-deep);margin-bottom:5px}
+.drop span{font-size:12.5px;color:var(--muted);line-height:1.85}
+.drop em{font-style:normal;font-weight:700;color:var(--brand)}
+.fld{margin-top:15px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.fld label{display:block;font-size:12.5px;font-weight:800;color:var(--brand-deep);margin-bottom:5px;letter-spacing:.2px}
+.fld input,.fld select,.fld textarea{width:100%;font:inherit;font-size:14px;padding:9px 11px;border-radius:11px;
+  border:1px solid var(--brand-line);background:#fff;color:var(--ink);outline:0;transition:.15s}
+.fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--brand);box-shadow:0 0 0 4px rgba(200,16,46,.08)}
+.fld .full{grid-column:1/-1}
+.prev{margin-top:15px;border:1px solid rgba(200,16,46,.13);border-radius:13px;overflow:hidden}
+.prev .ph{display:flex;align-items:center;gap:9px;padding:9px 13px;background:#fff7f8;border-bottom:1px solid rgba(200,16,46,.1);
+  font-size:12.5px;color:var(--brand-deep);font-weight:700;flex-wrap:wrap}
+.prev .ph .sp{flex:1}
+.prev .ph em{font-style:normal;color:var(--muted);font-weight:600}
+.pwrap{max-height:330px;overflow:auto}
+.pwrap table{border-collapse:collapse;font-size:12.5px;white-space:nowrap}
+.pwrap th,.pwrap td{border:1px solid #f2e6e8;padding:5px 9px;max-width:220px;overflow:hidden;text-overflow:ellipsis}
+.pwrap th{position:sticky;top:0;background:#fff9fa;font-weight:800;color:var(--brand-deep);z-index:2}
+.pwrap td{color:var(--ink2)}
+.pwrap tr:nth-child(even) td{background:#fffcfc}
+.pwrap .rn{background:#fdf7f8!important;color:var(--muted);font-weight:700;text-align:right}
+.warnbox{margin-top:13px;padding:11px 14px;border-radius:12px;font-size:13px;line-height:1.85;
+  background:var(--gold-soft);border:1px solid rgba(201,162,39,.34);color:var(--gold-deep)}
+.warnbox b{color:#7a5c07}
+.errbox{margin-top:13px;padding:11px 14px;border-radius:12px;font-size:13px;line-height:1.85;
+  background:#fdecee;border:1px solid var(--brand-line);color:var(--brand-deep)}
+
+/* ---------------- 页脚 / toast ---------------- */
+.lfoot{margin-top:38px;padding-top:20px;border-top:1px solid rgba(200,16,46,.13);font-size:12.5px;color:var(--muted);line-height:2}
+.lfoot b{color:var(--brand-deep)}
+.lfoot code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;
+  background:#faf3f4;padding:1.5px 6px;border-radius:5px}
+.lfoot .dl{margin-top:10px;padding:14px 16px;border-radius:13px;background:rgba(255,255,255,.72);border:1px solid rgba(200,16,46,.1)}
+.toast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,20px);z-index:600;padding:11px 20px;
+  border-radius:12px;font-size:14px;font-weight:600;color:#fff;background:linear-gradient(135deg,#3a2a2e,#5d444c);
+  box-shadow:0 12px 34px rgba(58,42,46,.3);opacity:0;pointer-events:none;transition:.24s;max-width:88vw;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.toast.bad{background:linear-gradient(135deg,#c8102e,#8c0a20);box-shadow:0 12px 34px rgba(200,16,46,.34)}
+.toast.ok{background:linear-gradient(135deg,#0b8a5c,#076b46)}
+
+/* ---------------- 响应式 ---------------- */
+@media (max-width:1080px){ .stats{grid-template-columns:repeat(2,1fr)} .fld{grid-template-columns:1fr 1fr} }
+@media (max-width:860px){
+  body{font-size:16px}
+  .wrap{padding:12px 14px 60px}
+  .hero h1{font-size:31px}
+  .hero .sub{font-size:14.5px}
+  .grid{grid-template-columns:1fr}
+  .lbar .tag{display:none}
+  .st .vl{font-size:28px}
+  .fld{grid-template-columns:1fr}
+  .dlg{max-width:100%}
+}
+@media print{ .lbar,.bg-orbs,.toast,.mask{display:none!important} }
+</style>
+</head>
+<body>
+<div class="bg-orbs"><i></i><i></i><i></i><i></i></div>
+
+<div class="wrap">
+  <div class="lbar" id="lbar"></div>
+
+  <header class="hero">
+    <div class="kick">Data Library · 数据与页面的统一入口</div>
+    <h1>数据<span>文库</span></h1>
+    <p class="sub">
+      这里把已经上线的<b>数据页面</b>当成一个个模块收进来 —— 点卡片即跳转到那个页面。
+      以后新增一个页面、一份数据集，只要在这里加一行，入口就自己长出来，<b>不用改代码</b>。
+      数据本身也存在云端数据库：行情序列可以直接被新页面复用，Excel 表格上传后即可共享给团队。
+    </p>
+  </header>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="sec">
+    <h2><i>🗂</i>文库模块 <span class="n" id="modCnt">—</span></h2>
+    <span class="sp"></span>
+    <span class="hint" id="modHint">点击卡片即跳转到已上线的页面</span>
+    <button class="rbtn" id="btnNewMod" style="display:none" onclick="DL.modForm('')">＋ 新增模块</button>
+  </div>
+  <div class="grid" id="grid"></div>
+  <div id="modEmpty" style="display:none"></div>
+
+  <div class="sec">
+    <h2><i>📗</i>商品数据集 <span class="n" id="fileCnt">—</span></h2>
+    <span class="sp"></span>
+    <span class="hint" id="fileHint">Excel / CSV 上传的商品数据，解析后存进云端数据库</span>
+    <button class="rbtn pri" id="btnUpload" onclick="DL.uploadForm()">⬆ 上传 Excel</button>
+  </div>
+  <div id="fileBox"></div>
+
+  <div class="sec">
+    <h2><i>📈</i>内置行情序列 <span class="n" id="serCnt">—</span></h2>
+    <span class="sp"></span>
+    <span class="hint">大宗商品日线对比图的数据底座，逐条存于 <code>wb_data_series</code></span>
+  </div>
+  <div id="serBox"></div>
+
+  <div class="lfoot">
+    <div><b>矿产战略工作台 · 数据文库</b>　模块清单 <code>wb_data_mods</code> · 上传数据集 <code>wb_data_files</code> · 行情序列 <code>wb_data_series</code>，均随页面实时读取云端数据库。</div>
+    <div class="dl">
+      <b>免责声明</b>：本页数据来自公开行情通道与团队成员上传，仅供内部研究参考，不构成任何投资建议。
+      上传的表格请自行确认来源与准确性；数据可能存在延迟或误差，请以官方披露为准。
+    </div>
+  </div>
+</div>
+
+<div class="mask" id="mask"><div class="dlg" id="dlg"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>/*__LIBCFG__*/</script>
+<script>
+/* ============================================================================
+   数据文库 · 独立页面核心
+   —— 三张表：wb_data_mods（文库模块）/ wb_data_files（上传的商品数据集）/ wb_data_series（日线序列）
+   —— 读：所有访客都能读；写：需要管理员登录态；删除：另需管理员密码（走服务端 RPC）
+   —— Excel 解析：零依赖。xlsx 本质是 zip + XML，用浏览器自带的 DecompressionStream 解压，
+      不引入任何第三方库（保持页面体积与离线可用）
+   ============================================================================ */
+var CFG  = window.WB_CFG || {envId:'', key:''};
+var REST = CFG.envId ? ('https://' + CFG.envId + '.api.tcloudbasegateway.com/v1/rdb/rest/') : '';
+var AUTH_KEY = 'wb_auth_v1', AUTH_TTL = 7 * 24 * 3600 * 1000;
+
+/* ---------------- 拼音首字母搜索（构建时注入锚点表） ---------------- */
+/*__PY__*/
+
+var S = { mods:[], files:[], series:[], q:'', cat:'', cats:[], catIdx:-1,
+          loading:false, err:'', busy:false };
+var Auth = { token:'', user:'', name:'', role:'' };
+/* 上传/编辑的临时状态 */
+var U = { file:null, book:null, sheet:'', grids:{}, grid:[], maxRow:20000 };
+
+/* ---------------------------------------------------------------- 小工具 */
+function $(id){ return document.getElementById(id); }
+function esc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function asArr(v){
+  if(v == null) return [];
+  if(Object.prototype.toString.call(v) === '[object Array]') return v;
+  if(typeof v === 'string'){ try{ var a = JSON.parse(v); return Object.prototype.toString.call(a) === '[object Array]' ? a : []; }catch(e){ return []; } }
+  return [];
+}
+function asObj(v){
+  if(v == null) return {};
+  if(typeof v === 'object' && Object.prototype.toString.call(v) !== '[object Array]') return v;
+  if(typeof v === 'string'){ try{ var o = JSON.parse(v); return (o && typeof o === 'object') ? o : {}; }catch(e){ return {}; } }
+  return {};
+}
+var DAY = 86400000;
+function dayToStr(n){
+  n = Number(n);
+  if(!isFinite(n)) return '—';
+  return new Date(n * DAY).toISOString().slice(0, 10);
+}
+function num(v){ return Number(v || 0).toLocaleString('zh-CN'); }
+function fdate(s){
+  var t = Date.parse(String(s == null ? '' : s));
+  if(isNaN(t)) return '—';
+  var d = new Date(t);
+  function p(n){ return (n < 10 ? '0' : '') + n; }
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+function fkb(n){ n = Number(n || 0); return n >= 1024 ? (n / 1024).toFixed(2) + ' MB' : Math.round(n) + ' KB'; }
+function toast(msg, cls){
+  var el = $('toast');
+  el.textContent = msg;
+  el.className = 'toast on' + (cls ? ' ' + cls : '');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(function(){ el.className = 'toast' + (cls ? ' ' + cls : ''); }, 2600);
+}
+
+/* ---------------------------------------------------------------- 云端访问 */
+function api(table, opt){
+  if(!REST) return Promise.reject(new Error('未配置云环境'));
+  opt = opt || {};
+  var h = {'Authorization': 'Bearer ' + CFG.key};
+  if(opt.headers) for(var k in opt.headers) h[k] = opt.headers[k];
+  var init = {method: opt.method || 'GET', headers: h};
+  if(opt.body !== undefined) init.body = JSON.stringify(opt.body);
+  return fetch(REST + table + (opt.q || ''), init).then(function(r){
+    if(!r.ok){
+      return r.text().then(function(t){ throw new Error('HTTP ' + r.status + ' ' + String(t).slice(0, 200)); });
+    }
+    if(r.status === 204) return null;
+    return r.text().then(function(t){
+      if(!t) return null;
+      try{ return JSON.parse(t); }catch(e){ return null; }
+    });
+  });
+}
+function rpc(fn, args){ return api('rpc/' + fn, {method:'POST', headers:{'Content-Type':'application/json'}, body:args || {}}); }
+
+/* ---------------------------------------------------------------- 登录态（与工作台共用） */
+function authLoad(){
+  var a = null;
+  try{ a = JSON.parse(localStorage.getItem(AUTH_KEY) || sessionStorage.getItem(AUTH_KEY) || 'null'); }catch(e){ a = null; }
+  if(!a) return null;
+  /* 两种历史形态都兜住：{t,u,n,r,ts} 与 {token,name,role,expire} */
+  var tok = a.t || a.token;
+  if(!tok) return null;
+  var exp = a.e || a.expire;
+  if(exp){ var et = Date.parse(String(exp)); if(!isNaN(et) && Date.now() > et) return null; }
+  if(a.ts && (Date.now() - a.ts) > AUTH_TTL) return null;
+  return {token:tok, user:a.u || a.user || '', name:a.n || a.name || a.u || '', role:a.r || a.role || ''};
+}
+function roleLabel(r){ return r === 'super' ? '超级管理员' : (r === 'ops' ? '普通管理员' : '成员'); }
+/* 写操作前确认登录还有效（服务端 wb_admin_check 校验 token） */
+function ensureAuth(){
+  var a = authLoad();
+  if(!a){ toast('请先在工作台登录，再来添加内容', 'bad'); return Promise.reject(new Error('未登录')); }
+  Auth = a;
+  return rpc('wb_admin_check', {p_token: Auth.token}).then(function(r){
+    if(!r || !(r.ok)){ toast('登录已失效，请回工作台重新登录', 'bad'); throw new Error('登录失效'); }
+    return true;
+  });
+}
+
+/* ============================================================================
+   一、零依赖 xlsx 解析
+   xlsx = zip（[Content_Types].xml + xl/workbook.xml + xl/sharedStrings.xml + xl/worksheets/*.xml）
+   步骤：读 zip 中央目录 → 解压需要的几个 XML → DOMParser 解析 → 取值
+   ============================================================================ */
+function rd16(b,o){ return b[o] | (b[o+1] << 8); }
+function rd32(b,o){ return (b[o] | (b[o+1] << 8) | (b[o+2] << 16) | (b[o+3] << 24)) >>> 0; }
+function bstr(b,o,len){ var s = ''; for(var i = 0; i < len; i++) s += String.fromCharCode(b[o+i]); return s; }
+
+/* 读 zip 中央目录：给出 {文件名: {method, csize, start}} */
+function zipIndex(b){
+  if(b.length < 22 || b[0] !== 0x50 || b[1] !== 0x4b) throw new Error('不是 zip/xlsx 文件（缺少 PK 标记）');
+  var eocd = -1, from = Math.max(0, b.length - 66000);
+  for(var i = b.length - 22; i >= from; i--){
+    if(b[i] === 0x50 && b[i+1] === 0x4b && b[i+2] === 0x05 && b[i+3] === 0x06){ eocd = i; break; }
+  }
+  if(eocd < 0) throw new Error('zip 目录尾部（EOCD）缺失，文件可能被截断');
+  var cnt = rd16(b, eocd + 10), off = rd32(b, eocd + 16), out = {}, p = off;
+  for(var j = 0; j < cnt; j++){
+    if(rd32(b, p) !== 0x02014b50) throw new Error('zip 中央目录第 ' + (j + 1) + ' 项损坏');
+    var method = rd16(b, p + 10), csize = rd32(b, p + 20);
+    var nlen = rd16(b, p + 28), elen = rd16(b, p + 30), clen = rd16(b, p + 32);
+    var lho  = rd32(b, p + 42);
+    var name = bstr(b, p + 46, nlen);
+    var lnl  = rd16(b, lho + 26), lel = rd16(b, lho + 28);
+    out[name] = {method:method, csize:csize, start:lho + 30 + lnl + lel};
+    p += 46 + nlen + elen + clen;
+  }
+  return out;
+}
+/* 取出某个条目并解压（method 0 = 存储，8 = deflate） */
+function unzipEntry(b, ent){
+  if(!ent) return Promise.resolve(null);
+  var raw = b.subarray(ent.start, ent.start + ent.csize);
+  if(ent.method === 0) return Promise.resolve(raw);
+  if(ent.method !== 8) return Promise.reject(new Error('不支持的压缩方式 method=' + ent.method + '（请另存为 CSV 上传）'));
+  if(typeof DecompressionStream === 'undefined')
+    return Promise.reject(new Error('当前浏览器不支持解压 xlsx（DecompressionStream 缺失），请把工作表另存为 CSV 再上传'));
+  var stream = new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+  return new Response(stream).arrayBuffer().then(function(ab){ return new Uint8Array(ab); });
+}
+function xmlDoc(u8){
+  var txt = new TextDecoder('utf-8').decode(u8);
+  var d = new DOMParser().parseFromString(txt, 'application/xml');
+  if(d.getElementsByTagName('parsererror').length) throw new Error('XML 解析失败');
+  return d;
+}
+/* 共享字符串表：<si> 里可能有多段 <r><t> */
+function parseShared(doc){
+  var out = [], si = doc.getElementsByTagName('si');
+  for(var i = 0; i < si.length; i++){
+    var ts = si[i].getElementsByTagName('t'), s = '';
+    for(var j = 0; j < ts.length; j++) s += ts[j].textContent;
+    out.push(s);
+  }
+  return out;
+}
+/* 列号：A→0, B→1, AA→26 */
+function colIdx(ref){
+  var s = String(ref || '').replace(/[^A-Z]/g, ''), n = 0;
+  for(var i = 0; i < s.length; i++) n = n * 26 + (s.charCodeAt(i) - 64);
+  return n - 1;
+}
+/* 日期序列号（1900 体系，含闰年 bug）→ Date */
+function serialToDate(v){
+  var days = Math.floor(v), frac = v - days;
+  var ms = Date.UTC(1899, 11, 30) + days * DAY + Math.round(frac * DAY);
+  return new Date(ms);
+}
+function pad2(n){ return (n < 10 ? '0' : '') + n; }
+function fmtDate(d){
+  var s = d.getUTCFullYear() + '-' + pad2(d.getUTCMonth() + 1) + '-' + pad2(d.getUTCDate());
+  if(d.getUTCHours() || d.getUTCMinutes() || d.getUTCSeconds())
+    s += ' ' + pad2(d.getUTCHours()) + ':' + pad2(d.getUTCMinutes());
+  return s;
+}
+/* 样式表：哪几个 s 索引是日期格式（内置 14~22 / 45~47，或自定义格式串里含 y/m/d） */
+function parseStyles(doc){
+  var dateS = {}, custom = {}, nf = doc.getElementsByTagName('numFmt');
+  for(var i = 0; i < nf.length; i++){
+    var id = parseInt(nf[i].getAttribute('numFmtId'), 10), cd = nf[i].getAttribute('formatCode') || '';
+    /* 去掉引号里的字面量再判断，避免 "元/月" 之类被误判成日期 */
+    var bare = cd.replace(/"[^"]*"/g, '').replace(/\[[^\]]*\]/g, '');
+    if(/[yY]/.test(bare) || /[dD]/.test(bare) && /[mM]/.test(bare)) custom[id] = 1;
+  }
+  var cx = doc.getElementsByTagName('cellXfs')[0];
+  if(!cx) return dateS;
+  var xf = cx.getElementsByTagName('xf');
+  for(var k = 0; k < xf.length; k++){
+    var id2 = parseInt(xf[k].getAttribute('numFmtId') || '0', 10);
+    if((id2 >= 14 && id2 <= 22) || (id2 >= 45 && id2 <= 47) || custom[id2]) dateS[k] = 1;
+  }
+  return dateS;
+}
+/* 一张工作表 → 二维数组 */
+function sheetGrid(doc, shared, dateS){
+  var rows = doc.getElementsByTagName('row'), out = [];
+  for(var i = 0; i < rows.length; i++){
+    var cs = rows[i].getElementsByTagName('c'), arr = [], maxc = -1;
+    for(var j = 0; j < cs.length; j++){
+      var c = cs[j], ref = c.getAttribute('r'), t = c.getAttribute('t');
+      var ci = ref ? colIdx(ref) : j;
+      if(ci < 0) ci = j;
+      var sAttr = c.getAttribute('s');
+      var vEl = c.getElementsByTagName('v')[0];
+      var tEl = c.getElementsByTagName('t')[0];
+      var val = '';
+      if(t === 's')         val = shared[parseInt(vEl ? vEl.textContent : '0', 10)] || '';
+      else if(t === 'inlineStr') val = tEl ? tEl.textContent : '';
+      else if(t === 'str')  val = vEl ? vEl.textContent : (tEl ? tEl.textContent : '');
+      else if(t === 'b')    val = (vEl && vEl.textContent === '1') ? 'TRUE' : 'FALSE';
+      else if(vEl){
+        var raw = vEl.textContent, num = parseFloat(raw);
+        if(raw !== '' && !isNaN(num) && /^-?\d+(\.\d+)?([eE][-+]?\d+)?$/.test(raw)){
+          if(sAttr != null && dateS[sAttr] && num > 0 && num < 2958466) val = fmtDate(serialToDate(num));
+          else val = num;
+        } else val = raw;
+      }
+      arr[ci] = val;
+      if(ci > maxc) maxc = ci;
+    }
+    for(var k = 0; k <= maxc; k++) if(arr[k] === undefined) arr[k] = '';
+    /* 整行空白就丢掉（xlsx 里常带大量空行占位） */
+    var any = arr.some(function(x){ return x !== '' && x != null; });
+    if(any) out.push(arr);
+  }
+  return out;
+}
+/* 裁掉右侧与底部整列/整行为空的部分 */
+function trimGrid(g){
+  if(!g.length) return [];
+  var rows = g.length, cols = 0;
+  g.forEach(function(r){ if(r.length > cols) cols = r.length; });
+  while(cols > 0){
+    var empty = true;
+    for(var i = 0; i < rows; i++){ var v = g[i][cols-1]; if(v !== '' && v != null){ empty = false; break; } }
+    if(!empty) break;
+    cols--;
+  }
+  var out = [];
+  for(var r = 0; r < rows; r++){
+    var line = [];
+    for(var c = 0; c < cols; c++){ var v = g[r][c]; line.push(v == null ? '' : v); }
+    var any = line.some(function(x){ return x !== ''; });
+    if(any) out.push(line);
+  }
+  return out;
+}
+/* 主入口：ArrayBuffer → {sheet 名: 二维数组} */
+function parseXlsx(buf){
+  var b = new Uint8Array(buf), idx = zipIndex(b);
+  var need = ['xl/workbook.xml', 'xl/_rels/workbook.xml.rels', 'xl/sharedStrings.xml', 'xl/styles.xml'];
+  var task = {};
+  need.forEach(function(n){ task[n] = unzipEntry(b, idx[n]); });
+  var sheetNames = Object.keys(idx).filter(function(n){ return /^xl\/worksheets\/sheet\d+\.xml$/.test(n); });
+  sheetNames.forEach(function(n){ task[n] = unzipEntry(b, idx[n]); });
+  return Promise.all(need.concat(sheetNames).map(function(n){ return task[n]; })).then(function(list){
+    var map = {};
+    need.concat(sheetNames).forEach(function(n, i){ map[n] = list[i]; });
+    var shared = map['xl/sharedStrings.xml'] ? parseShared(xmlDoc(map['xl/sharedStrings.xml'])) : [];
+    var dateS  = map['xl/styles.xml'] ? parseStyles(xmlDoc(map['xl/styles.xml'])) : {};
+    /* 工作表顺序 + 显示名 */
+    var order = [], nameByRid = {};
+    if(map['xl/_rels/workbook.xml.rels']){
+      var rd = xmlDoc(map['xl/_rels/workbook.xml.rels']).getElementsByTagName('Relationship');
+      for(var i = 0; i < rd.length; i++){
+        var tg = String(rd[i].getAttribute('Target') || '').replace(/^\/?xl\//, '').replace(/^\//, '');
+        nameByRid[rd[i].getAttribute('Id')] = 'xl/' + tg;
+      }
+    }
+    if(map['xl/workbook.xml']){
+      var sh = xmlDoc(map['xl/workbook.xml']).getElementsByTagName('sheet');
+      for(var j = 0; j < sh.length; j++){
+        var rid = sh[j].getAttribute('r:id') || sh[j].getAttribute('id');
+        var path = nameByRid[rid] || ('xl/worksheets/sheet' + (j + 1) + '.xml');
+        order.push({name: sh[j].getAttribute('name') || ('工作表' + (j + 1)), path: path});
+      }
+    }
+    if(!order.length) order = sheetNames.map(function(n, i){ return {name:'工作表' + (i + 1), path:n}; });
+    var out = {}, cnt = 0;
+    order.forEach(function(o){
+      var u8 = map[o.path] || map[o.path.replace('xl/', '')];
+      if(!u8) return;
+      var all = {};
+      /* 直接在这张工作表上做共享字符串/日期还原 */
+      var g = sheetGrid(xmlDoc(u8), shared, dateS);
+      g = trimGrid(g);
+      if(g.length){ out[o.name] = g; cnt++; }
+    });
+    if(!cnt) throw new Error('没有解析到任何数据行（工作表是空的？）');
+    return out;
+  });
+}
+/* CSV / TSV：支持双引号包裹、逗号或制表符 */
+function parseCsv(text){
+  text = String(text).replace(/^\uFEFF/, '');
+  var firstLine = text.split(/\r?\n/)[0] || '';
+  var cand = [',', '\t', ';'];
+  var delim = ',', best = -1;
+  cand.forEach(function(d){
+    var n = firstLine.split(d).length;
+    if(n > best){ best = n; delim = d; }
+  });
+  var rows = [], cur = [], cell = '', q = false;
+  for(var i = 0; i < text.length; i++){
+    var ch = text[i];
+    if(q){
+      if(ch === '"'){ if(text[i+1] === '"'){ cell += '"'; i++; } else q = false; }
+      else cell += ch;
+    } else if(ch === '"') q = true;
+    else if(ch === delim){ cur.push(cell); cell = ''; }
+    else if(ch === '\n'){ cur.push(cell); rows.push(cur); cur = []; cell = ''; }
+    else if(ch === '\r'){ /* 跳过 */ }
+    else cell += ch;
+  }
+  cur.push(cell);
+  rows.push(cur);
+  var maxc = 0;
+  rows.forEach(function(r){ if(r.length > maxc) maxc = r.length; });
+  var out = [];
+  rows.forEach(function(r){
+    var line = r.map(function(x){ return x == null ? '' : x.trim(); });
+    while(line.length < maxc) line.push('');
+    if(line.some(function(x){ return x !== ''; })) out.push(line);
+  });
+  return trimGrid(out);
+}
+
+/* ============================================================================
+   二、渲染
+   ============================================================================ */
+function modMetaOf(m){
+  var mt = asObj(m.meta), keys = Object.keys(mt), order = ['points', 'span', 'src', 'freq', 'rows', 'cols'];
+  var lb = {points:'数据点', span:'区间', src:'来源', freq:'频率', rows:'行数', cols:'列数', tag:'标签'};
+  keys.sort(function(a, b){
+    var ia = order.indexOf(a), ib = order.indexOf(b);
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+  });
+  return keys.filter(function(k){ return mt[k] !== '' && mt[k] != null; }).map(function(k){
+    return '<span' + (k === 'src' || k === 'span' || k === 'points' ? ' class="k"' : '') + '>' +
+      esc(lb[k] || k) + '：' + esc(String(mt[k])) + '</span>';
+  }).join('');
+}
+function modCard(m, i){
+  var on = m.on_line !== false;
+  var url = String(m.url || '');
+  var accent = /^#[0-9a-fA-F]{3,8}$/.test(String(m.accent || '')) ? m.accent : '';
+  return '<div class="mod' + (on ? '' : ' off') + '" style="animation-delay:' + Math.min(i * 45, 300) + 'ms">' +
+    '<div class="hd">' +
+      '<div class="ico"' + (accent ? ' style="background:linear-gradient(135deg,' + accent + '22,' + accent + '0d);border-color:' + accent + '44"' : '') + '>' + esc(m.icon || '🗄') + '</div>' +
+      '<div class="tt"><b>' + esc(m.title || m.id) + '</b><span>' + esc(m.id) + '</span></div>' +
+      (m.tag ? '<div class="tag">' + esc(m.tag) + '</div>' : '') +
+    '</div>' +
+    '<div class="sub">' + esc(m.sub || '') + '</div>' +
+    '<div class="mt">' + modMetaOf(m) + (on ? '' : '<span>未上线</span>') + '</div>' +
+    '<div class="ft">' +
+      (url && on
+        ? '<a class="go" href="' + esc(url) + '" target="_blank" rel="noopener">打开页面 →</a>'
+        : '<span class="go" style="color:var(--muted)">暂无可用地址</span>') +
+      '<span class="sp"></span>' +
+      '<button class="mini" onclick="DL.modForm(\'' + esc(m.id) + '\')">编辑</button>' +
+      '<button class="mini dg" onclick="DL.delMod(\'' + esc(m.id) + '\')">删除</button>' +
+    '</div>' +
+  '</div>';
+}
+function renderMods(){
+  S.cats = [];
+  S.mods.forEach(function(m){ var t = String(m.tag || '').trim(); if(t && S.cats.indexOf(t) < 0) S.cats.push(t); });
+  var q = String(S.q || '').trim().toLowerCase();
+  var pq = (q && !/[\u4e00-\u9fa5]/.test(q)) ? q.replace(/[^a-z0-9]/g, '') : '';
+  var rows = S.mods.filter(function(m){
+    if(S.cat && String(m.tag || '') !== S.cat) return false;
+    if(!q) return true;
+    var hay = [m.id, m.title, m.sub, m.tag, m.url, modMetaOf(m)].join(' ').toLowerCase()
+      .replace(/<[^>]+>/g, '');
+    if(hay.indexOf(q) >= 0) return true;
+    return pyHit([m.title, m.sub, m.id, m.tag].join(' '), pq);
+  });
+  rows.sort(function(a, b){ return (a.sort == null ? 99 : a.sort) - (b.sort == null ? 99 : b.sort); });
+  $('modCnt').textContent = S.mods.length + ' 个' + (rows.length !== S.mods.length ? '（筛出 ' + rows.length + '）' : '');
+  $('grid').innerHTML = rows.map(modCard).join('');
+  var emp = $('modEmpty');
+  if(!rows.length){
+    emp.style.display = '';
+    emp.innerHTML = '<div class="empty"><div class="big">🗂</div><h3>没有匹配的模块</h3>' +
+      '<p>' + (S.mods.length ? '换个关键词试试，或点「全部」清除筛选。' :
+      '还没有任何模块。点右上角「＋ 新增模块」，把已经上线的页面登记进来 —— 之后想加页面，只要加一行就行。') + '</p></div>';
+  } else emp.style.display = 'none';
+}
+function renderChips(){
+  var host = $('chips');
+  if(!host) return;
+  var h = '<button class="chip' + (S.cat ? '' : ' on') + '" onclick="DL.setCat(-1)">全部<i>' + S.mods.length + '</i></button>';
+  S.cats.forEach(function(c, i){
+    var n = S.mods.filter(function(m){ return String(m.tag || '') === c; }).length;
+    h += '<button class="chip' + (S.cat === c ? ' on' : '') + '" onclick="DL.setCat(' + i + ')">' + esc(c) + '<i>' + n + '</i></button>';
+  });
+  host.innerHTML = h;
+}
+function renderFiles(){
+  var host = $('fileBox');
+  var rows = S.files.slice().sort(function(a, b){ return (Date.parse(b.t || '') || 0) - (Date.parse(a.t || '') || 0); });
+  $('fileCnt').textContent = rows.length + ' 份';
+  if(!rows.length){
+    host.innerHTML = '<div class="empty"><div class="big">📗</div><h3>还没有上传过数据集</h3>' +
+      '<p>点右上角 <b>⬆ 上传 Excel</b>，选一个 <code>.xlsx / .csv</code> 商品数据表：' +
+      '页面会就地解析（不上传到任何第三方）、预览前几行，确认后写进云端数据库，团队成员都能看到。</p></div>';
+    return;
+  }
+  var tr = rows.map(function(f){
+    var rn = Number(f.rows_n || 0), cn = Number(f.cols_n || 0);
+    return '<tr>' +
+      '<td><b style="color:var(--brand-deep)">' + esc(f.name || f.id) + '</b>' +
+        '<div class="mono" style="color:var(--muted);font-size:11.5px">' + esc(f.file_name || '') +
+        (f.sheet ? ' · ' + esc(f.sheet) + ' 表' : '') + '</div></td>' +
+      '<td><span class="pill">' + esc(f.kind || '商品数据') + '</span></td>' +
+      '<td class="n">' + num(rn) + ' 行 × ' + num(cn) + ' 列</td>' +
+      '<td class="n">' + (f.size_kb ? fkb(f.size_kb) : '—') + '</td>' +
+      '<td>' + esc(f.uploaded_by || '—') + '</td>' +
+      '<td class="mono">' + fdate(f.t) + '</td>' +
+      '<td><div class="acts">' +
+        '<button class="mini" onclick="DL.viewFile(\'' + esc(f.id) + '\')">预览</button>' +
+        '<button class="mini" onclick="DL.dlFile(\'' + esc(f.id) + '\')">下载</button>' +
+        '<button class="mini dg" onclick="DL.delFile(\'' + esc(f.id) + '\')">删除</button>' +
+      '</div></td>' +
+    '</tr>';
+  }).join('');
+  host.innerHTML = '<div class="tbox"><div class="tscroll"><table class="tb">' +
+    '<thead><tr><th>数据集</th><th>类别</th><th class="n">规模</th><th class="n">体积</th><th>上传人</th><th>上传时间</th><th></th></tr></thead>' +
+    '<tbody>' + tr + '</tbody></table></div></div>';
+}
+function renderSeries(){
+  var host = $('serBox');
+  var rows = S.series.slice();
+  rows.sort(function(a, b){ return String(a.cat + a.id).localeCompare(String(b.cat + b.id), 'zh'); });
+  var tot = rows.reduce(function(a, s){ return a + Number(s.n || 0); }, 0);
+  $('serCnt').textContent = rows.length + ' 条 · ' + num(tot) + ' 点';
+  if(!rows.length){
+    host.innerHTML = '<div class="empty" style="padding:30px 22px"><h3>库里还没有行情序列</h3>' +
+      '<p>用 <code>build/commodity100/push_series.py</code> 把日线数据推上去即可。</p></div>';
+    return;
+  }
+  var tr = rows.map(function(s){
+    return '<tr>' +
+      '<td><span style="font-weight:800;color:' + esc(s.color || '#c8102e') + '">' + esc(s.name || s.id) + '</span>' +
+        '<div class="mono" style="color:var(--muted);font-size:11.5px">' + esc(s.id) + '</div></td>' +
+      '<td><span class="pill">' + esc(s.cat || '—') + '</span></td>' +
+      '<td>' + esc(s.market || '—') + '</td>' +
+      '<td>' + esc(s.unit || '—') + '</td>' +
+      '<td class="n">' + num(s.n) + '</td>' +
+      '<td class="mono n">' + dayToStr(s.t0) + ' → ' + dayToStr(s.t1) + '</td>' +
+      '<td style="color:var(--muted);font-size:12px">' + esc(s.note || '') + '</td>' +
+    '</tr>';
+  }).join('');
+  host.innerHTML = '<div class="tbox"><div class="ttl"><b>📈 商品日线序列</b>' +
+    '<span class="hint">每序列一行，点位存 jsonb，可直接被新页面复用</span><span class="sp"></span>' +
+    '<span class="hint">合计 ' + num(tot) + ' 个交易日数据点</span></div>' +
+    '<div class="tscroll"><table class="tb"><thead><tr>' +
+    '<th>序列</th><th>大类</th><th>市场</th><th>单位</th><th class="n">交易日</th><th class="n">覆盖区间</th><th>来源</th>' +
+    '</tr></thead><tbody>' + tr + '</tbody></table></div></div>';
+}
+function renderStats(){
+  var mods = S.mods.length, files = S.files.length;
+  var pts = S.series.reduce(function(a, s){ return a + Number(s.n || 0); }, 0);
+  var rowsUp = S.files.reduce(function(a, f){ return a + Number(f.rows_n || 0); }, 0);
+  var latest = '';
+  S.mods.concat(S.files).forEach(function(x){
+    var t = Date.parse(String(x.t || ''));
+    if(!isNaN(t)){ var d = new Date(t).toISOString().slice(0, 10); if(d > latest) latest = d; }
+  });
+  var cards = [
+    {lb:'文库模块', vl:mods, u:'个', nt:'已上线的数据页面入口', cls:''},
+    {lb:'上传数据集', vl:files, u:'份', nt:rowsUp ? ('合计 ' + num(rowsUp) + ' 行') : 'Excel / CSV 上传', cls:'gold'},
+    {lb:'行情序列', vl:S.series.length, u:'条', nt:num(pts) + ' 个交易日数据点', cls:''},
+    {lb:'最近更新', vl:latest || '—', u:'', nt:'加一行就有新入口', cls:'gold', small:true}
+  ];
+  $('stats').innerHTML = cards.map(function(c, i){
+    return '<div class="st ' + c.cls + '" style="animation-delay:' + (i * 60) + 'ms">' +
+      '<div class="lb">' + c.lb + '</div>' +
+      '<div class="vl"' + (c.small ? ' style="font-size:23px"' : '') + '>' + esc(c.vl) +
+        (c.u ? ' <small>' + c.u + '</small>' : '') + '</div>' +
+      '<div class="nt">' + esc(c.nt) + '</div></div>';
+  }).join('');
+}
+function renderBar(){
+  var a = authLoad();
+  var userTag = a ? '<span class="tag ok">👤 ' + esc(a.name || a.user) + ' · ' + roleLabel(a.role) + '</span>'
+                  : '<span class="tag warn">未登录 · 只读浏览</span>';
+  var srcTag = S.err ? '<span class="tag warn">⚠️ 读取失败</span>'
+                     : (REST ? '<span class="tag ok">☁️ 云端数据库</span>' : '<span class="tag warn">离线：未配置云环境</span>');
+  $('lbar').innerHTML =
+    '<span class="brand">矿产战略 · <em>数据文库</em></span>' +
+    '<span class="tag">' + S.mods.length + ' 个模块 · ' + S.files.length + ' 份数据集</span>' + srcTag + userTag +
+    '<span class="sp"></span>' +
+    '<button class="rbtn gh" onclick="DL.back()">← 返回工作台</button>' +
+    '<button class="rbtn" onclick="DL.load(true)">↻ 刷新</button>';
+  var canWrite = !!a;
+  $('btnNewMod').style.display = canWrite ? '' : 'none';
+  if(!canWrite && $('modHint')) $('modHint').textContent = '登录后可新增 / 编辑模块';
+}
+/* 搜索条：插到「文库模块」标题下面（动态生成，避免铺一堆静态 DOM） */
+function ensureSearchBar(){
+  if($('chips')) return;
+  var host = $('grid');
+  var bar = document.createElement('div');
+  bar.className = 'bar2';
+  bar.style.cssText = 'display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px';
+  bar.innerHTML = '<div class="sbox"><span>🔍</span>' +
+    '<input id="q" type="search" placeholder="搜索模块 / 标签 / 关键词…（支持拼音首字母）" autocomplete="off"></div>' +
+    '<div class="chips" id="chips"></div>';
+  host.parentNode.insertBefore(bar, host);
+  $('q').addEventListener('input', function(){ DL.setQ(this.value); });
+}
+
+/* 搜索框样式（与研报库一致） */
+(function injectCss(){
+  var st = document.createElement('style');
+  st.textContent = '.sbox{display:flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--brand-line);' +
+    'border-radius:12px;padding:0 12px;height:42px;min-width:280px;flex:1;max-width:400px;box-shadow:var(--shadow);transition:.16s}' +
+    '.sbox:focus-within{border-color:var(--brand);box-shadow:0 0 0 4px rgba(200,16,46,.08)}' +
+    '.sbox span{font-size:14px;opacity:.6}' +
+    '.sbox input{flex:1;border:0;outline:0;font:inherit;font-size:14.5px;background:transparent;color:var(--ink)}' +
+    '.sbox input::placeholder{color:#bda8ac}' +
+    '.chips{display:flex;gap:7px;flex-wrap:wrap}' +
+    '.chip{font:inherit;font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:999px;cursor:pointer;' +
+      'border:1px solid var(--brand-line);background:#fff;color:var(--ink2);transition:.15s;white-space:nowrap}' +
+    '.chip:hover{border-color:var(--brand);color:var(--brand)}' +
+    '.chip.on{background:linear-gradient(135deg,var(--brand),var(--brand-deep));border-color:transparent;color:#fff;' +
+      'box-shadow:0 4px 12px rgba(200,16,46,.24)}' +
+    '.chip i{font-style:normal;opacity:.72;margin-left:4px;font-size:11.5px}' +
+    '@media(max-width:860px){.sbox{min-width:100%;max-width:none}}';
+  document.head.appendChild(st);
+})();
+
+/* ============================================================================
+   三、弹窗
+   ============================================================================ */
+function openDlg(html, cls){
+  $('dlg').className = 'dlg' + (cls ? ' ' + cls : '');
+  $('dlg').innerHTML = html;
+  $('mask').className = 'mask on';
+}
+function closeDlg(){ $('mask').className = 'mask'; $('dlg').innerHTML = ''; U.grid = []; U.grids = {}; U.file = null; U.sheet = ''; }
+$('mask').addEventListener('mousedown', function(e){ if(e.target === this) closeDlg(); });
+
+/* ---------- 预览 / 下载 / 删除 ---------- */
+function gridTable(grid, maxRows){
+  var n = Math.min(grid.length, maxRows || 200), cols = 0;
+  grid.slice(0, n).forEach(function(r){ if(r.length > cols) cols = r.length; });
+  var h = '<table><thead><tr><th class="rn">#</th>';
+  for(var c = 0; c < cols; c++) h += '<th>' + c0(grid[0] && grid[0][c] != null ? String(grid[0][c]) : '列' + (c + 1)) + '</th>';
+  h += '</tr></thead><tbody>';
+  for(var i = 0; i < n; i++){
+    h += '<tr><td class="rn">' + (i + 1) + '</td>';
+    for(var j = 0; j < cols; j++){ var v = grid[i][j]; h += '<td>' + esc(v == null ? '' : String(v)) + '</td>'; }
+    h += '</tr>';
+  }
+  return h + '</tbody></table>';
+}
+function c0(s){ return String(s == null ? '' : s).slice(0, 40) || '—'; }
+
+function dlCsv(name, grid){
+  var out = grid.map(function(r){
+    return r.map(function(v){
+      var s = (v == null ? '' : String(v));
+      return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    }).join(',');
+  }).join('\r\n');
+  var blob = new Blob(['\uFEFF' + out], {type:'text/csv;charset=utf-8'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = String(name || 'dataset').replace(/[\\/:*?"<>|]/g, '_') + '.csv';
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+}
+
+/* ============================================================================
+   四、控制器
+   ============================================================================ */
+var DL = {
+  back:function(){ location.href = 'index.html'; },
+  setQ:function(v){ S.q = v; renderMods(); },
+  setCat:function(i){ S.catIdx = i; S.cat = (i < 0 || i >= S.cats.length) ? '' : S.cats[i]; renderChips(); renderMods(); },
+
+  /* ---------------- 读 ---------------- */
+  load:function(isRetry){
+    if(S.loading) return;
+    S.loading = true; S.err = '';
+    renderBar(); renderStats();
+    if(!S.mods.length){
+      $('grid').innerHTML = '<div class="sk"><i></i><i></i><i></i></div><div class="sk"><i></i><i></i><i></i></div>';
+      $('modEmpty').style.display = 'none';
+    }
+    if(!REST){
+      S.loading = false;
+      S.err = '离线：页面里没有云端配置';
+      renderBar(); renderMods(); renderChips(); renderFiles(); renderSeries(); renderStats();
+      return;
+    }
+    Promise.all([
+      api('wb_data_mods', {q:'?select=*&order=sort.asc'}),
+      api('wb_data_files', {q:'?select=id,name,kind,file_name,sheet,cols,rows_n,cols_n,size_kb,uploaded_by,t&order=t.desc'}),
+      api('wb_data_series', {q:'?select=id,name,cat,market,unit,color,t0,t1,n,note&order=id.asc'})
+    ]).then(function(res){
+      S.loading = false;
+      S.mods   = asArr(res[0]);
+      S.files  = asArr(res[1]);
+      S.series = asArr(res[2]);
+      var cs = [];
+      S.mods.forEach(function(m){ var t = String(m.tag || '').trim(); if(t && cs.indexOf(t) < 0) cs.push(t); });
+      if(S.cat && cs.indexOf(S.cat) < 0){ S.cat = ''; S.catIdx = -1; }
+      renderBar(); renderStats(); renderChips(); renderMods(); renderFiles(); renderSeries();
+      if(isRetry) toast('已刷新 · ' + S.mods.length + ' 个模块 / ' + S.files.length + ' 份数据集', 'ok');
+    }).catch(function(e){
+      S.loading = false;
+      S.err = String(e && e.message || e);
+      renderBar(); renderStats(); renderChips(); renderMods(); renderFiles(); renderSeries();
+      toast('读取数据文库失败：' + S.err, 'bad');
+    });
+  },
+
+  /* ---------------- 上传 Excel ---------------- */
+  uploadForm:function(){
+    U.file = null; U.grids = {}; U.sheet = ''; U.grid = [];
+    openDlg(
+      '<div class="dh"><b>⬆ 上传商品数据表</b><span class="sp"></span>' +
+        '<button class="x" onclick="closeDlg()">✕</button></div>' +
+      '<div class="db">' +
+        '<div class="drop" id="drop">' +
+          '<div class="big">📄</div><b>点这里选择文件，或把表格拖进来</b>' +
+          '<span>支持 <em>.xlsx</em>（Excel 2007+ / WPS）与 <em>.csv / .tsv</em>；' +
+          '老版 <em>.xls</em> 请先另存为 xlsx。<br>' +
+          '解析全部在浏览器里完成，文件不会上传到任何第三方；确认后只把<em>解析出的表格内容</em>写入你的云数据库。</span>' +
+        '</div>' +
+        '<input type="file" id="file" accept=".xlsx,.csv,.tsv,.txt" style="display:none">' +
+        '<div id="upInfo"></div>' +
+      '</div>' +
+      '<div class="df"><span class="note" id="upNote">单个文件 ≤ 4 MB，解析后最多 20000 行</span>' +
+        '<span class="sp"></span>' +
+        '<button class="rbtn gh" onclick="closeDlg()">取消</button>' +
+        '<button class="rbtn pri" id="upGo" disabled onclick="DL.doUpload()">确认入库</button>' +
+      '</div>');
+    var drop = $('drop'), fi = $('file');
+    drop.onclick = function(){ fi.click(); };
+    drop.addEventListener('dragover', function(e){ e.preventDefault(); drop.classList.add('over'); });
+    drop.addEventListener('dragleave', function(){ drop.classList.remove('over'); });
+    drop.addEventListener('drop', function(e){
+      e.preventDefault(); drop.classList.remove('over');
+      if(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) DL.readFile(e.dataTransfer.files[0]);
+    });
+    fi.onchange = function(){ if(this.files && this.files[0]) DL.readFile(this.files[0]); };
+  },
+  readFile:function(f){
+    var nm = String(f.name || '').toLowerCase();
+    if(f.size > 4 * 1024 * 1024){ toast('文件超过 4 MB，请先在 Excel 里精简后再传', 'bad'); return; }
+    if(/\.xls$/.test(nm)){ toast('老版 .xls 不支持，请在 Excel 里另存为 .xlsx 或 .csv', 'bad'); return; }
+    U.file = f; U.grids = {}; U.grid = [];
+    $('upInfo').innerHTML = '<div class="warnbox">正在解析 <b>' + esc(f.name) + '</b> …</div>';
+    $('upGo').disabled = true;
+    var isCsv = /\.(csv|tsv|txt)$/.test(nm);
+    var p = isCsv ? f.text().then(function(t){ var g = parseCsv(t); if(!g.length) throw new Error('CSV 里没有数据行'); return {'（CSV）':{'grid':g}}; })
+                  : f.arrayBuffer().then(function(ab){ return parseXlsx(ab); });
+    p.then(function(res){
+      var names;
+      if(isCsv){ U.grids = {'（单表）': res['（CSV）'].grid}; names = Object.keys(U.grids); }
+      else { U.grids = res; names = Object.keys(res); }
+      if(!names.length) throw new Error('没有解析到任何工作表');
+      U.sheet = names[0];
+      var opt = names.map(function(n){
+        return '<option value="' + esc(n) + '">' + esc(n) + '（' + num(U.grids[n].length) + ' 行）</option>';
+      }).join('');
+      $('upInfo').innerHTML =
+        '<div class="warnbox">✅ 解析完成：<b>' + esc(f.name) + '</b>（' + fkb(f.size / 1024) +
+          '）· 共 ' + names.length + ' 张工作表</div>' +
+        '<div class="fld">' +
+          '<div><label>工作表</label><select id="upSheet">' + opt + '</select></div>' +
+          '<div><label>数据集名称</label><input id="upName" value="' + esc(f.name.replace(/\.[^.]+$/, '')) + '" placeholder="例如：2026 年有色金属现货价"></div>' +
+          '<div><label>类别</label><input id="upKind" value="商品数据" list="kinds" placeholder="商品数据 / 股票 / 宏观…">' +
+            '<datalist id="kinds"><option value="商品数据"><option value="股票行情"><option value="宏观指标"><option value="产业链"><option value="其他"></datalist></div>' +
+          '<div class="full"><label>备注（可空）</label><input id="upNote2" placeholder="数据来源、单位口径、更新频率…"></div>' +
+        '</div>' +
+        '<div class="prev"><div class="ph"><b>数据预览</b><em id="pvInfo"></em><span class="sp"></span>' +
+          '<em>最多显示前 60 行 × 前 20 列</em></div>' +
+          '<div class="pwrap" id="pv"></div></div>';
+      DL.pickSheet(U.sheet);
+      $('upSheet').onchange = function(){ DL.pickSheet(this.value); };
+      $('upGo').disabled = false;
+      $('upNote').textContent = '确认无误后入库';
+    }).catch(function(e){
+      $('upInfo').innerHTML = '<div class="errbox">✗ 解析失败：<b>' + esc(String(e && e.message || e)) + '</b><br>' +
+        '可以试试：① 把工作表另存为 .csv 再上传；② 确认文件没有加密；③ 确认不是 .xls 老格式。</div>';
+      $('upNote').textContent = '';
+      toast('解析失败：' + String(e && e.message || e), 'bad');
+    });
+  },
+  pickSheet:function(name){
+    U.sheet = name;
+    var g = U.grids[name] || [];
+    U.grid = g;
+    var cols = 0; g.slice(0, 300).forEach(function(r){ if(r.length > cols) cols = r.length; });
+    $('pvInfo').textContent = num(g.length) + ' 行 × ' + num(cols) + ' 列' + (g.length > 20000 ? '（超出上限，只入库前 20000 行）' : '');
+    $('pv').innerHTML = g.length ? gridTable(g.slice(0, 60).map(function(r){ return r.slice(0, 20); }), 60)
+                                 : '<div style="padding:16px;color:var(--muted)">这张表是空的</div>';
+    var nm = $('upName');
+    if(nm && !nm.value) nm.value = name;
+  },
+  doUpload:function(){
+    var g = U.grid || [];
+    if(!g.length){ toast('没有可入库的数据', 'bad'); return; }
+    var name = ($('upName') && $('upName').value || '').trim();
+    if(!name){ toast('请填数据集名称', 'bad'); return; }
+    var kind = ($('upKind') && $('upKind').value || '').trim() || '商品数据';
+    var note = ($('upNote2') && $('upNote2').value || '').trim();
+    var rows = g.slice(0, U.maxRow);
+    var cols0 = rows[0] ? rows[0].slice(0, 60) : [];
+    var body = {
+      id:'df_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7),
+      name:name, kind:kind, file_name:U.file ? U.file.name : '', sheet:U.sheet,
+      cols:cols0, rows_data:rows.map(function(r){ return r.slice(0, 60); }),
+      rows_n:rows.length, cols_n:cols0.length,
+      size_kb:U.file ? Math.round(U.file.size / 1024) : 0,
+      uploaded_by:(Auth.name || Auth.user || ''), src:'upload', note:note
+    };
+    var size = JSON.stringify(body).length;
+    if(size > 3.2 * 1048576){
+      toast('解析结果 ' + (size / 1048576).toFixed(1) + ' MB，超出单次入库上限（3 MB），请精简后再传', 'bad');
+      return;
+    }
+    var btn = $('upGo'); btn.disabled = true; btn.textContent = '入库中…';
+    ensureAuth().then(function(){
+      return api('wb_data_files?on_conflict=id', {
+        method:'POST',
+        headers:{'Content-Type':'application/json', 'Prefer':'resolution=merge-duplicates,return=minimal'},
+        body:body
+      });
+    }).then(function(){
+      closeDlg();
+      toast('已入库：' + name + '（' + num(rows.length) + ' 行）', 'ok');
+      DL.load(false);
+    }).catch(function(e){
+      btn.disabled = false; btn.textContent = '确认入库';
+      toast('入库失败：' + String(e && e.message || e), 'bad');
+    });
+  },
+  viewFile:function(id){
+    var f = null;
+    S.files.forEach(function(x){ if(x.id === id) f = x; });
+    if(!f) return;
+    if(!f.rows_data){
+      api('wb_data_files?select=rows_data,cols&id=eq.' + encodeURIComponent(id)).then(function(r){
+        var row = asArr(r)[0] || {};
+        f.rows_data = row.rows_data; f.cols = row.cols;
+        DL.viewFile(id);
+      }).catch(function(e){ toast('读取失败：' + e.message, 'bad'); });
+      return;
+    }
+    var g = asArr(f.rows_data);
+    openDlg(
+      '<div class="dh"><b>📄 ' + esc(f.name || f.id) + '</b><span class="sp"></span>' +
+        '<button class="x" onclick="closeDlg()">✕</button></div>' +
+      '<div class="db"><div class="prev" style="margin-top:0">' +
+        '<div class="ph"><b>' + esc(f.kind || '商品数据') + '</b>' +
+          '<em>' + num(f.rows_n || g.length) + ' 行 × ' + num(f.cols_n || (g[0] ? g[0].length : 0)) + ' 列</em>' +
+          '<span class="sp"></span><em>' + esc(f.file_name || '') + (f.sheet ? ' · ' + esc(f.sheet) : '') + ' · ' + fdate(f.t) + '</em></div>' +
+        '<div class="pwrap">' + gridTable(g, 200) + '</div></div>' +
+        (g.length > 200 ? '<div class="warnbox">共 ' + num(g.length) + ' 行，这里只显示前 200 行；需要完整数据请用「下载」导出 CSV。</div>' : '') +
+      '</div>' +
+      '<div class="df"><span class="note">' + esc(f.note || '') + '</span><span class="sp"></span>' +
+        '<button class="rbtn gh" onclick="closeDlg()">关闭</button>' +
+        '<button class="rbtn" onclick="DL.dlFile(\'' + esc(f.id) + '\')">⬇ 下载 CSV</button></div>', 'wide');
+  },
+  dlFile:function(id){
+    var f = null;
+    S.files.forEach(function(x){ if(x.id === id) f = x; });
+    if(!f) return;
+    if(f.rows_data){ dlCsv(f.name || f.id, asArr(f.rows_data)); toast('已导出 CSV', 'ok'); return; }
+    api('wb_data_files?select=rows_data&id=eq.' + encodeURIComponent(id)).then(function(r){
+      var row = asArr(r)[0] || {};
+      if(!row.rows_data){ toast('这份数据集没有数据内容', 'bad'); return; }
+      dlCsv(f.name || f.id, asArr(row.rows_data)); toast('已导出 CSV', 'ok');
+    }).catch(function(e){ toast('下载失败：' + e.message, 'bad'); });
+  },
+  delFile:function(id){
+    var f = null;
+    S.files.forEach(function(x){ if(x.id === id) f = x; });
+    if(!f) return;
+    DL.confirmPw('删除数据集', '「' + (f.name || f.id) + '」将被永久删除，且无法恢复。', 'datafile', id, function(){
+      S.files = S.files.filter(function(x){ return x.id !== id; });
+      renderFiles(); renderStats(); renderBar();
+    });
+  },
+
+  /* ---------------- 模块增删改 ---------------- */
+  modForm:function(id){
+    var m = null;
+    if(id) S.mods.forEach(function(x){ if(x.id === id) m = x; });
+    var isNew = !m;
+    m = m || {id:'', title:'', sub:'', icon:'🗄', tag:'', url:'', sort:99, on_line:true, accent:'', meta:{}};
+    var mt = asObj(m.meta);
+    openDlg(
+      '<div class="dh"><b>' + (isNew ? '＋ 新增文库模块' : '✎ 编辑模块') + '</b><span class="sp"></span>' +
+        '<button class="x" onclick="closeDlg()">✕</button></div>' +
+      '<div class="db">' +
+        '<div class="warnbox">模块 = 一个已经上线的页面。填好地址后，办公室里任何人打开「数据文库」都能一键跳过去；' +
+        '以后要加新页面，在这里加一行就行，不用改代码、不用重新部署。</div>' +
+        '<div class="fld">' +
+          '<div><label>模块 ID（英文，唯一）</label><input id="mId" value="' + esc(m.id) + '" placeholder="commodity-daily"' + (isNew ? '' : ' readonly style="background:#faf6f7"') + '></div>' +
+          '<div><label>模块名</label><input id="mTitle" value="' + esc(m.title) + '" placeholder="大宗商品日线对比图"></div>' +
+          '<div><label>分类标签</label><input id="mTag" value="' + esc(m.tag) + '" placeholder="商品 · 日线" list="tags"><datalist id="tags">' +
+            S.cats.map(function(c){ return '<option value="' + esc(c) + '">'; }).join('') +
+            '<option value="商品 · 日线"><option value="商品 · 长周期"><option value="股市 · 长周期"><option value="宏观"></datalist></div>' +
+          '<div><label>图标（emoji）</label><input id="mIcon" value="' + esc(m.icon || '🗄') + '" placeholder="📈"></div>' +
+          '<div><label>排序（小的在前）</label><input id="mSort" type="number" value="' + esc(m.sort == null ? 99 : m.sort) + '"></div>' +
+          '<div><label>卡片主色（可空）</label><input id="mAccent" value="' + esc(m.accent || '') + '" placeholder="#c8102e"></div>' +
+          '<div class="full"><label>页面地址</label><input id="mUrl" value="' + esc(m.url) + '" placeholder="commodity-daily.html 或 https://…"></div>' +
+          '<div class="full"><label>一句话说明</label><input id="mSub" value="' + esc(m.sub) + '" placeholder="31 条日线序列 · 可自由缩放的归一化对比图"></div>' +
+          '<div><label>数据点</label><input id="mPoints" value="' + esc(mt.points || '') + '" placeholder="105,755"></div>' +
+          '<div><label>区间</label><input id="mSpan" value="' + esc(mt.span || '') + '" placeholder="1996-10-14 → 2026-10-30"></div>' +
+          '<div><label>数据来源</label><input id="mSrc" value="' + esc(mt.src || '') + '" placeholder="新浪财经期货日线"></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="df"><span class="note" id="mNote">写库前会校验登录态</span><span class="sp"></span>' +
+        '<button class="rbtn gh" onclick="closeDlg()">取消</button>' +
+        '<button class="rbtn pri" onclick="DL.saveMod(' + (isNew ? 'true' : 'false') + ')">保存</button></div>');
+  },
+  saveMod:function(isNew){
+    var id = ($('mId').value || '').trim();
+    var title = ($('mTitle').value || '').trim();
+    var url = ($('mUrl').value || '').trim();
+    if(!/^[a-z0-9][a-z0-9_-]*$/.test(id)){ toast('模块 ID 只能用小写字母 / 数字 / - 和 _', 'bad'); return; }
+    if(!title){ toast('请填模块名', 'bad'); return; }
+    var body = {
+      id:id, title:title, sub:($('mSub').value || '').trim(), icon:($('mIcon').value || '🗄').trim(),
+      tag:($('mTag').value || '').trim(), url:url, accent:($('mAccent').value || '').trim(),
+      sort:parseInt($('mSort').value, 10) || 99, on_line:true,
+      meta:{points:($('mPoints').value || '').trim(), span:($('mSpan').value || '').trim(), src:($('mSrc').value || '').trim()}
+    };
+    $('mNote').textContent = '正在写入云端…';
+    ensureAuth().then(function(){
+      return api('wb_data_mods?on_conflict=id', {
+        method:'POST',
+        headers:{'Content-Type':'application/json', 'Prefer':'resolution=merge-duplicates,return=minimal'},
+        body:body
+      });
+    }).then(function(){
+      closeDlg();
+      toast(isNew ? '已新增模块：' + title : '已更新模块：' + title, 'ok');
+      DL.load(false);
+    }).catch(function(e){
+      if($('mNote')) $('mNote').textContent = '写入失败';
+      toast('保存失败：' + String(e && e.message || e), 'bad');
+    });
+  },
+  delMod:function(id){
+    var m = null;
+    S.mods.forEach(function(x){ if(x.id === id) m = x; });
+    if(!m) return;
+    DL.confirmPw('删除模块', '「' + (m.title || id) + '」将从数据文库中移除（页面本身不会被删除）。', 'datamod', id, function(){
+      S.mods = S.mods.filter(function(x){ return x.id !== id; });
+      renderMods(); renderChips(); renderStats(); renderBar();
+    });
+  },
+
+  /* 删除统一走服务端 RPC：token + 管理员密码二次校验 */
+  confirmPw:function(title, tip, kind, id, done){
+    openDlg(
+      '<div class="dh" style="background:linear-gradient(135deg,#8c0a20,#5d0715)"><b>⚠️ ' + esc(title) + '</b>' +
+        '<span class="sp"></span><button class="x" onclick="closeDlg()">✕</button></div>' +
+      '<div class="db"><div class="errbox">' + esc(tip) + '</div>' +
+        '<div class="fld" style="grid-template-columns:1fr">' +
+          '<div><label>请输入管理员密码确认</label>' +
+            '<input id="pw" type="password" placeholder="管理员密码" autocomplete="off"></div>' +
+        '</div>' +
+        '<div class="warnbox">删除由服务端校验：先核对登录态，再比对管理员密码，两步都过才会真正删。</div>' +
+      '</div>' +
+      '<div class="df"><span class="note" id="pwNote"></span><span class="sp"></span>' +
+        '<button class="rbtn gh" onclick="closeDlg()">取消</button>' +
+        '<button class="rbtn pri" id="pwGo" onclick="DL.doDel(\'' + esc(kind) + '\',\'' + esc(id) + '\')">确认删除</button></div>', 'narrow');
+    setTimeout(function(){ var p = $('pw'); if(p) p.focus(); }, 60);
+    DL._afterDel = done || null;
+  },
+  doDel:function(kind, id){
+    var pw = ($('pw') && $('pw').value || '');
+    if(!pw){ toast('请输入管理员密码', 'bad'); return; }
+    var a = authLoad();
+    if(!a){ toast('登录已失效，请回工作台重新登录', 'bad'); return; }
+    var btn = $('pwGo'); btn.disabled = true; btn.textContent = '删除中…';
+    rpc('wb_admin_delete_row', {p_token:a.token, p_kind:kind, p_id:id, p_pass:pw}).then(function(r){
+      if(r && r.ok){
+        closeDlg();
+        toast('已删除', 'ok');
+        if(DL._afterDel){ DL._afterDel(); DL._afterDel = null; }
+        DL.load(false);
+      } else {
+        btn.disabled = false; btn.textContent = '确认删除';
+        if($('pwNote')) $('pwNote').textContent = '';
+        toast((r && r.msg) || '删除失败', 'bad');
+      }
+    }).catch(function(e){
+      btn.disabled = false; btn.textContent = '确认删除';
+      toast('删除失败：' + String(e && e.message || e), 'bad');
+    });
+  }
+};
+window.DL = DL;
+window.closeDlg = closeDlg;
+
+/* ---------------------------------------------------------------- 启动 */
+(function boot(){
+  ensureSearchBar();
+  renderBar(); renderStats(); renderChips();
+  $('grid').innerHTML = '<div class="sk"><i></i><i></i><i></i></div><div class="sk"><i></i><i></i><i></i></div>';
+  DL.load(false);
+})();
+</script>
+</body>
+</html>

@@ -141,9 +141,11 @@ npl = dict(R.asc_years(c, '归属于母公司股东的净利润'))
 # 底稿末年为 291.0 / 9.0（四舍五入），统一到最新年报口径
 rev['2025'], npl['2025'] = 291.43, 9.07
 rev_years = [str(y) for y in range(2005, 2026)]
-opt = R.axis(rev_years, '营收(亿元)', right='净利(亿元)', xrot=45)
+# ★ 2026-10-14 用户口径：营收与净利**都画柱**、各占左右一根轴
+opt = R.axis(rev_years, '营业收入（亿元）', right='归母净利（亿元）', xrot=45)
+opt['grid']['right'] = 68
 R.bar(opt, '营业总收入', [rev.get(y) for y in rev_years], K['bar'])
-R.line(opt, '归母净利润', [npl.get(y) for y in rev_years], K['main'], yidx=1)
+R.bar(opt, '归母净利润', [npl.get(y) for y in rev_years], K['main'], yidx=1)
 add(5, 'chartRev', '公司营业收入与利润', opt)
 
 # ---- 6. 收入结构（2026H1）

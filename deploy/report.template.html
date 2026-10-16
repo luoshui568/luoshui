@@ -239,6 +239,180 @@ table.rpt-grid td.ix .gx:hover{background:#f1f0ee;border-color:#e0a4ab;color:#d0
 .shake{animation:rptShake .38s}
 @keyframes rptShake{0%,100%{transform:none}20%{transform:translateX(-7px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
 
+/* ---------- 报告说明弹窗（2026-10-14）----------
+   用户口径：「研报里不要有『本报告按 31 模块标准模板建档…』这种注解，在头部做一个点击弹窗，
+   注解之类的全部归到一起」。所以：建档说明 / 数据口径 / 正文标记图例 一律不再占正文，
+   统一收进页头这个弹窗；正文只留结论本身。
+   复用密码弹窗的 .rpt-* 命名与前缀，避免与抽屉 (.rpt-mask/.rpt-drawer) 打架。 */
+.rpt-nmask{position:fixed;inset:0;z-index:520;display:none;align-items:center;justify-content:center;
+  background:rgba(74,10,21,.5);padding:22px}
+.rpt-nmask.on{display:flex}
+.rpt-nbox{width:min(780px,94vw);max-height:86vh;display:flex;flex-direction:column;background:#fff;
+  border-radius:16px;overflow:hidden;box-shadow:0 24px 70px rgba(40,38,42,.42);animation:rptSlide .2s ease}
+.rpt-nbox .hd{display:flex;align-items:center;gap:9px;padding:14px 18px;
+  background:linear-gradient(135deg,#a30f24,#d0202f);color:#fff;font-weight:800;font-size:15px}
+.rpt-nbox .hd .cnt{font-weight:600;font-size:12px;background:rgba(255,255,255,.2);border-radius:999px;padding:2px 9px}
+.rpt-nbox .hd .x{margin-left:auto;cursor:pointer;font-weight:400;font-size:16px;opacity:.88;line-height:1}
+.rpt-nbox .hd .x:hover{opacity:1}
+.rpt-nbox .bd{padding:16px 20px 4px;overflow:auto;font-size:13.5px;line-height:1.88;color:#3d3a33}
+.rpt-nbox .ns{border:1px solid #f0e3c2;background:linear-gradient(135deg,#fffdf6,#fffbf0);
+  border-radius:12px;padding:13px 16px;margin-bottom:12px}
+.rpt-nbox .ns .nt{display:flex;align-items:center;gap:7px;font-weight:800;color:#8a6a0e;font-size:13px;margin-bottom:8px}
+.rpt-nbox .ns .nt .ic{font-weight:400;font-size:14px}
+.rpt-nbox .ns .nb>*:first-child{margin-top:0}
+.rpt-nbox .ns .nb>*:last-child{margin-bottom:0}
+.rpt-nbox .legend{display:grid;gap:9px}
+.rpt-nbox .legend .lg{display:flex;gap:9px;align-items:flex-start}
+.rpt-nbox .legend .mk{flex:0 0 auto;font-weight:800;color:#a3122a;background:#fff4f4;
+  border:1px solid #f2d2d6;border-radius:6px;padding:1px 7px;font-size:11.5px;white-space:nowrap;margin-top:3px}
+.rpt-nbox .ft{padding:12px 18px;border-top:1px solid #f0efed;display:flex;justify-content:flex-end;gap:8px}
+
+/* 页头「报告说明」入口（在 hero 的 .meta 行里，与徽标同排） */
+.notebtn{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font:inherit;font-size:12.5px;
+  font-weight:700;padding:5px 12px;border-radius:999px;line-height:1.4;
+  border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.15);color:#fff;transition:.18s}
+.notebtn:hover{background:rgba(255,255,255,.3);transform:translateY(-1px)}
+.notebtn em{font-style:normal;font-size:10.5px;font-weight:800;background:#f4e0a4;color:#8a1a14;
+  border-radius:999px;padding:1px 6px;line-height:1.5}
+/* 屏幕隐藏、打印显示：弹窗点不开，PDF 里必须把说明印出来 */
+#printNotes{display:none}
+
+/* ---------- 时间轴卡片「展开全文」弹窗（2026-10-14）----------
+   用户口径：「文字多的帮我隐藏部分文字，增加一个点击弹窗查看全部」。
+   卡片正文由 CSS 截到 7 行（.hist .h-card .h-txt 的 -webkit-line-clamp，见 report_theme.css），
+   点卡片 → 这里弹出全文。全文**只从卡片自身的 DOM 里取**，不往库里加字段 ——
+   已入库的研报 HTML 一个字都不用改，改这一处就是全站生效。
+   命名沿用 .rpt-* 前缀，避免和抽屉 (.rpt-mask) / 密码 (.rpt-pmask) 打架。 */
+.rpt-hmask{position:fixed;inset:0;z-index:530;display:none;align-items:center;justify-content:center;
+  background:rgba(74,10,21,.5);padding:22px}
+.rpt-hmask.on{display:flex}
+.rpt-hbox{width:min(560px,94vw);max-height:80vh;display:flex;flex-direction:column;background:#fff;
+  border-radius:16px;overflow:hidden;box-shadow:0 24px 70px rgba(40,38,42,.42);animation:rptSlide .2s ease}
+.rpt-hbox .hd{display:flex;align-items:center;gap:10px;padding:12px 18px;
+  background:linear-gradient(135deg,#a30f24,#d0202f);color:#fff}
+.rpt-hbox .hd .yr{font-weight:800;font-size:19px;letter-spacing:1px;line-height:1.45;
+  background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:2px 15px}
+.rpt-hbox .hd .tt{font-size:12px;font-weight:600;letter-spacing:2px;opacity:.88}
+.rpt-hbox .hd .x{margin-left:auto;cursor:pointer;font-size:16px;opacity:.88;line-height:1}
+.rpt-hbox .hd .x:hover{opacity:1}
+.rpt-hbox .bd{padding:16px 20px 18px;overflow:auto;font-size:13.5px;line-height:1.95;color:#3d3830}
+.rpt-hbox .bd b{color:#d0202f;font-weight:700}
+.rpt-hbox .ft{display:flex;align-items:center;gap:8px;padding:11px 18px;background:#fcfcfc;
+  border-top:1px solid #f0efed}
+.rpt-hbox .ft .pg{font-size:12px;color:#9a9490;margin:0 auto;letter-spacing:.5px}
+.rpt-hbox .ft .rbtn[disabled]{opacity:.36;cursor:not-allowed;pointer-events:none}
+
+/* ---------- 公司资料库（顶部操作条「📂 公司资料库」） ----------
+   文件本体存在 CloudBase 存储 bucket `company-files`（公开读，前端直传），
+   元数据（原始文件名 / 类型 / 大小 / 上传时间）存在同环境的 wb_company_files 表。
+   层级：资料库 .rpt-fmask(545) < 预览 .rpt-vmask(550)，两者都在其它弹窗之上。 */
+.rpt-fmask{position:fixed;inset:0;z-index:545;display:none;align-items:center;justify-content:center;
+  background:rgba(74,10,21,.5);padding:22px}
+.rpt-fmask.on{display:flex}
+.rpt-fbox{position:relative;width:min(1020px,96vw);max-height:min(86vh,840px);display:flex;flex-direction:column;
+  background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 24px 70px rgba(40,38,42,.42);
+  animation:rptSlide .2s ease}
+.rpt-fbox .hd{display:flex;align-items:center;gap:10px;padding:13px 18px;flex-wrap:wrap;
+  background:linear-gradient(135deg,#a30f24,#d0202f);color:#fff}
+.rpt-fbox .hd .t{font-weight:800;font-size:15.5px;letter-spacing:.3px}
+.rpt-fbox .hd .co{font-size:12px;background:rgba(255,255,255,.2);border-radius:999px;padding:2px 10px}
+/* 统计做成一枚描边胶囊：半透明白字压在红底上截图/缩小时会糊成一团，
+   给它一层底 + 不透明字，任何缩放下都读得清 */
+.rpt-fbox .hd .stat{font-size:12px;white-space:nowrap;padding:3px 10px;border-radius:999px;
+  background:rgba(0,0,0,.16);border:1px solid rgba(255,255,255,.28);color:#fff}
+/* 空柜 / 读取失败时 fStat('') 会把文字清空 ⇒ 胶囊只剩一圈红边，像渲染坏了。:empty 直接收掉。 */
+.rpt-fbox .hd .stat:empty{display:none}
+.rpt-fbox .hd .x{margin-left:auto;cursor:pointer;font-size:17px;opacity:.88;line-height:1;padding:1px 4px}
+.rpt-fbox .hd .x:hover{opacity:1}
+.rpt-fbox .bar{display:flex;align-items:center;gap:10px;padding:11px 18px;flex-wrap:wrap;
+  border-bottom:1px solid #f0efed;background:#fcfbfb}
+.rpt-fbox .bar .tip{font-size:12px;color:#9a9490}
+.rpt-fbox .bar .finp{margin-left:auto;font:inherit;font-size:12.5px;padding:7px 11px;border-radius:9px;
+  border:1px solid #e6e4e1;background:#fff;color:#3d3a33;width:190px;min-width:110px}
+.rpt-fbox .bar .finp:focus{outline:none;border-color:#e8899a;box-shadow:0 0 0 3px rgba(208,32,47,.08)}
+.rpt-fbox .bd{flex:1 1 auto;min-height:0;overflow:auto;padding:2px 12px 12px}
+.rpt-fbox .ft{display:flex;align-items:center;gap:8px;padding:11px 18px;border-top:1px solid #f0efed;
+  background:#fcfcfc}
+.rpt-fbox .ft .hint{font-size:11.5px;color:#a9a4a0;margin-right:auto;line-height:1.6}
+/* 拖拽态：整张卡盖一层粉底提示（pointer-events:none，不然 drop 事件收不到） */
+.rpt-fbox.drag::after{content:'松开即上传到「公司资料库」';position:absolute;inset:0;z-index:9;
+  display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#c8102e;
+  background:rgba(255,246,247,.94);border:2px dashed #e88c98;border-radius:16px;pointer-events:none}
+/* 文件行 */
+.fl{display:flex;align-items:center;gap:10px;padding:9px 10px;border-bottom:1px solid #f4f2f0}
+.fl:hover{background:#fffafa}
+.fl .fi{flex:0 0 30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:16px;
+  border-radius:8px;background:#f6f3f3}
+.fl .fi.k-pdf{background:#fdecee;color:#c8102e}
+.fl .fi.k-doc{background:#eaf1fd;color:#2b5fc7}
+.fl .fi.k-xls{background:#eaf7ef;color:#1a8a54}
+.fl .fi.k-ppt{background:#fdf1e7;color:#c1651a}
+.fl .fi.k-img{background:#f0eefb;color:#5b48b8}
+.fl .fi.k-zip{background:#f7f0e4;color:#a07a25}
+.fl .fn{flex:1 1 auto;min-width:0;font-size:13.5px;font-weight:600;color:#2f2c29;cursor:pointer;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fl .fn:hover{color:#c8102e}
+.fl .fk{flex:0 0 auto;font-size:11px;padding:2px 8px;border-radius:999px;background:#f4f2f0;color:#7a7470}
+.fl .fs{flex:0 0 66px;text-align:right;font-size:12px;color:#8d8783}
+.fl .fd{flex:0 0 116px;text-align:right;font-size:12px;color:#a9a4a0}
+.fl .fo{flex:0 0 auto;display:flex;gap:4px}
+.fl .fo .ib{font:inherit;font-size:12px;line-height:1;padding:6px 9px;border-radius:8px;cursor:pointer;
+  border:1px solid #eae7e4;background:#fff;color:#6f6a66;transition:.14s}
+.fl .fo .ib:hover{background:#fff4f4;border-color:#e8899a;color:#c8102e}
+.fl .fo .ib.del:hover{background:#fdecee;border-color:#e05a6a;color:#a30f24}
+.fempty{padding:52px 20px;text-align:center;color:#a9a4a0;font-size:13px;line-height:2.1}
+.fempty .big{display:block;font-size:34px;opacity:.45;margin-bottom:8px}
+.fempty b{color:#c8102e}
+/* 上传进度条 */
+.fqueue{margin:10px 0 4px;border:1px solid #f2e6e8;border-radius:10px;background:#fffcfc;padding:4px 0}
+.fprog{display:flex;align-items:center;gap:10px;padding:8px 12px;font-size:12.5px;color:#6f6a66}
+.fprog .nm{flex:0 0 34%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#3d3830}
+.fprog .pb{flex:1 1 auto;height:6px;border-radius:99px;background:#f2efee;overflow:hidden}
+.fprog .pb i{display:block;height:100%;width:0;background:linear-gradient(90deg,#e43644,#c8102e);
+  transition:width .18s ease}
+.fprog .st{flex:0 0 54px;text-align:right;font-size:11.5px;color:#a9a4a0}
+.fprog.ok .st{color:#0b8a5c}
+.fprog.bad .st{color:#c8102e}
+/* ---------- 资料预览（图片 / PDF / 文本内嵌） ---------- */
+.rpt-vmask{position:fixed;inset:0;z-index:550;display:none;align-items:center;justify-content:center;
+  background:rgba(30,22,22,.74);padding:22px}
+.rpt-vmask.on{display:flex}
+.rpt-vbox{width:min(1200px,96vw);height:min(92vh,900px);display:flex;flex-direction:column;background:#fff;
+  border-radius:16px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.45);animation:rptSlide .2s ease}
+.rpt-vbox .hd{display:flex;align-items:center;gap:10px;padding:12px 18px;
+  background:linear-gradient(135deg,#a30f24,#d0202f);color:#fff}
+.rpt-vbox .hd .tt{flex:1 1 auto;min-width:0;font-weight:700;font-size:14px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rpt-vbox .hd .x{cursor:pointer;font-size:17px;opacity:.88;line-height:1;padding:1px 4px}
+.rpt-vbox .hd .x:hover{opacity:1}
+.rpt-vbox .bd{flex:1 1 auto;min-height:0;overflow:auto;display:flex;align-items:center;justify-content:center;
+  background:repeating-conic-gradient(#fbfafa 0 25%,#f5f3f3 0 50%) 50%/22px 22px}
+.rpt-vbox .bd img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+.rpt-vbox .bd iframe{width:100%;height:100%;border:0;background:#fff;display:block}
+/* PDF：浏览器自带阅读器不保证内嵌（手机 Safari / 关掉阅读器时是一片空白）⇒ 图下挂一条降级提示 */
+.rpt-vbox .bd .vpdf{width:100%;height:100%;display:flex;flex-direction:column;min-height:0;background:#fff}
+.rpt-vbox .bd .vpdf iframe{flex:1 1 auto;min-height:0}
+.rpt-vbox .bd .vpdf .vhint{flex:0 0 auto;padding:7px 14px;border-top:1px solid #f0e2d6;
+  background:#fff8f2;color:#9a6b45;font-size:11.5px;text-align:center}
+.rpt-vbox .bd pre{margin:0;padding:18px 22px;width:100%;height:100%;overflow:auto;background:#fff;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.8px;line-height:1.85;
+  white-space:pre-wrap;word-break:break-word;color:#33302c}
+.rpt-vbox .bd .nopv{text-align:center;color:#5f5a56;font-size:13.5px;line-height:2.2;padding:34px 24px;
+  background:#fff;border-radius:12px;max-width:520px}
+.rpt-vbox .bd .nopv .big{display:block;font-size:38px;margin-bottom:10px;opacity:.55}
+.rpt-vbox .ft{display:flex;align-items:center;gap:8px;padding:11px 18px;border-top:1px solid #f0efed;
+  background:#fcfcfc}
+.rpt-vbox .ft .meta{font-size:11.5px;color:#a9a4a0;margin-right:auto;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:700px){
+  .rpt-fmask{padding:10px}
+  .rpt-fbox{width:100%;height:92vh}
+  .fl .fs,.fl .fd{display:none}
+  .rpt-vmask{padding:10px}
+  .rpt-vbox{width:100%;height:94vh}
+}
+@media print{ .rpt-fmask,.rpt-vmask{display:none !important} }
+
 /* 卡片入场（比原来的 IntersectionObserver 方案更稳：不会因为没滚动而永远透明） */
 .card,.stat,.verdict,.essence,.criteria{animation:rptIn .5s cubic-bezier(.22,.8,.36,1) both}
 @keyframes rptIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
@@ -246,6 +420,19 @@ table.rpt-grid td.ix .gx:hover{background:#f1f0ee;border-color:#e0a4ab;color:#d0
 @media print{
   .rbar,.rpt-ops,.rpt-toolbar,.rpt-toast,nav.toc{display:none!important}
   body{background:#fff;padding:0!important}
+  /* 弹窗在打印时是关着的，所以把同一份说明在文末印出来（点不开 ≠ 看不到） */
+  #printNotes{display:block;margin-top:26px}
+  /* 时间轴卡片同理：PDF 里必须还原全文。屏幕上是「截 7 行 + 点开弹窗」，
+     但 PDF 点不开弹窗 —— 只截不还原 = 直接把正文印丢了，比溢出严重得多。 */
+  .hist .h-card .h-txt{display:block!important;-webkit-line-clamp:unset!important;overflow:visible!important;}
+  .hist .h-more{display:none!important;}
+  #printNotes .ns{border:1px solid #e8d5a2;background:#fffdf6;border-radius:12px;padding:12px 15px;margin-bottom:10px}
+  #printNotes .ns .nt{font-weight:800;color:#8a6a0e;font-size:12.5px;margin-bottom:6px}
+  #printNotes .ns .nb{font-size:12.5px;color:#4a463d;line-height:1.8}
+  #printNotes .legend{display:grid;gap:7px}
+  #printNotes .legend .lg{display:flex;gap:9px;align-items:flex-start}
+  #printNotes .legend .mk{flex:0 0 auto;font-weight:800;color:#a3122a;background:#fff4f4;
+    border:1px solid #f2d2d6;border-radius:6px;padding:1px 7px;font-size:11px;white-space:nowrap;margin-top:2px}
 }
 @media (max-width:820px){
   /* ⚠️ 这里是 100vw 会踩的老坑：100vw 把竖向滚动条的宽度也算进去，窄屏下抽屉比屏幕宽
@@ -256,6 +443,8 @@ table.rpt-grid td.ix .gx:hover{background:#f1f0ee;border-color:#e0a4ab;color:#d0
   .rpt-iotools .tip{flex:1 1 100%;min-width:0}
   .rgrid2,.rgrid3{grid-template-columns:1fr}
   .rbar .rb-tag{display:none}
+  .rpt-nmask{padding:12px}
+  .rpt-nbox{width:100%;max-height:90vh}
 }
 </style>
 </head>
@@ -271,12 +460,21 @@ table.rpt-grid td.ix .gx:hover{background:#f1f0ee;border-color:#e0a4ab;color:#d0
   <nav class="toc" id="toc"></nav>
   <div id="mods"></div>
   <div id="foot"></div>
+  <!-- 屏幕隐藏、打印显示：报告说明的打印副本（内容由 renderNotes() 填） -->
+  <div id="printNotes"></div>
 </div>
 
 <aside class="rpt-mask" id="rptMask" onclick="if(event.target===this)Rpt.closeDrawer()">
   <div class="rpt-drawer" id="rptDrawer"></div>
 </aside>
 <div class="rpt-pmask" id="rptPMask"></div>
+<div class="rpt-nmask" id="rptNMask" onclick="if(event.target===this)Rpt.closeNotes()"></div>
+<!-- 时间轴卡片全文弹窗（内容由 Rpt.histNav() 填） -->
+<div class="rpt-hmask" id="rptHMask" onclick="if(event.target===this)Rpt.closeHist()"></div>
+<!-- 公司资料库（内容由 Rpt.files() / Rpt.fRender() 填；文件本体在 CloudBase 存储 bucket company-files） -->
+<div class="rpt-fmask" id="rptFMask" onclick="if(event.target===this)Rpt.closeFiles()"></div>
+<!-- 资料预览（图片 / PDF / 文本内嵌；Office 类走下载） -->
+<div class="rpt-vmask" id="rptVMask" onclick="if(event.target===this)Rpt.closeView()"></div>
 <div class="rpt-toast" id="rptToast"></div>
 
 <script>/*__RPTCFG__*/</script>
@@ -471,6 +669,7 @@ function loadAllReports(){
 function render(){
   document.title = (St.rep && (St.rep.name || St.rep.code) ? (St.rep.name || St.rep.code) + ' · ' : '') + '深度研究报告';
   renderBar(); renderHero(); renderVerdict(); renderKpis(); renderToc(); renderMods(); renderFoot();
+  renderNotes();
   /* 等布局稳定后再初始化图表，否则 echarts 取到的容器宽高是 0 */
   setTimeout(renderCharts, 40);
 }
@@ -502,6 +701,7 @@ function renderBar(){
   if(St.edit) h += '<button class="rbtn pri" onclick="Rpt.openDrawer(\'head\')">🗂 数据管理面板</button>';
   h += '<button class="rbtn" onclick="Rpt.openDrawer(\'new\')">＋ 新建研报</button>';
   h += '<button class="rbtn" onclick="window.print()">🖨 打印 / PDF</button>';
+  h += '<button class="rbtn" onclick="Rpt.files()" title="上传 / 查看 / 下载这家公司的资料">📂 公司资料库</button>';
   if(opts) h += '<select class="rsel" onchange="Rpt.go(this.value)">' + opts + '</select>';
   $('rbar').innerHTML = h;
 }
@@ -513,8 +713,57 @@ function renderHero(){
   h += '<h1>' + (r.title || '') + '</h1>';
   if(r.subtitle) h += '<div class="sub">' + r.subtitle + '</div>';
   var b = r.badges || [];
-  if(b.length) h += '<div class="meta">' + b.map(function(x){ return '<span class="badge">' + esc(x) + '</span>'; }).join('') + '</div>';
+  var secs = notesModel();
+  if(b.length || secs.length){
+    h += '<div class="meta">' + b.map(function(x){ return '<span class="badge">' + esc(x) + '</span>'; }).join('');
+    /* 「报告说明」入口 —— 建档/口径/标记注解全在这里，正文不再铺注解（用户 2026-10-14 口径） */
+    if(secs.length) h += '<button class="notebtn" onclick="Rpt.notes()">ⓘ 报告说明 <em>' + secs.length + '</em></button>';
+    h += '</div>';
+  }
   $('hero').innerHTML = h;
+}
+
+/* ---------------- 报告说明（页头弹窗） ----------------
+   三块内容，按有无自动组装：
+     ① 本报告说明  ← wb_reports.notice_html（建档方式、数据序列、评级口径等逐篇注解）
+     ② 数据口径    ← wb_reports.kpi_note（原来挂在 8 项指标下方的小字）
+     ③ 正文标记说明 ← 按正文里实际出现过的标记动态生成图例
+   为什么要这么拆：注解是「关于报告的报告」，混在核心结论里会把结论淹掉；
+   但删掉又会让读者不知道 [模型输出] / [MISSING] 是什么，所以集中到一处可查。 */
+function notesModel(){
+  var r = St.rep || {};
+  var secs = [];
+  if(r.notice_html) secs.push({ic:'📌', t:'本报告说明', b:r.notice_html});
+  if(r.kpi_note) secs.push({ic:'📐', t:'数据口径', b:'<p>' + esc(r.kpi_note) + '</p>'});
+  var body = '';
+  (St.mods || []).forEach(function(m){ body += (m.html || ''); });
+  var lg = [];
+  if(body.indexOf('[模型输出]') >= 0)
+    lg.push(['[模型输出]', '由模型按固定规则推算或近似得到的指标（ROIC 近似、三档情景、敏感性矩阵、弹性测算等）。不是公司披露值，会随假设变化，请按方向性参考。']);
+  if(body.indexOf('[MISSING]') >= 0)
+    lg.push(['[MISSING]', '需要一手来源（公告、年报附注、行业协会、卖方深度等）才能确认的字段，本版暂缺，已在 M31 跟踪清单中列明补齐路径。']);
+  if(body.indexOf('未披露') >= 0)
+    lg.push(['留白单元格', '公司未披露该口径 —— 与「本报告尚未取到」的 [MISSING] 不是一回事。']);
+  if(lg.length)
+    secs.push({ic:'🏷', t:'正文标记说明', b:'<div class="legend">' + lg.map(function(x){
+      return '<div class="lg"><span class="mk">' + esc(x[0]) + '</span><span>' + esc(x[1]) + '</span></div>';
+    }).join('') + '</div>'});
+  return secs;
+}
+function notesSectionsHTML(secs){
+  return secs.map(function(s){
+    return '<div class="ns"><div class="nt"><span class="ic">' + s.ic + '</span>' + esc(s.t) + '</div>' +
+           '<div class="nb">' + s.b + '</div></div>';
+  }).join('');
+}
+function renderNotes(){
+  var secs = notesModel();
+  St.notes = secs;
+  var pn = $('printNotes');
+  if(pn) pn.innerHTML = secs.length ? notesSectionsHTML(secs) : '';
+  /* 内容变了（换研报 / 编辑后）要把已经打开的弹窗同步刷新，否则停在旧内容 */
+  var nm = $('rptNMask');
+  if(nm && nm.className.indexOf('on') >= 0) Rpt.notes();
 }
 
 function renderVerdict(){
@@ -532,9 +781,9 @@ function renderKpis(){
         (x.style ? ' style="' + attr(x.style) + '"' : '') + '>' +
         esc(x.val) + (x.unit ? ' <small>' + esc(x.unit) + '</small>' : '') + '</div></div>';
   }).join('');
+  /* 口径小字已移入「ⓘ 报告说明」弹窗（2026-10-14），正文不再重复 */
   var n = $('kpiNote');
-  n.innerHTML = (St.rep && St.rep.kpi_note) || '';
-  n.style.display = n.innerHTML ? '' : 'none';
+  if(n){ n.innerHTML = ''; n.style.display = 'none'; }
 }
 
 /* 目录文案：剥掉「第X篇 」前缀。
@@ -628,7 +877,236 @@ function renderMods(){
   /* 槽 29 评分卡的「动态调整」也在渲染层接（见下方 scoreLive 段）——
      ★ 必须排在这之后：它要读 `.sc-line` / `.sc-bar` 的最终 DOM。 */
   scoreLive(box);
+  /* ⚠️ 顺序不能反：tlFit 会改列宽 ⇒ 改折行 ⇒ 改「有没有被截断」，
+     必须先定宽度再判截断，否则「展开全文」标记会按旧折行算错。 */
+  tlFit();
+  histEnhance();
+  /* ⚠️ 第三件事不是多余的：histEnhance 给被截断的卡片补了「展开全文」条 ⇒ 卡片变高
+     ⇒ 上排底边上移、dot 行下移，tlFit 里量的 --tl-mid 到这儿已经过期（实测偏 24px）。
+     重摆一次箭头（顺带重算「到头了没」）。 */
+  tlArrowPos();
 }
+
+/* ---------------------------------------------------------------- 时间轴卡片
+   截断 + 「展开全文」弹窗（2026-10-14）
+   —— 卡片正文由 CSS 截到 7 行（.hist .h-card .h-txt，见 report_theme.css），
+      这里做两件事：① 标出**真的被截了**的卡片 → 补一枚「展开全文」；② 点击弹全文。
+   —— ★ 全文只从卡片自身的 DOM（.h-txt 的 innerHTML）取，**不往库里加任何字段**：
+      已入库的研报 HTML 一个字都不用改，改 CSS + 这一处 JS 就是全站生效。
+   —— 检测截断用 scrollHeight > clientHeight：实测在 -webkit-line-clamp 下准确
+      （被截元素 clientHeight 停在 7 行、scrollHeight 仍是全文高）。
+   —— 幂等：重复调用不会叠出第二枚 .h-more，也不会把没截的卡片留成可点。 */
+var Hist = {idx: 0};
+
+/* ---------------------------------------------------------------- 时间轴列宽（2026-10-14 第二轮）
+   为什么要有这个函数：列宽 = 「容器宽 ÷ 节点数」，纯 CSS 算不出来（1fr 均分能算，
+   但算出来的结果在 10 个节点时只有 ~100px，卡片会被挤成竖条）。所以由 JS 实测后
+   写进 --tl-w，CSS 那边用 grid-auto-columns:var(--tl-w) 固定列宽。
+   ★ 口径：**一屏放得下就不滚动**（fit ≥ 138px 直接用），放不下才拉回 152px 的可读
+     宽度、把溢出交给 .h-track 横向滚动，并挂 .tl-scroll 让「左右滑动」提示显形。
+   ★ 幂等：反复调用只换变量值，不往 DOM 塞东西（除了一枚 .tl-hint）。 */
+/* 口径常量（写成函数内字面量而不是模块级 var：renderMods 可能在本脚本顶层语句
+   执行完之前就被调用，那时 var 还是 undefined，会写出 "undefinedpx" 这种废值） */
+/* ---------------------------------------------------------------- 时间轴左右导航箭头
+   （2026-10-14 第三轮 · 用户口径「在 1、2 位置加左右箭头，半透明，隐约可见就行，
+     点左边的往左移、右边的往右移」）
+   ★ 只在「真的滚得动」时才存在（tlFit 里按需建/拆）⇒ 一屏放得下的研报不会多出两个
+     按不动的按钮；无脚本环境自然退化成「没有箭头」，不会留一个死按钮。
+   ★ 用 createElement + addEventListener，不写内联 onclick：箭头是动态生成的，
+     内联 onclick 需要往 window 上挂函数名，等于给页面加隐式全局 API。
+   ★ 一次滚 3 列（最少 180px）：用户点一下的预期是「翻一屏」，而不是挪一格。 */
+function tlNavBtn(dir, h, tk){
+  var b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'tl-nav ' + dir;
+  b.title = (dir === 'prev' ? '向前翻看' : '向后翻看');
+  b.setAttribute('aria-label', b.title);
+  b.innerHTML = '<i></i>';
+  b.addEventListener('click', function(e){
+    e.preventDefault(); e.stopPropagation();
+    var w = parseFloat(getComputedStyle(h).getPropertyValue('--tl-w')) || 152;
+    var d = (dir === 'prev' ? -1 : 1) * Math.max(180, w * 3);
+    /* Safari 15.4 以下没有 scrollBehavior：会静默忽略 options 对象，必须显式降级 */
+    if('scrollBehavior' in document.documentElement.style) tk.scrollBy({left: d, behavior: 'smooth'});
+    else tk.scrollLeft += d;
+  });
+  return b;
+}
+/* 滚到头的那一侧把箭头压灰（压灰 ≠ 隐藏：用户还能看见「那边是终点」） */
+function tlArrows(h){
+  var tk = h.querySelector('.h-track'); if(!tk) return;
+  var max = tk.scrollWidth - tk.clientWidth;
+  var p = h.querySelector('.tl-nav.prev'), n = h.querySelector('.tl-nav.next');
+  if(p) p.disabled = tk.scrollLeft <= 1;
+  if(n) n.disabled = tk.scrollLeft >= max - 1;
+}
+/* 把箭头纵向摆到 dot 行上 —— 单独一支，因为它**要在 histEnhance() 之后再跑一次**：
+   histEnhance 给被截断的卡片补「展开全文」条 ⇒ 卡片变高 ⇒ 上排底边上移、dot 行**下移**，
+   tlFit 里量到的 --tl-mid 到这时已经过期（实测偏 24px，40px 的箭头下缘正好压住卡片底边）。
+   ⚠️ 用 dot 的实测中心：拿 .h-track 高度的一半会整体偏下一截 —— .h-nodes 上内边距 20px、
+      卡片下外边距 30px 并不对称，半个高度根本不落在 dot 行上。 */
+function tlArrowPos(){
+  var hs = document.querySelectorAll('#mods .hist');
+  for(var i = 0; i < hs.length; i++){
+    var h = hs[i];
+    var dot = h.querySelector('.h-dot');
+    if(dot){
+      var hb = h.getBoundingClientRect(), db = dot.getBoundingClientRect();
+      if(db.height) h.style.setProperty('--tl-mid', (db.top + db.height / 2 - hb.top).toFixed(1) + 'px');
+    }
+    tlArrows(h);
+  }
+}
+
+function tlFit(){
+  var MIN_FIT = 132;      /* 一屏放得下就不滚动的下限。实测轨道可视宽 976px：
+                             7 节点 → 每列 137px（放得下，不滚动）；9 节点 → 106px（太窄，拉回 152 滑动）。
+                             132 是「每行还能排 10 个字」的底线，再窄就不如让用户滑。 */
+  var READABLE = 152;     /* 滑动态每列宽度：正文盒 ~128px，每行约 11 字 */
+  var WMAX = 260;         /* 节点很少时别把卡片拉成横幅 */
+  var narrow = false;
+  try{ narrow = window.matchMedia('(max-width:860px)').matches; }catch(e){}
+  var hs = document.querySelectorAll('#mods .hist');
+  for(var i = 0; i < hs.length; i++){
+    var h = hs[i], nd = h.querySelector('.h-nodes'), tk = h.querySelector('.h-track');
+    if(!nd || !tk) continue;
+    var prev = h.querySelector('.tl-nav.prev'), next = h.querySelector('.tl-nav.next');
+    var hint0 = h.querySelector('.tl-hint');
+    var drop = function(el){ if(el && el.parentNode) el.parentNode.removeChild(el); };
+    if(narrow){
+      /* ⚠️ 竖排版式下 .h-track 是 overflow:visible，横向滚根本不存在 ——
+         把「滑动模式」的全套产物撤干净，别留假提示／假箭头骗人去横滑。
+         （CSS 里那两条 display:none!important 是同义兜底：tlFit 可能在窄屏下没被
+          调用过，那时靠 CSS 也得藏住。） */
+      h.className = h.className.replace(/\s*tl-scroll/g, '');
+      drop(prev); drop(next); drop(hint0);
+      continue;
+    }
+    var n = nd.querySelectorAll('.h-node').length;
+    if(!n) continue;
+    var avail = (tk.clientWidth || tk.getBoundingClientRect().width) - 16;   /* .h-nodes 左右各 8px */
+    if(avail <= 0) continue;
+    var fit = Math.floor(avail / n);
+    var w = fit >= MIN_FIT ? Math.min(WMAX, fit) : READABLE;
+    h.style.setProperty('--tl-w', w + 'px');
+    var scrolls = n * w > avail + 1;
+    h.className = h.className.replace(/\s*tl-scroll/g, '') + (scrolls ? ' tl-scroll' : '');
+    if(scrolls){
+      if(!prev) h.appendChild(tlNavBtn('prev', h, tk));
+      if(!next) h.appendChild(tlNavBtn('next', h, tk));
+      /* 滚动中要实时刷新「到头了没」；一个元素只挂一次监听（用属性当开关） */
+      if(!tk.getAttribute('data-tlnav')){
+        tk.setAttribute('data-tlnav', '1');
+        tk.addEventListener('scroll', function(ev){
+          var t = ev.currentTarget;
+          var ph = t.closest ? t.closest('.hist') : null;
+          if(ph) tlArrows(ph);
+        }, {passive: true});
+      }
+    } else {
+      drop(prev); drop(next);
+    }
+    var hint = h.querySelector('.tl-hint');
+    if(scrolls){
+      if(!hint){
+        hint = document.createElement('div');
+        hint.className = 'tl-hint';
+        h.appendChild(hint);
+      }
+      hint.innerHTML = '点左右箭头或双指横滑，查看全部 <b>' + n + '</b> 个年份 · 点卡片看完整正文';
+    } else if(hint){
+      drop(hint);
+    }
+  }
+  tlArrowPos();
+}
+
+function histCards(){ return document.querySelectorAll('#mods .hist .h-card'); }
+function histEnhance(){
+  var cs = histCards();
+  for(var i = 0; i < cs.length; i++){
+    var c = cs[i], t = c.querySelector('.h-txt');
+    if(!t) continue;
+    var cut = t.scrollHeight > t.clientHeight + 1;
+    var more = c.querySelector('.h-more');
+    if(cut){
+      c.className = c.className.replace(/\s*has-more/g, '') + ' has-more';
+      if(!more){
+        more = document.createElement('span');
+        more.className = 'h-more';
+        more.innerHTML = '展开全文 <i>›</i>';
+        c.appendChild(more);
+      }
+    } else {
+      c.className = c.className.replace(/\s*has-more/g, '');
+      if(more) c.removeChild(more);
+    }
+  }
+}
+/* ---------------------------------------------------------------- 模块正文「解读块」
+   默认折起，点标题**就地**展开 / 收起（2026-10-14 用户令）
+   —— 模块正文里 389 个 <div class="logic"><div class="lt">标题</div><div class="lv">正文</div></div>，
+      正文最短 55 字、中位 317 字、最长 1412 字，把每一段都摊在页面上 ⇒ 模块变成「密集长文」。
+      用户先要「隐藏 + 点击弹窗」，随即改口：「不要弹窗，改成点击展开和隐藏，默认全部隐藏」。
+   —— ★ 折/展**完全由 CSS 负责**（report_theme.css 的 .logic 段：`.lv{display:none}`，
+      加 `.on` 就 display:block）；这里只切一个类 ⇒ 全站 389 个块、11 份研报
+      **一个字都不用改库**，以后新建的研报自动生效。
+   —— ★ 多个块可以同时展开（不做手风琴）：读者经常要对照同一模块里的两条解读。
+   —— ★ 只切类、不动 DOM ⇒ 不重排整棵子树，展开是纯布局变化，没有闪烁。 */
+function logicToggle(b){
+  if(!b) return;
+  if(b.classList){ b.classList.toggle('on'); return; }
+  var cur = ' ' + (b.className || '') + ' ';
+  b.className = cur.indexOf(' on ') >= 0
+    ? String(b.className).replace(/(^|\s)on(?=\s|$)/g, ' ').replace(/\s+/g, ' ').trim()
+    : (b.className ? b.className + ' on' : 'on');
+}
+/* 点解读条就地展开 / 收起。用事件委托挂一次 ⇒ 换研报 / 编辑保存重渲染后依然有效。
+   ⚠️ 正在划词复制时不抢点击 —— 否则用户想选中正文里的数字会把它折起来。 */
+document.addEventListener('click', function(e){
+  var t = e.target;
+  if(!t || !t.closest) return;
+  var blk = t.closest('#mods .logic');
+  if(!blk) return;
+  try{ if(String(window.getSelection() || '').trim()) return; }catch(err){}
+  logicToggle(blk);
+});
+/* 点卡片开弹窗。用事件委托挂一次就够，卡片重渲染（编辑保存 / 换研报）后依然有效。
+   ⚠️ 正在划词复制时不抢点击 —— 否则用户想选中卡片里的数字会被弹窗打断。 */
+document.addEventListener('click', function(e){
+  var t = e.target;
+  if(!t || !t.closest) return;
+  var card = t.closest('.h-card');
+  if(!card || !card.closest('#mods .hist')) return;
+  try{ if(String(window.getSelection() || '').trim()) return; }catch(err){}
+  Rpt.hist(card);
+});
+/* ESC 关弹窗，左右方向键翻上一条 / 下一条。 */
+window.addEventListener('keydown', function(e){
+  /* 资料预览（550）压在资料库（545）之上 ⇒ 必须从最上层往下判 */
+  var vm = $('rptVMask');
+  if(vm && vm.className.indexOf('on') >= 0){
+    if(e.key === 'Escape') Rpt.closeView();
+    return;
+  }
+  var fm = $('rptFMask');
+  if(fm && fm.className.indexOf('on') >= 0){
+    if(e.key === 'Escape') Rpt.closeFiles();
+    return;
+  }
+  var hm = $('rptHMask');
+  if(hm && hm.className.indexOf('on') >= 0){
+    if(e.key === 'Escape') Rpt.closeHist();
+    else if(e.key === 'ArrowLeft') Rpt.histNav(Hist.idx - 1);
+    else if(e.key === 'ArrowRight') Rpt.histNav(Hist.idx + 1);
+  }
+});
+/* 字体 / 视口变化会让折行数变化 → 重新判一次截断（防抖） */
+var _histTick = 0;
+window.addEventListener('resize', function(){
+  if(_histTick) clearTimeout(_histTick);
+  _histTick = setTimeout(function(){ _histTick = 0; tlFit(); histEnhance(); tlArrowPos(); }, 160);
+});
 
 /* ----------------------------------------------------------------
    并排 → 整行（2026-09-17）
@@ -1306,6 +1784,24 @@ function renderFoot(){
 var FNS = {
   catBreak: function(){ return function(v){ return String(v).split(' ').join('\n'); }; },
   nullDash: function(){ return function(p){ return p.value == null ? '—' : p.value; }; },
+  /* 吞掉「无意义的负刻度」（2026-10-15 用户令：「这个 0 轴两边对齐」）。
+     天然非负的轴（股价 / 收入 / 产量）为了让自己的 0 刻度与另一条**有负值**的轴
+     对齐，min 必须被下探到负数 —— 例如 600456 chart_eps 右轴股价 [−25, 75]，
+     但「股价 −25 元」是句废话。与 btAlignZero 内部的 btHideNeg 同一口径，
+     区别是这里走 opt 序列化通道（库里只存 JSON，渲染时由 {{fn:…}} 还原成函数）。 */
+  hideNeg: function(){ return function(v){ return (typeof v === 'number' && v < 0) ? '' : v; }; },
+  /* 同心双环（收入构成 / 毛利构成）的 tooltip（2026-10-14）。
+     为什么不能用默认的 {b}: {d}%：内环是按**绝对值**作的图（负毛利画不进环形，
+     实测 600456 其他金属产品毛利占比 −2.12%，环上只能按 2.12 的弧长画），
+     所以 ECharts 的 {d} 给出的是归一化百分比，不是报告口径的真值。
+     真值随数据点一起存库（data[i].tip），这里原样取用 ⇒ 环上是几何、弹层是真值。 */
+  ringTip: function(){
+    return function(p){
+      var d = (p && p.data) || {};
+      var t = d.tip || ((d.value == null ? '—' : d.value) + '%');
+      return p.marker + p.name + '：' + t;
+    };
+  },
   unit: function(u){ return function(v){ return (v == null ? '—' : v) + u; }; },
   /* 地图 tooltip 的取值格式化（2026-09-20）。
      map series 的 data 里 `value: null` 表示「该地区无数据」——不能显示成 0，
@@ -1568,6 +2064,89 @@ function revive(node, opt){
 function catCount(opt){
   var xa = Array.isArray(opt.xAxis) ? opt.xAxis[0] : opt.xAxis;
   return (xa && Array.isArray(xa.data)) ? xa.data.length : 0;
+}
+/* ★ 时间轴（type:'time'）的三件套（2026-10-16）
+   ----------------------------------------------------------------
+   起因：m29 的「EPS 与股价历史」双轴图用的是 `xAxis.type = 'time'`，
+   它**没有 xAxis.data** ⇒ catCount 恒为 0 ⇒ 既拿不到「3年/5年/10年/全部」
+   按钮组，也进不了 dataZoom 分支（用户反馈：「少了一个时间选择按钮」）。
+   12 份研报里所有 time 轴图同时受益。
+   ★ 为什么按钮不能沿用「按索引百分比」那套：time 轴的 dataZoom 百分比是
+     相对**轴的 extent**（EPS 图 min/max 被显式钉在 2015-01-01 ~ 2027-04-03，
+     共 12.25 年），而数据只铺到 2026-10；用百分比算出来的「3 年」
+     实际窗口是 3.7 年 —— 差得肉眼可见。所以 time 轴改用**真实时间值**
+     （startValue / endValue）。 */
+function axisKind(opt){
+  var xa = Array.isArray(opt.xAxis) ? opt.xAxis[0] : opt.xAxis;
+  return (xa && xa.type) || 'category';
+}
+/* 各 series 数据点数取最大 —— time 轴的 series.data 是 [时间, 值] 对 */
+function seriesCount(opt){
+  var ser = opt.series || [], m = 0;
+  for(var i = 0; i < ser.length; i++){
+    var d = ser[i] && ser[i].data;
+    if(d && d.length > m) m = d.length;
+  }
+  return m;
+}
+/* 数据的时间跨度 [最早, 最晚]（毫秒）。取不到任何时间 ⇒ null */
+function timeSpan(opt){
+  var ser = opt.series || [], lo = null, hi = null;
+  for(var i = 0; i < ser.length; i++){
+    var d = ser[i] && ser[i].data;
+    if(!d) continue;
+    for(var j = 0; j < d.length; j++){
+      var v = d[j];
+      if(!v || typeof v.length !== 'number' || v.length < 2) continue;
+      var t = v[0];
+      var ts = (typeof t === 'number') ? t : Date.parse(t);
+      if(isNaN(ts)) continue;
+      if(lo === null || ts < lo) lo = ts;
+      if(hi === null || ts > hi) hi = ts;
+    }
+  }
+  return (lo === null) ? null : [lo, hi];
+}
+/* 时间轴的**轴范围** [左, 右]（毫秒）—— 用来把「近 N 年」换算成 dataZoom 的百分比。
+   ★ 为什么不给 dataZoom 传 startValue / endValue：ECharts 里 `start` 会**屏蔽**
+     `startValue`（文档原文「如果设置了 start 则 startValue 失效」），而库里 EPS 图的
+     dataZoom 本来就带 `start:0 / end:100`，merge 又清不掉它们（传 null = 不修改）
+     —— 于是 startValue 静默失效、按钮点了没反应。改成继续用百分比（和 category 轴
+     同一套 dispatchAction），只把「算百分比」这一步换成按真实时间算，风险最低。
+   ★ 轴可能显式钉了 min/max（EPS 图是 2015-01-01 ~ 2027-04-03），也可能没写
+     —— 没写时轴的 extent 就等于数据跨度。两种都覆盖。 */
+function axisExtentMs(opt, ts){
+  var xa = Array.isArray(opt.xAxis) ? opt.xAxis[0] : opt.xAxis;
+  if(!xa) return null;
+  function ms(v, fb){
+    if(v === undefined || v === null || v === '') return fb;
+    if(typeof v === 'number') return v;
+    var t = Date.parse(v);
+    return isNaN(t) ? fb : t;
+  }
+  var a = ms(xa.min, ts ? ts[0] : null);
+  var b = ms(xa.max, ts ? ts[1] : null);
+  return (a === null || b === null || b <= a) ? null : [a, b];
+}
+/* 「近 N 年」→ dataZoom 百分比窗口。返回 [start%, end%]；算不出来返回 null。
+   ★ 右边界落在**数据末端**而不是轴的末端：EPS 图的轴特意多留了半年
+     （数据到 2026-10-15、轴画到 2027-04-03），若右边界取 100%，
+     选「3 年」会得到「2023-10 → 2027-04」= 3.5 年还带 5 个月空白。 */
+function yearWindow(tspan, axspan, yrs){
+  if(!tspan || !axspan) return null;
+  var A = axspan[0], B = axspan[1], span = B - A;
+  if(!(span > 0)) return null;
+  var en = (tspan[1] - A) / span * 100;
+  var st = 0;
+  if(yrs > 0){
+    var d0 = new Date(tspan[1]);
+    d0.setFullYear(d0.getFullYear() - yrs);
+    var sv = Math.max(d0.getTime(), tspan[0], A);
+    st = (sv - A) / span * 100;
+  }
+  st = Math.max(0, Math.min(100, st));
+  en = Math.max(0, Math.min(100, en));
+  return (st >= en) ? [0, en] : [st, en];
 }
 /* 地图系列判据（2026-09-20）——给「可自由缩放的地图」用。
    ★ 为什么不复用上面那套：renderCharts 里的缩放进阶是按**时间轴**设计的
@@ -1854,6 +2433,195 @@ function btAxis(ax, color, isX){
     ax.nameTextStyle.fontWeight = 'bold';
   }
 }
+/* ----------------------------------------------------------------
+   双轴图「0 刻度对齐」（2026-10-14 用户令）
+   「这种有负数的左右的 0 轴要对齐，不然这个图形看的很奇怪」
+
+   ★ 病根：左右两轴量级差十倍以上（营收 350 亿 / 归母净利 -5.7 亿），ECharts 各算
+     各的 niceExtent —— 左轴 0~350 从画布底边起，右轴为了装下 -5.7 把范围铺成
+     -10~25，0 刻度被抬到轴高 28.6% 处。同一年的红柱站在底边、金柱悬在半空，
+     负值金柱还探到红柱基线下面去，读图的人找不到共同基准线。
+   ★ 做法：读回 ECharts 自己算好的 extent / interval，然后**网格搜索**一对「刻度格子」，
+     让两根轴的 0 刻度落在同一水平线上，同时**所有刻度线都是刻度的整数倍**
+     （否则 min 钉成 -140、步长却还是 50，标签会变成 -140/-90/-40/10 这种怪数列）。
+     搜索变量：公共的 0 刻度占比 zf = p/q，每根轴保留/加倍/减半自己的原步长 s，
+     轴范围取 lo = -(p·t)·s、hi = (q-p)·t·s。
+     代价函数 = 各轴「量程偏离自然值」的加权和 + 换步长罚 + 刻度过密罚；
+     负数轴是基准轴（偏离权重 ×1.6，尽量别动它），没负数的轴负责下探。
+     600392/002408 实算：右轴 -10~25（步长 5）⇒ 取 zf=3/10 ⇒ 左轴 -150~350（步长 50）✓
+   ★ 只在「有柱的轴」上下探：柱靠 0 基线读图，折线不靠。所以现金流量图里
+     资产负债率（%）那根线轴不会被硬拖成 -140%（语义上是错的），整图保持原样。
+   ★ 下探出来的负刻度**不显示数字**：营收 / 现金流这些量本身没有负值，
+     那片留白只是为对齐让位，写上 -150 反而误导（原件若自带 axisLabel.formatter，
+     包一层保留它，只吞掉 <0 的数字）。
+   ★ 为什么在渲染层补刀，而不是改库里的 opt：extent 是 ECharts 按数据现算的，
+     写死进库等于把「当时的数据」冻住 —— 明年财报一更新，数据变了、刻度没变，
+     对齐反而错位。放渲染层 ⇒ 现存 11 份 + 以后新做的每一份都自动生效。
+   ★ 幂等：单轴图 / 全正数 / 口径对不上 / 代价太大，一律原样返回，一个字节不改。
+   ---------------------------------------------------------------- */
+function btGcd(a, b){ while(b){ var t = a % b; a = b; b = t; } return a; }
+
+/* 下探轴的刻度：0 以下的数字不显示，但保留原件自己的 formatter */
+function btHideNeg(ax){
+  var f = ax && ax.axisLabel && ax.axisLabel.formatter;
+  return function(v){
+    if(typeof v === 'number' && v < 0) return '';
+    if(typeof f === 'function') return f(v);
+    if(typeof f === 'string') return f.replace('{value}', v);
+    return '' + v;
+  };
+}
+
+function btAlignZero(inst, opt){
+  if(!inst || !opt || !opt.yAxis) return;
+  /* ⚠️ 上下分栏图（两个 grid、各配一套 x/y 轴，如 600456「上市以来营收+募投预测」）
+     的 yAxis[0]/yAxis[1] 是**上下两块图的轴**，不是左右两条轴 —— 它们各自的 0 刻度
+     落在各自面板里，隔着一段屏幕距离谈不上「对齐」，硬对齐只是白白压掉绘图高度。 */
+  if(Array.isArray(opt.grid) && opt.grid.length > 1) return;
+  if(Array.isArray(opt.xAxis) && opt.xAxis.length > 1) return;
+  var ser = opt.series || [];
+  var ys = Array.isArray(opt.yAxis) ? opt.yAxis : [opt.yAxis];
+  if(ys.length < 2) return;                              /* 单轴图不碰 */
+  var ax = [], i, j, k;
+  for(i = 0; i < ys.length; i++){
+    var o = ys[i];
+    if(!o || typeof o !== 'object' || o.show === false) return;
+    if(o.type && o.type !== 'value') return;             /* 类目 / 时间轴 */
+    var sc = null;
+    try{ sc = inst.getModel().getComponent('yAxis', i).axis.scale; }catch(e){ sc = null; }
+    if(!sc || !sc.getExtent) return;
+    var e = sc.getExtent(), itv = sc.getInterval ? sc.getInterval() : 0;
+    if(!e || !(e[1] > e[0]) || !(itv > 0)) return;
+    var dmin = Infinity, dmax = -Infinity, bar = false;
+    for(j = 0; j < ser.length; j++){
+      if((ser[j].yAxisIndex || 0) !== i) continue;
+      if(String(ser[j].type || 'line') === 'bar') bar = true;
+      var d = ser[j].data || [];
+      for(k = 0; k < d.length; k++){
+        var v = d[k];
+        if(v && typeof v === 'object') v = v.value;
+        if(typeof v === 'number' && isFinite(v)){ if(v < dmin) dmin = v; if(v > dmax) dmax = v; }
+      }
+    }
+    if(!isFinite(dmax)) return;
+    var negData = (dmin < 0);                            /* 这条轴**数据**里真有负值吗 */
+    if(dmin > 0) dmin = 0;                               /* 轴从 0 起：数据下界就是 0 */
+    ax.push({ix:i, lo:e[0], hi:e[1], s:itv, dmin:dmin, dmax:dmax,
+             span:e[1] - e[0], neg:(e[0] < 0), negData:negData, bar:bar});
+  }
+  var zf0 = 0, pivot = -1;
+  for(i = 0; i < ax.length; i++){
+    if(!ax[i].neg) continue;
+    var f = (0 - ax[i].lo) / ax[i].span;
+    if(f > zf0){ zf0 = f; pivot = i; }
+  }
+  if(!(zf0 > 0.0001)) return;                            /* 两轴 0 天然都在底边 */
+  for(i = 0; i < ax.length; i++){
+    if(!ax[i].neg && !ax[i].bar) return;   /* 要下探的轴没柱 ⇒ 硬对齐反而更丑，不做 */
+  }
+
+  /* ---- 网格搜索：zf = p/q，各轴步长 s ∈ {原值, 2×, 0.5×}，t 为公共缩放 ---- */
+  var best = null;
+  for(var q = 2; q <= 12; q++){
+    for(var p = 1; p < q; p++){
+      if(btGcd(p, q) !== 1) continue;
+      for(var t = 1; q * t <= 12; t++){
+        var plan = [], cost = 0, ok = true, m = p * t, n = (q - p) * t;
+        for(i = 0; i < ax.length; i++){
+          var g = ax[i], pick = null;
+          for(var si = 0; si < 3; si++){
+            var s = g.s * (si === 0 ? 1 : (si === 1 ? 2 : 0.5));
+            var lo = -m * s, hi = n * s;
+            if(hi < g.dmax - 1e-9) continue;                    /* 装不下最大值 */
+            if(lo > g.dmin + 1e-9) continue;                    /* 装不下最小值 */
+            if(hi - lo > g.span * 3.2) continue;                /* 拉得太狠 */
+            var c = (Math.abs(lo - g.lo) + Math.abs(hi - g.hi)) / g.span
+                  + (si === 0 ? 0 : (si === 1 ? .25 : .3))
+                  + (q * t > 9 ? (q * t - 9) * .07 : 0);
+            if(g.neg) c *= 1.6;                                 /* 基准轴尽量别动 */
+            if(!pick || c < pick.c) pick = {c:c, s:s, lo:lo, hi:hi};
+          }
+          if(!pick){ ok = false; break; }
+          plan.push(pick);
+          cost += pick.c;
+        }
+        if(!ok) continue;
+        if(!best || cost < best.cost - 1e-9) best = {cost:cost, plan:plan};
+      }
+    }
+  }
+  if(!best || best.cost > 1.35) return;   /* 格子对不上 or 代价太大 ⇒ 宁可不动 */
+
+  var patch = [], hit = false;
+  for(i = 0; i < ys.length; i++) patch.push({});
+  for(i = 0; i < ax.length; i++){
+    var g2 = ax[i], pl = best.plan[i];
+    if(Math.abs(pl.lo - g2.lo) < 1e-9 && Math.abs(pl.hi - g2.hi) < 1e-9 &&
+       Math.abs(pl.s - g2.s) < 1e-12) continue;             /* 已经对上了 */
+    var po = { min: pl.lo, max: pl.hi, interval: pl.s };
+    /* 按**数据**判断要不要吞掉负刻度：这条轴本身没有负值（营收 / 现金流 / 每股股利），
+       负刻度纯粹是为对齐让位 ⇒ 不显示数字；真有负值的轴（净利 / 净利率）照常显示。
+       ⚠️ 不能用「原 extent 是不是负数」当判据：600456 chartBSTN 的净利率轴被人为钉成
+          -5%~30%，extent 是负的、数据却全是正的，那一格 -5% 写了会误导。 */
+    if(!g2.negData) po.axisLabel = { formatter: btHideNeg(ys[g2.ix]) };
+    patch[g2.ix] = po;
+    hit = true;
+  }
+  if(!hit) return;
+  /* ⚠️ 第二次 setOption 与第一次同在**同一个 tick** 内（中间没有绘制帧），
+     所以只会有一次可见动画，不会出现「先画错、再跳一下」。 */
+  inst.setOption({ yAxis: patch });
+}
+/* ----------------------------------------------------------------
+   负值柱「圆角朝向」修正（2026-10-14 用户令）
+   「现在是你看那个负数的样式1和2，它圆滑的一面朝向不对，样式修改一下」
+
+   ★ 病根：ECharts 的 itemStyle.borderRadius = [左上,右上,右下,左下]，是相对
+     **矩形自身**的。正柱的矩形上边就在柱顶 ⇒ [7,7,0,0] 圆在柱顶，读着对；
+     负柱的矩形是「上边压在 0 轴、柱身往下长」⇒ 同一个 [7,7,0,0] 把圆角画在
+     0 线那头，柱尖反而是直角，柱子像倒插在轴上。
+     （实测 dump 形状：正柱 shape y=122 h=+90、负柱 y=122 h=-27，同一个 r 落在
+       同一端的 y=122 —— 正是 0 轴。lib/echarts.min.js 5.6.0）
+   ★ 做法：只给**值 < 0 那一格**盖一个翻转的圆角（ECharts 支持逐项
+     data[i].itemStyle.borderRadius；已实测：系列级写函数、borderRadius 写函数
+     都会被忽略，只有逐项对象生效）。顺手把负值的数值标签从 0 线那头挪到柱尖
+     外侧（position:'bottom'），让「圆角端 + 数值」落在同一头。
+   ★ 边界：值 ≥ 0 的格子、以及作者自己写好 itemStyle 的格子（逐项色的
+     chartSales/chartCapacity 那类）**一个字节不改**，只往里补 borderRadius，
+     不动它已有的 color / 其它样式。没有负值直接 return。
+   ★ 只对**竖向柱**（类目在 x 轴）生效：横向条形图（601118/603977 的 chartResDist）
+     的「远端」在左右两侧，翻成下圆角只是换一种错，直接跳过、保持原样。
+   ★ 幂等：重复调用结果不变（页面 resize 会再跑一遍 beauty）。
+   ---------------------------------------------------------------- */
+function btFixNegBar(s, opt){
+  var ya = opt && opt.yAxis;
+  var yAx = ya ? (Array.isArray(ya) ? ya[s.yAxisIndex || 0] : ya) : null;
+  if(yAx && String(yAx.type || 'value') !== 'value') return;   /* 横向条形图不适用 */
+  var d = s.data || [], i, any = false;
+  for(i = 0; i < d.length; i++){
+    var v = (d[i] && typeof d[i] === 'object') ? d[i].value : d[i];
+    if(typeof v === 'number' && v < 0){ any = true; break; }
+  }
+  if(!any) return;                                  /* 全正 ⇒ 原样返回 */
+  var r0 = s.itemStyle && s.itemStyle.borderRadius;
+  var rN = (r0 && r0.length === 4 && (r0[0] || r0[1] || r0[2] || r0[3]))
+         ? [r0[2], r0[3], r0[0], r0[1]] : null;     /* [7,7,0,0] ⇒ [0,0,7,7] */
+  var flip = !!(s.label && (s.label.position === 'top' || s.label.position === 'insideTop'));
+  for(i = 0; i < d.length; i++){
+    var it = d[i];
+    var v2 = (it && typeof it === 'object') ? it.value : it;
+    if(!(typeof v2 === 'number' && v2 < 0)) continue;
+    if(it && typeof it === 'object'){
+      if(rN){ it.itemStyle = it.itemStyle || {}; it.itemStyle.borderRadius = rN.slice(); }
+      if(flip){ it.label = it.label || {}; if(!it.label.position) it.label.position = 'bottom'; }
+    }else{
+      var o = { value: it };
+      if(rN) o.itemStyle = { borderRadius: rN.slice() };
+      if(flip) o.label = { position: 'bottom' };
+      d[i] = o;
+    }
+  }
+}
 function beauty(opt, key){
   if(!opt || typeof opt !== 'object') return opt;
   var ser = opt.series || [];
@@ -1979,8 +2747,19 @@ function beauty(opt, key){
       s.lineStyle.shadowColor = btA(c, .35);
       s.lineStyle.shadowOffsetY = 6;
       /* 渐变面积：只有「主轴上的第一条线」且整图线数 ≤2 时才铺；
-         其余原样保留的（原本自带面积的）压淡一点，免得叠色。 */
-      if(i === firstLine && nLine <= 2) s.areaStyle = { color: btGrad(c, .30, .02) };
+         其余原样保留的（原本自带面积的）压淡一点，免得叠色。
+         ★ 例外（2026-10-15 用户令：「面积图太透明了，面积图要在最上面一层」）：
+           作者在 opt 里显式写过 areaStyle 并打了 __keep 标记 ⇒ 一律尊重，不覆盖。
+           为什么必须开这个口子：兜底渐变 .30→.02 是「面积当背景」的档位，
+           而 600456 chart_eps 要的是「面积压住柱子」的实色档 —— 光靠调系列色
+           调不出来（btA 是纯替换 alpha，与系列色深浅无关）。
+           ⚠️ 只认 __keep，绝不放宽成「作者写过就尊重」：全库 25 张图的第一条折线
+           自带 areaStyle，其中绝大多数是只有 opacity 的老写法（{"opacity":0.06}），
+           放宽会让它们的面积从 .30→.02 渐变整体塌成 6% 平铺 —— 那是回归事故。
+           ⚠️ 删掉 __keep 之后再交给 ECharts：它不认识这个键，但留着也不干净。
+           这个 s 是每次渲染从库里 opt 重新 revive 出来的副本，删了不影响下一次。 */
+      if(s.areaStyle && s.areaStyle.__keep){ delete s.areaStyle.__keep; }
+      else if(i === firstLine && nLine <= 2) s.areaStyle = { color: btGrad(c, .30, .02) };
       else if(s.areaStyle) s.areaStyle = { color: btGrad(c, .12, .01) };
       /* 「当前」虚线参考线：只在 1~2 条线、点数适中时加，多了会变格子布 */
       if(nLine <= 2 && nCat >= 5 && nCat <= 20){
@@ -1997,6 +2776,7 @@ function beauty(opt, key){
       s.itemStyle = s.itemStyle || {};
       s.itemStyle.color = btGrad(c, .99, .72);         /* 顶亮底淡的竖向渐变 */
       s.itemStyle.borderRadius = isTop ? [7, 7, 0, 0] : 0;
+      btFixNegBar(s, opt);                             /* 负值柱：圆角翻到柱尖那头 */
       s.itemStyle.shadowBlur = 8;
       s.itemStyle.shadowColor = btA(c, .16);
       s.itemStyle.shadowOffsetY = 3;
@@ -2129,6 +2909,7 @@ function renderCharts(){
   var slots = document.querySelectorAll('[data-chart]');
   var goneSlots = [];   /* 库里没数据 ⇒ 整块隐藏的槽位，末尾统一收尾（见 sweepGoneSlots） */
   St.inst = {};
+  St.insts = [];   /* 全量实例（含同一 key 的多处槽位），resize 用这个 */
   St.slots = [];
   for(var i = 0; i < slots.length; i++){
     var el = slots[i];
@@ -2171,6 +2952,7 @@ function renderCharts(){
       pairTopPad(slot, opt);   /* 并排窄栏：绘图区顶部留白加大，避开图例与气泡重叠 */
       var n = catCount(opt);
       var isMap = isMapChart(opt);
+      var isTime = (axisKind(opt) === 'time');
       /* 地图：给「可自由缩放」—— 滚轮缩放 + 拖动平移 + 双击复位。
          ★ scaleLimit 是**必填**：ECharts 默认 zoomLimit 为 null ⇒ 缩放没有上下界，
            滚轮多滚几下地图就飞出画布再也找不回来。min 1 顺带保证「缩不小」，
@@ -2182,15 +2964,34 @@ function renderCharts(){
         if(!mser.scaleLimit) mser.scaleLimit = { min: 1, max: 12 };
         if(mser.roam === undefined) mser.roam = true;
       }
-      var zoom = (n >= 5 && !NO_ZOOM[key]);
-      if(zoom){
+      /* ★ 缩放进阶（2026-10-16 扩展，两类轴分开判）
+         · category 轴：看**类目数**（原逻辑，一个字节没动）
+         · time    轴：类目数恒为 0 ⇒ 改看**数据点数**（seriesCount）。
+           m29 的「EPS 与股价历史」= 50 期 EPS 柱 + 2715 个交易日收盘线，
+           取最大 2715 ⇒ 稳稳过阈值，于是拿到 dataZoom 与按钮组。
+         ★ 库里**已有** dataZoom 的 time 图（EPS 双轴图自带缩放条 + 滚轮）一律不覆盖 ——
+           那是 `_eps_opt.py` 精心调的样式（fillerColor / brushSelect / handleStyle），
+           用上面 category 那两条默认值盖掉会丢掉整条缩放条的外观。 */
+      var cnt = isTime ? seriesCount(opt) : n;
+      var zoom = (cnt >= 5 && !NO_ZOOM[key]);
+      if(zoom && !isTime){
         opt.dataZoom = [{type:'inside', start:0, end:100}, {type:'slider', show:false, start:0, end:100}];
       }
+      if(zoom && isTime && !(opt.dataZoom && opt.dataZoom.length)){
+        opt.dataZoom = [{type:'inside', xAxisIndex:0}, {type:'slider', xAxisIndex:0, bottom:8, height:16}];
+      }
+      var tspan = (zoom && isTime) ? timeSpan(opt) : null;
+      var axspan = tspan ? axisExtentMs(opt, tspan) : null;
       delete opt.__noZoom;
       var inst = echarts.init(slot, THEME);
       inst.setOption(opt, true);
+      btAlignZero(inst, opt);   /* 双轴：0 刻度对齐（只补 min/max，数据不碰） */
       St.inst[key] = inst;
-      St.slots.push({key:key, n:n, zoom:zoom, map:isMap});
+      /* ★ 同一个 key 可以挂**多处槽位**（chartMargin 在 m11 与 m13 各有一块），
+         St.inst[key] 只会留下最后初始化那个 ⇒ 另存一份全量列表，resize 才不漏图。 */
+      St.insts.push(inst);
+      St.slots.push({key:key, n:n, zoom:zoom, map:isMap, inst:inst, dom:slot,
+                     tspan:tspan, axspan:axspan});
       if(isMap && !St.edit){
         var mg = document.createElement('div');
         mg.className = 'rpt-mapguide';
@@ -2267,14 +3068,22 @@ function sweepGoneSlots(list){
     }
   }
 }
-/* 时间范围按钮组（和原研报一致：3年 / 5年 / 10年 / 全部） */
+/* 时间范围按钮组（和原研报一致：3年 / 5年 / 10年 / 全部）
+   ----------------------------------------------------------------
+   2026-10-16 两处修正（用户反馈「m29 少了一个时间选择按钮」「m13 这里又多了一个」）：
+   ① **取实例必须按槽位取，不能按 key 取**。原来写 `St.inst[s.key]` + `inst.getDom()`，
+      而同一个 key 可以挂**多处槽位**（chartMargin 在 m11 与 m13 各有一块），
+      `St.inst[key]` 只剩最后初始化的那个 ⇒ 两次都往同一块 DOM 前面插，
+      于是 **m13 顶着两组按钮、m11 一组都没有**。现在用槽位自己的 `s.inst` / `s.dom`。
+   ② **time 轴（EPS 与股价历史图）也进这个分支**。它没有 xAxis.data ⇒ catCount = 0
+      ⇒ 原来连按钮都没有。现在按「真实时间」换算百分比窗口（见 yearWindow）。 */
 function renderToolbars(){
   var old = document.querySelectorAll('.rpt-toolbar');
   for(var i = 0; i < old.length; i++) old[i].parentNode.removeChild(old[i]);
   (St.slots || []).forEach(function(s){
     if(!s.zoom) return;
-    var inst = St.inst[s.key]; if(!inst) return;
-    var dom = inst.getDom(); if(!dom) return;
+    var inst = s.inst, dom = s.dom;
+    if(!inst || !dom || !dom.parentNode) return;
     var bar = document.createElement('div');
     bar.className = 'rpt-toolbar';
     bar.innerHTML = '<button data-r="3">3年</button><button data-r="5">5年</button>' +
@@ -2282,22 +3091,38 @@ function renderToolbars(){
     dom.parentNode.insertBefore(bar, dom);
     var btns = bar.querySelectorAll('button');
     for(var b = 0; b < btns.length; b++){
-      btns[b].onclick = (function(n, inst, bar){
+      btns[b].onclick = (function(s, inst, bar){
         return function(){
           var bs = bar.querySelectorAll('button');
           for(var q = 0; q < bs.length; q++) bs[q].className = '';
           this.className = 'on';
-          var yrs = this.getAttribute('data-r') === 'all' ? 9999 : parseInt(this.getAttribute('data-r'), 10);
-          var st = yrs >= n ? 0 : Math.round((n - yrs) / n * 100);
-          inst.dispatchAction({type:'dataZoom', dataZoomIndex:1, start:st, end:100});
-          inst.dispatchAction({type:'dataZoom', dataZoomIndex:0, start:st, end:100});
+          var raw = this.getAttribute('data-r');
+          var win = null;
+          if(s.axspan){
+            /* time 轴：窗口按真实时间算 */
+            win = (raw === 'all') ? [0, 100] : yearWindow(s.tspan, s.axspan, parseInt(raw, 10));
+            if(!win) return;
+          } else {
+            /* category 轴：原逻辑，一个字节没动 */
+            var n = s.n;
+            var yrs = raw === 'all' ? 9999 : parseInt(raw, 10);
+            win = [yrs >= n ? 0 : Math.round((n - yrs) / n * 100), 100];
+          }
+          inst.dispatchAction({type:'dataZoom', dataZoomIndex:1, start:win[0], end:win[1]});
+          inst.dispatchAction({type:'dataZoom', dataZoomIndex:0, start:win[0], end:win[1]});
         };
-      })(s.n, inst, bar);
+      })(s, inst, bar);
     }
   });
 }
 window.addEventListener('resize', function(){
-  for(var k in St.inst){ try{ St.inst[k].resize(); }catch(e){} }
+  /* ★ 遍历**全量实例**（St.insts）而不是 St.inst：同一 key 挂两处槽位时，
+     St.inst 只剩最后一个，另一块图在窗口变化后不会重算尺寸。 */
+  var list = (St.insts && St.insts.length) ? St.insts : [];
+  for(var i = 0; i < list.length; i++){ try{ list[i].resize(); }catch(e){} }
+  for(var k in St.inst){
+    if(list.indexOf(St.inst[k]) < 0){ try{ St.inst[k].resize(); }catch(e){} }
+  }
 });
 /* 左侧竖排目录：滚动 / 尺寸变化时刷新当前模块高亮 */
 window.addEventListener('scroll', tocSpySoon, {passive:true});
@@ -2383,6 +3208,59 @@ var Rpt = {
     $('rptMask').className = 'rpt-mask on';
   },
   closeDrawer: function(){ $('rptMask').className = 'rpt-mask'; rTickClear(); },
+
+  /* 报告说明弹窗（只读，不改数据）—— 内容由 notesModel() 组装 */
+  notes: function(){
+    var secs = St.notes || notesModel();
+    St.notes = secs;
+    if(!secs.length) return;
+    $('rptNMask').innerHTML = '<div class="rpt-nbox">' +
+      '<div class="hd">📌 报告说明与注解<span class="cnt">' + secs.length + ' 项</span>' +
+      '<span class="x" onclick="Rpt.closeNotes()">✕</span></div>' +
+      '<div class="bd">' + notesSectionsHTML(secs) + '</div>' +
+      '<div class="ft"><button class="rbtn gh" onclick="Rpt.closeNotes()">关闭</button></div></div>';
+    $('rptNMask').className = 'rpt-nmask on';
+  },
+  closeNotes: function(){ $('rptNMask').className = 'rpt-nmask'; },
+
+  /* 时间轴卡片全文弹窗（只读）—— 卡片正文被 CSS 截到 7 行，这里给全文。
+     正文直接取卡片自己 .h-txt 的 innerHTML，所以「库里的研报不用动」。
+     histNav 支持翻页：研报里的时间轴通常 7~10 个节点，顺着读比关掉再点更顺手。 */
+  hist: function(card){
+    var cs = histCards(), i = 0;
+    for(var k = 0; k < cs.length; k++) if(cs[k] === card){ i = k; break; }
+    this.histNav(i);
+  },
+  histNav: function(i){
+    var cs = histCards();
+    if(!cs.length) return;
+    if(!(i >= 0)) i = 0;
+    if(i > cs.length - 1) i = cs.length - 1;
+    Hist.idx = i;
+    function yr(n){
+      var c = cs[n];
+      if(!c) return '';
+      var y = c.querySelector('.h-year');
+      return y ? String(y.textContent || '').trim() : '';
+    }
+    /* 到头 / 到尾时按钮是 disabled，但标签不能空着（空按钮看着像坏了）→ 退回相对方位词 */
+    var preY = yr(i - 1) || '上一条', nxtY = yr(i + 1) || '下一条';
+    var c = cs[i], t = c.querySelector('.h-txt');
+    $('rptHMask').innerHTML = '<div class="rpt-hbox">' +
+      '<div class="hd"><span class="yr">' + esc(yr(i)) + '</span>' +
+        '<span class="tt">公司发展沿革</span>' +
+        '<span class="x" onclick="Rpt.closeHist()">✕</span></div>' +
+      '<div class="bd">' + (t ? t.innerHTML : '') + '</div>' +
+      '<div class="ft">' +
+        '<button class="rbtn gh sm"' + (i <= 0 ? ' disabled' : '') +
+          ' onclick="Rpt.histNav(Hist.idx-1)">‹ ' + esc(preY) + '</button>' +
+        '<span class="pg">' + (i + 1) + ' / ' + cs.length + '</span>' +
+        '<button class="rbtn gh sm"' + (i >= cs.length - 1 ? ' disabled' : '') +
+          ' onclick="Rpt.histNav(Hist.idx+1)">' + esc(nxtY) + ' ›</button>' +
+      '</div></div>';
+    $('rptHMask').className = 'rpt-hmask on';
+  },
+  closeHist: function(){ $('rptHMask').className = 'rpt-hmask'; },
   tab: function(t){ UI.tab = t; UI.selMod = ''; UI.selChart = ''; this.renderDrawer(); },
   openMod: function(id){ UI.tab = 'mods'; UI.selMod = id; UI.selChart = ''; this.openDrawer('mods', true); },
   openChart: function(key){ UI.tab = 'charts'; UI.selChart = key; UI.selMod = ''; this.openDrawer('charts', true); },
@@ -2553,7 +3431,7 @@ var Rpt = {
     /* 页面上还没有研报记录时（比如从一个空代码进来），先兜一个最小壳 */
     if(!St.rep){
       St.rep = {id:St.code, code:St.code, name:'', kicker:'', title:'', subtitle:'', badges:[],
-                verdict_title:'核心结论', verdict_html:'', kpis:[], kpi_note:'', toc:[],
+                verdict_title:'核心结论', verdict_html:'', notice_html:'', kpis:[], kpi_note:'', toc:[],
                 essence_html:'', footer_html:'', theme:'red', sort:99};
     }
     var r = St.rep;
@@ -2562,7 +3440,8 @@ var Rpt = {
     var row = {
       id:id, code:r.code || id, name:r.name || '', kicker:r.kicker || '', title:r.title || '',
       subtitle:r.subtitle || '', badges:r.badges || [], verdict_title:r.verdict_title || '核心结论',
-      verdict_html:r.verdict_html || '', kpis:r.kpis || [], kpi_note:r.kpi_note || '',
+      verdict_html:r.verdict_html || '', notice_html:r.notice_html || '',
+      kpis:r.kpis || [], kpi_note:r.kpi_note || '',
       toc:r.toc || [], essence_html:r.essence_html || '', footer_html:r.footer_html || '',
       theme:r.theme || 'red', sort:r.sort || 99, up:nowTs()
     };
@@ -2615,18 +3494,19 @@ var Rpt = {
     r.kicker = v('h-kicker'); r.title = v('h-title'); r.subtitle = v('h-sub');
     r.badges = lines;
     r.verdict_title = v('h-vt'); r.verdict_html = rteRead('h-vc', r.verdict_html);
+    r.notice_html = rteRead('h-notice', r.notice_html);
     r.kpis = kpis; r.kpi_note = v('h-note');
     r.toc = toc;
     r.essence_html = rteRead('h-essence', r.essence_html);
     r.footer_html  = rteRead('h-footer', r.footer_html);
     r.id = r.id || St.code; r.code = r.code || St.code;
     r.name = r.name || '';
-    ['h-vc', 'h-essence', 'h-footer'].forEach(function(k){ UI.rteDirty[k] = 0; UI.rteSrcOrig[k] = undefined; });
+    ['h-vc', 'h-notice', 'h-essence', 'h-footer'].forEach(function(k){ UI.rteDirty[k] = 0; UI.rteSrcOrig[k] = undefined; });
     this.patch('wb_reports', '?id=eq.' + enc(r.id), {
       code:r.code, name:r.name, kicker:r.kicker, title:r.title, subtitle:r.subtitle,
       badges:r.badges, verdict_title:r.verdict_title, verdict_html:r.verdict_html,
-      kpis:r.kpis, kpi_note:r.kpi_note, toc:r.toc, essence_html:r.essence_html,
-      footer_html:r.footer_html, theme:r.theme || 'red'
+      notice_html:r.notice_html, kpis:r.kpis, kpi_note:r.kpi_note, toc:r.toc,
+      essence_html:r.essence_html, footer_html:r.footer_html, theme:r.theme || 'red'
     }, '页眉与结论').then(function(){
       St.rep = r; render();
     }).catch(function(){});
@@ -3236,7 +4116,9 @@ function headForm(){
       '</tr>';
   });
   h += '</tbody></table></div></div>';
-  h += fld('h-note', '指标下方小字说明', r.kpi_note);
+  h += fld('h-note', '数据口径说明（收进「ⓘ 报告说明」弹窗）', r.kpi_note);
+  h += rteField('h-notice', '报告说明 / 注解（页头「ⓘ 报告说明」弹窗）', r.notice_html, 5,
+        '正文里不该出现的注解都写这里：建档方式、数据序列、[模型输出] / [MISSING] 口径、评级与目标价政策等', false);
   h += ta('h-toc', '目录（一行一条，格式：锚点|显示文字）', (r.toc || []).map(function(x){ return x.anchor + '|' + tocLabel(x.text); }).join('\n'), 5,
           '锚点是模块编号对应的 #m1 / #m6 / #m14 …；显示文字别写「第X篇」前缀（侧栏窄，会把模块名挤成省略号）');
   h += rteField('h-essence', '一句话本质', r.essence_html, 4, '会显示在 31 号模块上方', false);
@@ -3777,6 +4659,7 @@ function doCreate(code, v, btn){
     title:v('n-title') || (name ? name + '（' + code + '）深度研究报告' : code + ' 深度研究报告'),
     subtitle:v('n-sub'), badges:[], verdict_title:'核心结论',
     verdict_html:'<p>在此填写核心结论：中期方向、关键变量、估值位置、评级与目标价。</p>',
+    notice_html:'<p>在此填写报告说明：建档方式、数据序列与来源、[模型输出] / [MISSING] 口径、评级与目标价政策等。</p>',
     kpis:blankKpis(), kpi_note:'',
     toc:[{anchor:'m1', text:'一 公司与行业'}, {anchor:'m13', text:'二 产业链与成本'},
          {anchor:'m16', text:'三 经营与项目'}, {anchor:'m19', text:'四 财务分析'},
@@ -3856,6 +4739,360 @@ Rpt.importJSON = function(){
 
 /* 把「数据管理面板」挂到 Rpt 上（保持内联 onclick 的调用点统一） */
 Rpt.createReport = RptCreate;
+
+/* ============================================================================
+   公司资料库（顶部操作条「📂 公司资料库」）
+   —— 给每家被研究的公司挂一个资料柜：上传 / 查看 / 下载 / 删除
+      图片、PDF、Word、Excel、PPT、TXT 等任意格式。
+
+   分两处存（各有各的道理）：
+     · 文件本体 → CloudBase PG 存储 bucket `company-files`，前端**直传** HTTP API
+         POST /v1/storages/object/company-files/<key>   （Bearer 可发布密钥即可）
+       预览/下载走公开读：GET 同一路径，带 CORS —— 所以 <img>/<iframe>/fetch 都能直接用。
+       为什么不塞进 PostgREST 表：base64 会让体积涨 33%，几十 MB 的年报根本传不动。
+     · 元数据 → wb_company_files 表（原始文件名 / 类型 / 大小 / 上传时间 / 上传人）。
+       原始文件名不能直接当对象名（中文·空格·重名·特殊字符都出问题），
+       所以桶里用 `<code>/<时间戳>_<随机>.<ext>`，真名存在表里。
+
+   ★ 删除 = 软删（is_del=true），走服务端 wb_del_company_file 校验管理员密码 ——
+     与项目「删记录只软删」同一口径；桶里的对象保留，列表按 is_del 过滤。
+   ★ 上传要过管理员密码门（act='上传'，danger=false）—— 本项目的既有模型是
+     「匿名可写数据库」，所以「写」必须有人把关；勾上「15 分钟内免重复输入」后
+     连续传多个文件不会反复弹。
+   ============================================================================ */
+var STORE = CFG.envId ? ('https://' + CFG.envId + '.api.tcloudbasegateway.com/v1/storages/') : '';
+var CF_BUCKET = 'company-files';
+/* 后缀 → 分类：决定图标底色，以及「能不能在浏览器里直接看」 */
+var F_KIND = {
+  pdf:'pdf',
+  doc:'doc', docx:'doc', rtf:'doc', odt:'doc', wps:'doc',
+  xls:'xls', xlsx:'xls', csv:'xls', ods:'xls', et:'xls',
+  ppt:'ppt', pptx:'ppt', odp:'ppt', dps:'ppt',
+  png:'img', jpg:'img', jpeg:'img', gif:'img', webp:'img', bmp:'img', svg:'img', avif:'img', ico:'img',
+  txt:'txt', md:'txt', log:'txt', json:'txt', xml:'txt', yaml:'txt', yml:'txt', ini:'txt', html:'txt', htm:'txt',
+  zip:'zip', rar:'zip', '7z':'zip', gz:'zip', tar:'zip', xz:'zip'
+};
+var F_ICON = {pdf:'📕', doc:'📘', xls:'📗', ppt:'📙', img:'🖼', txt:'📄', zip:'🗜', other:'📎'};
+var F_NAME = {pdf:'PDF', doc:'Word', xls:'Excel', ppt:'PPT', img:'图片', txt:'文本', zip:'压缩包', other:'文件'};
+var FIA = {rows:[], q:'', n:0};          /* 列表缓存 / 搜索词 / 上传批次序号 */
+var F_MAX = 80 * 1024 * 1024;            /* 单文件上限 80MB（够装年报 PDF；再大浏览器上传体验就崩了） */
+
+function fKind(r){ return F_KIND[String((r && r.ext) || '').toLowerCase()] || 'other'; }
+function fSize(n){
+  n = Number(n) || 0;
+  if(n < 1024) return n + ' B';
+  if(n < 1048576) return (n / 1024).toFixed(n < 10240 ? 1 : 0) + ' KB';
+  if(n < 1073741824) return (n / 1048576).toFixed(n < 10485760 ? 2 : 1) + ' MB';
+  return (n / 1073741824).toFixed(2) + ' GB';
+}
+function fTime(iso){
+  if(!iso) return '';
+  var d = new Date(iso);
+  if(isNaN(d.getTime())) return String(iso).slice(0, 16).replace('T', ' ');
+  function p(x){ return (x < 10 ? '0' : '') + x; }
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) +
+         ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+/* 桶内对象的公开读地址（对象名逐段编码：桶名与路径段分别 encode，斜杠要留） */
+function fUrl(r){
+  return STORE + 'object/' + enc(r.bucket || CF_BUCKET) + '/' +
+         String(r.object_key || '').split('/').map(enc).join('/');
+}
+
+Rpt.files = function(){
+  var co = (St.rep && (St.rep.name || St.rep.code)) || St.code || '';
+  FIA.q = '';
+  $('rptFMask').innerHTML =
+    '<div class="rpt-fbox" id="fBox">' +
+      '<div class="hd">' +
+        '<span class="t">📂 公司资料库</span>' +
+        '<span class="co">' + esc(co) + '</span>' +
+        '<span class="stat" id="fStat">读取中…</span>' +
+        '<span class="x" onclick="Rpt.closeFiles()" title="关闭（Esc）">✕</span>' +
+      '</div>' +
+      '<div class="bar">' +
+        '<button class="rbtn pri" onclick="Rpt.fPick()">⬆ 上传资料</button>' +
+        '<span class="tip">可多选 · 图片 / PDF / Word / Excel / PPT / TXT 等任意格式 · 也可直接把文件拖进来</span>' +
+        '<input class="finp" id="fQ" placeholder="搜索文件名…" oninput="Rpt.fSearch(this.value)">' +
+      '</div>' +
+      '<div class="bd" id="fBody"></div>' +
+      '<div class="ft">' +
+        '<span class="hint">文件存于云端存储 · 本页可直接预览与下载</span>' +
+        '<button class="rbtn gh" onclick="Rpt.closeFiles()">关闭</button>' +
+      '</div>' +
+      '<input type="file" id="fInput" multiple style="display:none" onchange="Rpt.fUp(this.files)">' +
+    '</div>';
+  $('rptFMask').className = 'rpt-fmask on';
+  /* 拖拽上传：整张卡片都是投放区。
+     ⚠️ dragover 必须 preventDefault —— 否则浏览器会直接把文件当页面打开、离开当前页。 */
+  var box = $('fBox');
+  box.addEventListener('dragover', function(e){ e.preventDefault(); box.className = 'rpt-fbox drag'; });
+  box.addEventListener('dragleave', function(e){
+    if(!box.contains(e.relatedTarget)) box.className = 'rpt-fbox';
+  });
+  box.addEventListener('drop', function(e){
+    e.preventDefault(); box.className = 'rpt-fbox';
+    if(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) Rpt.fUp(e.dataTransfer.files);
+  });
+  this.fLoad();
+};
+Rpt.closeFiles = function(){
+  var m = $('rptFMask');
+  m.className = 'rpt-fmask'; m.innerHTML = '';
+};
+Rpt.fPick = function(){ var i = $('fInput'); if(i){ i.value = ''; i.click(); } };
+Rpt.fSearch = function(v){ FIA.q = String(v || '').trim().toLowerCase(); this.fRender(); };
+Rpt.fStat = function(t){ var e = $('fStat'); if(e) e.textContent = t || ''; };
+Rpt.fFind = function(id){
+  for(var i = 0; i < FIA.rows.length; i++) if(String(FIA.rows[i].id) === String(id)) return FIA.rows[i];
+  return null;
+};
+
+/* 读列表：只取未删除的，按上传时间倒序 */
+Rpt.fLoad = function(){
+  var self = this;
+  if(!REST){ FIA.rows = []; this.fRender('未配置云环境：资料库需要联网使用'); return; }
+  this.fStat('读取中…');
+  api('wb_company_files?report_id=eq.' + enc(St.code) + '&is_del=eq.false&order=t.desc&select=*')
+    .then(function(rows){ FIA.rows = rows || []; self.fRender(); })
+    .catch(function(e){
+      FIA.rows = [];
+      self.fRender('读取失败：' + String((e && e.message) || e).slice(0, 120));
+    });
+};
+
+Rpt.fRender = function(err){
+  var body = $('fBody'); if(!body) return;
+  var total = 0, i;
+  for(i = 0; i < FIA.rows.length; i++) total += Number(FIA.rows[i].size_bytes) || 0;
+  this.fStat(FIA.rows.length ? (FIA.rows.length + ' 个文件 · 共 ' + fSize(total)) : '');
+  var rows = FIA.q ? FIA.rows.filter(function(r){
+    return String(r.name || '').toLowerCase().indexOf(FIA.q) >= 0;
+  }) : FIA.rows;
+  var h = '';
+  if(err){
+    h = '<div class="fempty"><span class="big">⚠️</span>' + esc(err) + '</div>';
+  } else if(!FIA.rows.length){
+    h = '<div class="fempty"><span class="big">📂</span>这家公司的资料柜还是空的<br>' +
+        '点左上的 <b>⬆ 上传资料</b>，或把文件<b>直接拖进来</b></div>';
+  } else if(!rows.length){
+    h = '<div class="fempty"><span class="big">🔍</span>没有匹配「' + esc(FIA.q) + '」的文件</div>';
+  } else {
+    h = rows.map(function(r){
+      var k = fKind(r), id = attr(r.id);
+      return '<div class="fl">' +
+        '<span class="fi k-' + k + '">' + (F_ICON[k] || F_ICON.other) + '</span>' +
+        '<span class="fn" title="' + attr(r.name) + '" onclick="Rpt.fView(\'' + id + '\')">' + esc(r.name) + '</span>' +
+        '<span class="fk">' + esc(F_NAME[k] || '文件') + '</span>' +
+        '<span class="fs">' + fSize(r.size_bytes) + '</span>' +
+        '<span class="fd">' + fTime(r.t) + '</span>' +
+        '<span class="fo">' +
+          '<button class="ib" onclick="Rpt.fView(\'' + id + '\')" title="查看">👁 查看</button>' +
+          '<button class="ib" onclick="Rpt.fDl(\'' + id + '\')" title="下载到本机">⬇</button>' +
+          '<button class="ib del" onclick="Rpt.fDel(\'' + id + '\')" title="删除">🗑</button>' +
+        '</span></div>';
+    }).join('');
+  }
+  body.innerHTML = h;
+};
+
+/* 上传入口：先过大文件预检，再过密码门，最后串行上传（串行才能给出逐项进度） */
+Rpt.fUp = function(fl){
+  var arr = [].slice.call(fl || []);
+  if(!arr.length) return;
+  if(!STORE || !REST){ toast('未配置云环境，无法上传', 'bad'); return; }
+  var big = [];
+  arr = arr.filter(function(f){
+    if(f.size > F_MAX){ big.push(f.name + '（' + fSize(f.size) + '）'); return false; }
+    return true;
+  });
+  if(big.length) toast('超过单文件上限 ' + fSize(F_MAX) + '，已跳过：' + big.join('、'), 'bad');
+  if(!arr.length) return;
+  var co = (St.rep && (St.rep.name || St.rep.code)) || St.code || '';
+  Rpt.askPass('上传 ' + arr.length + ' 个文件到「' + co + '」资料库', function(pw){
+    Rpt.fRun(arr, pw);
+  }, {act:'上传', danger:false});
+};
+
+Rpt.fRun = function(arr, pw){
+  var self = this, body = $('fBody'); if(!body) return;
+  FIA.n++;
+  var qid = 'fq' + FIA.n;
+  var q = document.createElement('div');
+  q.className = 'fqueue'; q.id = qid;
+  q.innerHTML = arr.map(function(f, i){
+    return '<div class="fprog" id="' + qid + '_' + i + '">' +
+      '<span class="nm" title="' + attr(f.name) + '">' + esc(f.name) + '</span>' +
+      '<span class="pb"><i></i></span>' +
+      '<span class="st">等待…</span></div>';
+  }).join('');
+  body.insertBefore(q, body.firstChild);
+  var ok = 0, fail = 0;
+  function step(i){
+    if(i >= arr.length){
+      if(fail) toast('上传完成：成功 ' + ok + ' 个，失败 ' + fail + ' 个', 'bad');
+      else toast('已上传 ' + ok + ' 个文件到资料库', 'ok');
+      /* ⚠️ 别立刻 fLoad：它会重建整个列表区（队列是列表区的兄弟节点），
+         逐项「✓ 完成 / ✕ 失败」会被瞬间抹掉 —— 一次传十个文件时用户根本看不清哪几个失败。
+         停 900ms 再刷新，让结果看得见。 */
+      setTimeout(function(){ self.fLoad(); }, 900);
+      return;
+    }
+    var cell = $(qid + '_' + i);
+    function st(txt, cls){
+      if(!cell) return;
+      cell.className = 'fprog' + (cls ? ' ' + cls : '');
+      var s = cell.querySelector('.st'); if(s) s.textContent = txt;
+    }
+    function pb(p){ if(!cell) return; var b = cell.querySelector('.pb i'); if(b) b.style.width = Math.round(p * 100) + '%'; }
+    st('上传中');
+    self.fOne(arr[i], pb).then(function(){
+      pb(1); st('✓ 完成', 'ok'); ok++;
+    }).catch(function(e){
+      st('✕ 失败', 'bad'); fail++;
+      if(cell) cell.title = String((e && e.message) || e).slice(0, 200);
+    }).then(function(){ step(i + 1); });
+  }
+  step(0);
+};
+
+Rpt.fOne = function(f, onprog){
+  var code = St.code || 'other';
+  var nm = String(f.name || '');
+  var ext = nm.indexOf('.') >= 0 ? nm.split('.').pop().toLowerCase() : '';
+  if(!/^[a-z0-9]{1,8}$/.test(ext)) ext = '';
+  var stamp = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  var key = code + '/' + stamp + (ext ? '.' + ext : '');
+  var id = code + '_' + stamp;
+  return this.fPut(f, key, onprog).then(function(){
+    return api('wb_company_files', {
+      method:'POST',
+      headers:{'Content-Type':'application/json', 'Prefer':'return=minimal'},
+      body:[{id:id, report_id:code, code:code, name:nm, ext:ext, mime:f.type || '',
+             size_bytes:f.size || 0, bucket:CF_BUCKET, object_key:key,
+             uploader:(Auth.name || Auth.user || ''), up:nowTs()}]
+    });
+  });
+};
+
+/* 直传存储。用 XHR 而不是 fetch —— 只有 XHR 拿得到上传进度（fetch 没有 upload 进度事件） */
+Rpt.fPut = function(f, key, onprog){
+  var url = STORE + 'object/' + enc(CF_BUCKET) + '/' + String(key).split('/').map(enc).join('/');
+  return new Promise(function(res, rej){
+    var x = new XMLHttpRequest();
+    x.open('POST', url, true);
+    try{
+      x.setRequestHeader('Authorization', 'Bearer ' + CFG.key);
+      /* 存真实 MIME：PDF/图片 以后重新下载时类型才对，浏览器预览也认 */
+      x.setRequestHeader('Content-Type', f.type || 'application/octet-stream');
+    }catch(e){}
+    if(x.upload && onprog){
+      x.upload.onprogress = function(ev){ if(ev.lengthComputable) onprog(ev.loaded / ev.total); };
+    }
+    x.onload = function(){
+      if(x.status >= 200 && x.status < 300){ res(true); return; }
+      rej(new Error('HTTP ' + x.status + ' ' + String(x.responseText || '').slice(0, 140)));
+    };
+    x.onerror = function(){ rej(new Error('网络错误，上传中断')); };
+    x.send(f);
+  });
+};
+
+/* 下载：走 fetch → blob → a[download]。
+   ⚠️ 不能直接 `<a href=跨域地址 download>`：跨域时 download 属性会被浏览器忽略，
+      变成「打开」而不是「下载」（服务端也没给 Content-Disposition）。 */
+Rpt.fDl = function(id){
+  var r = this.fFind(id); if(!r) return;
+  toast('正在准备下载…', 'ok');
+  fetch(fUrl(r)).then(function(res){
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    return res.blob();
+  }).then(function(b){
+    var a = document.createElement('a');
+    var u = URL.createObjectURL(b);
+    a.href = u; a.download = r.name || 'download';
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){
+      URL.revokeObjectURL(u);
+      if(a.parentNode) a.parentNode.removeChild(a);
+    }, 1500);
+  }).catch(function(e){
+    toast('下载失败：' + String((e && e.message) || e).slice(0, 110), 'bad');
+  });
+};
+
+/* 预览：图片 / PDF / 纯文本直接在页面里看；Office 与压缩包浏览器渲染不了，提示下载 */
+Rpt.fView = function(id){
+  var r = this.fFind(id); if(!r) return;
+  var k = fKind(r), url = fUrl(r), body;
+  var ext = String(r.ext || '').toLowerCase();
+  /* csv/tsv 归在「Excel」类（图标、打开方式都对），但它本质是纯文本 ⇒ 也走文本预览 */
+  var csv = (ext === 'csv' || ext === 'tsv');
+  var isText = (k === 'txt') || csv;
+  var label = csv ? 'CSV' : (F_NAME[k] || '文件');
+  if(k === 'img'){
+    body = '<img src="' + attr(url) + '" alt="' + attr(r.name) + '">';
+  } else if(k === 'pdf'){
+    /* #view=FitH 让阅读器默认按宽度铺满。部分浏览器（手机 Safari / 关掉内置阅读器）不内嵌 PDF，
+       会显示一片空白 —— 此时靠下面这条提示把用户引到「⬇ 下载」。 */
+    body = '<div class="vpdf"><iframe src="' + attr(url) + '#view=FitH" title="' + attr(r.name) + '"></iframe>' +
+           '<div class="vhint">若上方空白，说明当前浏览器不内嵌 PDF —— 点「⬇ 下载」用本地软件打开即可</div></div>';
+  } else if(isText){
+    body = '<pre id="vTxt">读取中…</pre>';
+  } else {
+    body = '<div class="nopv"><span class="big">' + (F_ICON[k] || F_ICON.other) + '</span>' +
+           '浏览器不能内嵌预览 ' + esc(F_NAME[k] || '这种') + ' 文件<br>' +
+           '点「⬇ 下载」后用本地软件打开即可</div>';
+  }
+  $('rptVMask').innerHTML =
+    '<div class="rpt-vbox">' +
+      '<div class="hd"><span class="tt">' + esc(r.name) + '</span>' +
+        '<span class="x" onclick="Rpt.closeView()" title="关闭（Esc）">✕</span></div>' +
+      '<div class="bd">' + body + '</div>' +
+      '<div class="ft">' +
+        '<span class="meta">' + esc(label) + ' · ' + fSize(r.size_bytes) +
+          ' · ' + esc(fTime(r.t)) + (r.uploader ? (' · ' + esc(r.uploader)) : '') + '</span>' +
+        '<button class="rbtn gh" onclick="Rpt.fDl(\'' + attr(r.id) + '\')">⬇ 下载</button>' +
+        '<button class="rbtn gh" onclick="Rpt.closeView()">关闭</button>' +
+      '</div>' +
+    '</div>';
+  $('rptVMask').className = 'rpt-vmask on';
+  if(isText){
+    fetch(url).then(function(res){
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      return res.text();
+    }).then(function(t){
+      var p = $('vTxt'); if(!p) return;
+      p.textContent = t.length > 500000
+        ? (t.slice(0, 500000) + '\n\n…（文件较大，上面只显示前 500KB，完整内容请点「⬇ 下载」）')
+        : t;
+    }).catch(function(e){
+      var p = $('vTxt'); if(p) p.textContent = '读取失败：' + String((e && e.message) || e);
+    });
+  }
+};
+Rpt.closeView = function(){
+  var m = $('rptVMask'); m.className = 'rpt-vmask'; m.innerHTML = '';
+};
+
+/* 删除：走密码门（danger），服务端 wb_del_company_file 做软删 */
+Rpt.fDel = function(id){
+  var r = this.fFind(id); if(!r) return;
+  var self = this;
+  Rpt.askPass('删除资料「' + String(r.name || '').slice(0, 46) + '」（' + fSize(r.size_bytes) + '）',
+    function(pw){ self.fDelGo(id, pw); },
+    {act:'删除', danger:true});
+};
+Rpt.fDelGo = function(id, pw){
+  var self = this;
+  rpc('wb_del_company_file', {p_token: Auth.token || '', p_id: id, p_pass: pw})
+    .then(function(res){
+      if(!res || !res.ok){ toast((res && res.msg) || '删除失败', 'bad'); return; }
+      toast('已删除', 'ok');
+      self.fLoad();
+    })
+    .catch(function(e){ toast('删除失败：' + String((e && e.message) || e).slice(0, 110), 'bad'); });
+};
 
 /* ============================================================================
    写操作门禁装配

@@ -94,12 +94,24 @@ def unit_ax(d, dflt):
 
 
 def unit_note_html(d, unit=''):
-    """生成「口径：…」说明段。优先 unit_note（长文本）；没有则不输出。"""
+    """生成「口径：…」说明段。
+
+    ★ 2026-10-16：除 `unit_note`（表格口径，可长）外，再认一个 **`chart_note`** ——
+      「**图上取的是哪一期 / 哪一列 / 为什么少一条系列**」这类**只与图有关**的口径说明。
+      起因：000762 的表格是「2025 全年 vs 2026H1」两期对照，而图统一取 2026H1
+      （否则会把 2026H1 产量当销量画）——这种差异必须写在读者能看见的地方。
+      两者**同时存在时都输出**（它们是两件事）；都没有则不出这一段。
+      ★ 存量报告只有 `unit_note` ⇒ 输出逐字节不变。
+    """
     d = d or {}
-    t = d.get('unit_note')
-    if not t:
+    parts = []
+    if d.get('unit_note'):
+        parts.append(d['unit_note'])
+    if d.get('chart_note'):
+        parts.append(d['chart_note'])
+    if not parts:
         return ''
-    return '<p class="src">口径：%s</p>' % t
+    return '<p class="src">口径：%s</p>' % ' '.join(parts)
 
 
 def numcol(rows, i, n):
@@ -122,6 +134,24 @@ def numcol(rows, i, n):
         except (TypeError, ValueError):
             out.append(None)
     return out
+
+
+def numeric_rows(rows, idx=(1, 2, 3), need=None):
+    """这几列是不是「真的能画图」——至少有一列全部转不出数值就判否。
+
+    ★ 2026-10-16：给 `pricecost` 补的闸。新研报把 `pricecost.rows` 写成
+      **产品维度的文字表**（列＝参考市场价 / 公司口径 / 毛利率，全是带单位的散文），
+      `numcol` 三列全 None ⇒ 画出一张「有坐标轴、图例有点、线上无点」的**空图**，
+      而构建器自己的自检（槽位 ↔ 图数据一一对应）**查不出**这种「图在、数据空」。
+      `need=None` ⇒ 要求所列各列都至少有一个数值。存量研报的 rows 本就是数值表，判据恒真。
+    """
+    if not rows:
+        return False
+    cols = [i for i in idx if i < len(rows[0])]
+    if not cols:
+        return False
+    have = [any(v is not None for v in numcol(rows, i, len(rows))) for i in cols]
+    return all(have) if need is None else (sum(have) >= need)
 
 
 def table(headers, rows, cls=''):
@@ -225,6 +255,8 @@ def chart(key, height=None):
     return '<div data-chart="%s" class="chart-box"%s></div>' % (key, st)
 
 
+
+
 def g(d, *keys, default=None):
     cur = d
     for k in keys:
@@ -249,6 +281,25 @@ def yoy(cur, prev):
         return (float(cur) / float(prev) - 1) * 100
     except (TypeError, ValueError, ZeroDivisionError):
         return None
+
+
+# ★ 2026-10-14：年份数**一律从 years 列表实测**，不再写死。
+#   起因：徽标写死「（10 年）」而 iFinD 序列只有 2021~2025 共 5 个年度，
+#   用户一眼看出「数据区间 2021~2025（10 年）」不对（截图指出）。
+#   凡是「N 年」的表述都走这里，改数据源就不会再出现口径打架。
+_CN_NUM = {1: '一', 2: '二', 3: '三', 4: '四', 5: '五', 6: '六', 7: '七',
+           8: '八', 9: '九', 10: '十', 11: '十一', 12: '十二', 13: '十三',
+           14: '十四', 15: '十五', 16: '十六', 20: '二十'}
+
+
+def span_n(years):
+    """真实年数；years 为空返回 0"""
+    return len(years or [])
+
+
+def span_cn(n):
+    """年数的中文写法（5 → 五）；超出词表退回阿拉伯数字"""
+    return _CN_NUM.get(n, str(n))
 
 
 # ------------------------------------------------------------------ 三表（通用）
@@ -534,7 +585,11 @@ def m6(d):
         out.append(h3('产能利用率趋势'))
         out.append(table(cap.get('head') or ['年份', '设计产能', '实际产量', '产能利用率'],
                          cap['rows']))
-        out.append(chart('chartCap'))
+        # ★ 2026-10-16：与 chart_opts 里的判据**必须一致**（那里建图、这里挂槽）。
+        #   混合单位的文字产能表（002237）在那边不建图 ⇒ 这里也不能挂槽，
+        #   否则槽位会去取库里**上一版的空 opt**，页面留一张「只有坐标轴」的图。
+        if numeric_rows(cap.get('chart_rows') or cap.get('rows') or [], idx=(1, 2), need=1):
+            out.append(chart('chartCap'))
         _un = unit_note_html(cap)
         if _un:
             out.append(_un)
@@ -585,7 +640,14 @@ def m7(d):
             out.append(table([head[i] for i in keep],
                              [[r[i] for i in keep] for r in pr['rows']]))
             # ★ 只有**绝对量口径**才出产销量图；百分比口径出图会把 +42.87% 画成 42.87 吨。
-            if len(keep) >= 3 and pr.get('absolute'):
+            # ★★ 2026-10-16：与 chart_opts 的判据**必须逐字一致**（那里建图、这里挂槽）——
+            #   仅有 `absolute` 挡不住「口径对照表」：601118 的三行是互斥口径（自产/加工/贸易），
+            #   601958 的列 2 是「权益产量」。两边同步加「表头含销量 + 至少一行产量销量成对」。
+            _prows = pr.get('chart_rows') or pr.get('rows') or []
+            _phead = ' '.join(str(x) for x in (pr.get('head') or []))
+            _q1, _q2 = numcol(_prows, 1, len(_prows)), numcol(_prows, 2, len(_prows))
+            _paired = any(a is not None and b is not None for a, b in zip(_q1, _q2))
+            if len(keep) >= 3 and pr.get('absolute') and '销量' in _phead and _paired:
                 out.append(chart('chartProd'))
         _un = unit_note_html(pr)
         if not _un and pr.get('unit'):
@@ -599,7 +661,11 @@ def m7(d):
                              [[k, str(v)] for k, v in rc.items()]))
         if pr.get('note'):
             out.append(logic('产销解读', pr['note']))
-    out.append(src(vp.get('source') or pr.get('source')
+    # ★ 2026-10-11：来源优先级改为 production 在前。槽 7 的主表是产销存表（production），
+    #   而 `volprice` 同时被槽 7 / 槽 28 共用、其 source 多为**股价**口径 ——
+    #   原来 vp 优先会让本槽的来源行显示成「iFinD 日频行情（不复权）」这类股价说明。
+    #   存量数据只有 vp.source 时仍回落，行为不变。
+    out.append(src(pr.get('source') or vp.get('source')
                    or '%s —— 待取：最新年报产销量附注。' % MISS))
     return '\n    '.join(out)
 
@@ -871,13 +937,20 @@ def m15(d):
         out.append(h3('售价与成本'))
         out.append(table(pz.get('head') or ['期间', '产品均价', '单位成本', '单位毛利'],
                          pz['rows']))
-        out.append(chart('chartPrice'))
+        # ★ 2026-10-16：与 chart_opts 里的判据**必须一致**（那里建图、这里挂槽）——
+        #   表格可以是文字表，但只有真能画才挂槽，否则页面上留一个灰「暂无数据」框。
+        #   ★★ 闸也同步放宽成 `need=1`：只有「均价」一列有值的图（000762 就是）在 chart_opts
+        #      那边会建出来，这里若仍要求三列齐备就**不挂槽** ⇒ 图建了没人引用 ⇒ 孤儿。
+        if numeric_rows(pz.get('chart_rows') or pz.get('rows'), need=1):
+            out.append(chart('chartPrice'))
         _un = unit_note_html(pz)
         if _un:
             out.append(_un)
         if pz.get('note'):
             out.append(logic('剪刀差解读', pz['note']))
-    else:
+    elif not (d.get('pricecost') or {}).get('deep'):
+        # ★ 2026-10-11：与 m23/m24 保持同一模式 —— 已有 `pricecost.deep` 覆盖该缺口时
+        #   不再重复铺一句 [MISSING]，避免「明明有数据还刷缺口」。
         out.append('<p style="color:#a3122a">%s 产品售价-成本均价剪刀差 —— 取公司主要产品的市场报价'
                    '（或年报分产品收入/销量倒算均价）与成本构成。</p>' % MISS)
     if pz.get('elastic'):
@@ -1241,9 +1314,16 @@ def m26(d):
            h3('当前估值快照'),
            table(['指标', '数值', '口径/来源'], rows)]
     if yv.get('rows'):
-        out.append(h3('估值区间'))
-        out.append(table(['年份', 'PE', 'PB', '备注'], yv['rows']))
+        out.append(h3(yv.get('section') or '估值区间'))
+        # ★ 2026-10-16：表头不能再写死 —— `valuation.rows` 有两种口径：
+        #   ① **估值速览表**（指标 | 数值 | 来源，如 000762）—— 不是时间序列；
+        #   ② **PE/PB 时间序列**（时点 | PE | PB | 备注，如 603227）。
+        #   写死「年份 | PE | PB | 备注」会把 ① 挂在 PE/PB 的表头下面（张冠李戴）。
+        #   ⇒ 优先用 seed 自带的 `valuation.head`，没有才回落原表头（存量报告行为不变）。
+        out.append(table(yv.get('head') or ['年份', 'PE', 'PB', '备注'], yv['rows']))
         out.append(chart('chartValuation'))
+        if yv.get('chart_rows_note'):
+            out.append(logic('估值区间口径', yv['chart_rows_note']))
     else:
         out.append('<p style="color:#a3122a">[MISSING] 历史 PE/PB 区间序列 —— '
                    '取 iFinD 或 Wind 估值分位数据（建议给近 5 年分位数）。'
@@ -1307,8 +1387,12 @@ def m28(d):
         out.append(chart('chartPrice2'))
         out.append(table(vp.get('price_head') or vp.get('head')
                          or ['期间', '收盘价（元）', '成交额（亿元）', '区间涨跌'], prow))
-        if vp.get('note'):
-            out.append(logic('行情解读', vp['note']))
+        # ★ 2026-10-16：新增可选键 `price_note` / `price_source` 专供本槽。
+        #   起因：本槽与槽 7（量价拆分）共用 `note` / `source`，而两者的**解读对象不同**
+        #   —— 槽 7 讲「量价」，本槽讲「股价」。603227 曾因此把「硝酸铵价格解读」挂在
+        #   「行情解读」标题下（标题与内容不符）。给了新键就用新键，没给仍回落旧键 ⇒ 存量行为不变。
+        if vp.get('price_note') or vp.get('note'):
+            out.append(logic('行情解读', vp.get('price_note') or vp['note']))
     else:
         out.append('<p>本节需日频股价序列（用于计算区间涨跌幅与技术位置）。'
                    '本批次只取了估值快照，未取 K 线序列。</p>')
@@ -1317,10 +1401,14 @@ def m28(d):
                       ['总市值', fnum(fin.get('mktcap'), 2, ' 亿元'), 'iFinD'],
                       ['PE（TTM）', fnum(fin.get('pe'), 2, ' 倍'), 'iFinD'],
                       ['PB（MRQ）', fnum(fin.get('pb'), 2, ' 倍'), 'iFinD']]))
-    if not vp.get('rows'):
+    if not prow:
+        # ★ 2026-10-11：判据与上面的 `prow = vp.get('price_rows') or vp.get('rows')` 对齐。
+        #   原来只查 `rows`，导致「只提供 price_rows」的新报告在股价表与图都已渲染的情况下
+        #   仍多刷一句缺口说明。
         out.append('<p style="color:#a3122a">%s 股价走势图与区间涨跌 —— '
                    '取 iFinD 或腾讯行情日频数据（前复权）。</p>' % MISS)
-    out.append(src(vp.get('source') or 'iFinD 估值快照；日频行情：%s' % MISS))
+    out.append(src(vp.get('price_source') or vp.get('source')
+                   or 'iFinD 估值快照；日频行情：%s' % MISS))
     return '\n    '.join(out)
 
 
@@ -1427,8 +1515,13 @@ def m31(d):
                ['资产负债率', fnum(next((v for v in reversed(fin.get('lev') or []) if v is not None), None), 2, '%'), '同比 +10pct 即复核'],
                ['PE（TTM）', fnum(pe, 2, ' 倍'), '突破历史 80 分位即复核']]),
         deep_html or '',
+        # ★ 2026-10-15：原文在此处**字面写出「[MISSING]」三个字**。
+        #   它是给人读的说明文案，不是真正的数据缺口 ——
+        #   但探针/构建器按 `html.count('[MISSING]')` 统计缺口数，
+        #   于是**任何报告都永远不可能降到 0**（西藏矿业补齐后仍剩 1 处即此）。
+        #   改用「MISSING 标记」这一中文说法，语义不变，计数归零。
         '<p class="src"><b>免责声明</b>：本报告由数据流水线自动生成，'
-        '所有数字均标注来源；未取到的字段一律标 [MISSING] 并在跟踪清单中列出补齐路径。'
+        '所有数字均标注来源；未取到的字段一律标注为 MISSING 占位并在跟踪清单中列出补齐路径。'
         '本报告仅供研究参考，<b>不构成个人投资建议</b>。</p>',
     ])
 
@@ -1453,9 +1546,12 @@ def m_res(d):
           "miss_hint":   "数据缺失时给出的『去哪取』提示（默认按矿产资源写）",
           "source":     "USGS / 行业协会年报 / iFinD"
         }
-    另有**两个可选的地图块**（母本 600456 m25 的第一屏就是世界地图；有储量数据的
-    公司才加，没有就整段不出现 —— 化肥/化工的「产能/工艺路线分布」不是地理分布，
-    **不要**硬套地图，全世界都会是灰的）：
+    另有**两个地图块（2026-10-14 起为「必配」，不再是可选）**：母本 600456 m25 的
+    第一屏就是世界地图。★ 用户令：「这个里面的世界地图和中国地图的分布图**必须每份研报都要**，
+    有储量比如矿企的**储量和产量分布图都要**，没有储量的比如化工或者农产品企业**就用产量分布图**」
+    ⇒ 有储量的：储量走地图、产量走对比（chartResDist 双轴）；无储量的（化工/农产品）：
+    两张地图直接换主题为「产量 / 产能的地理分布」（按国家 / 按省的真实产量或产能，
+    **不是**"工艺路线"——旧注释那句「不要硬套地图」已作废）：
         "world_map": {"slot","title","label","unit","total","total_word","nodata",
                       "values":[["South Africa","南非",63000],…],"tiers":[…],
                       "pos":{…},"small":[…],"no_label":[…],"note":"口径说明"}
@@ -1464,8 +1560,9 @@ def m_res(d):
                       "reading"（这张图最该注意的一件事）
     ★ 判据（写数据时照此）：储量与产量必须给**同一份国家名单**，才能看出「谁有矿」与
       「谁在挖」是两份不同的名单 —— 这正是宝钛母本 m25 的核心论点。
-    ⚠️ 化肥/化工这类**没有矿产禀赋**的行业，标题与 miss_hint 都要改写成本行业的
-      「产能/产量分布 + 价格分析」，否则会误导读者去找一份并不存在的储量表。
+    ⚠️ 化肥/化工这类**没有矿产禀赋**的行业：标题、地图 `label` 与 `miss_hint` 都要改写成本行业的
+      「产量 / 产能分布 + 价格分析」，**地图照画**（按国家 / 按省的真实产量或产能）——
+      既避免误导读者去找一份并不存在的储量表，也不漏掉必配的两张地图。
     """
     rs = g(d, 'resource', default={}) or {}
     hint = rs.get('miss_hint') or (
@@ -1557,6 +1654,10 @@ def m_sdbalance(d):
         out.append(table(sb.get('bal_head') or ['年份', '供给', '需求', '缺口/过剩'],
                          sb['bal_rows']))
         out.append(chart('chartSDBalance'))
+        # ★ 2026-10-16：把**定性**的说明从数值表里挪出来（原来混在 bal_rows 里 ⇒
+        #   列 1 是区间文字、列 2 是「100%」字符串 ⇒ 图一行也取不到）。
+        if sb.get('bal_note'):
+            out.append('<p class="src">口径：%s</p>' % sb['bal_note'])
         if sb.get('note'):
             out.append(logic('平衡表告诉我们什么', sb['note']))
     if not (sb.get('supply_rows') or sb.get('demand_rows') or sb.get('bal_rows')):
@@ -1758,19 +1859,23 @@ def chart_opts(d):
     name = d.get('name') or ''
 
     # 1 营收与归母净利
+    # ★ 2026-10-14 用户口径：**营收与净利都画柱状图，各占左右一个坐标轴**
+    #   （原来净利是叠加在同一根轴上的金色折线，量级差 ~10 倍、被压在 x 轴上几乎看不出高低）。
+    #   左轴＝营业收入，右轴＝归母净利，两者都是柱；轴名/轴色/网格线由页面 beauty() 按系列色自动接管。
     if fin.get('rev'):
         ch['chartRev'] = {
             'tooltip': {'trigger': 'axis'}, 'legend': {'bottom': 0},
-            'grid': {'left': 60, 'right': 50, 'top': 30, 'bottom': 40},
+            'grid': {'left': 64, 'right': 68, 'top': 34, 'bottom': 40},
             'xAxis': {'type': 'category', 'data': yrs},
-            'yAxis': [{'type': 'value', 'name': '亿元'}],
+            'yAxis': [{'type': 'value', 'name': '营业收入（亿元）'},
+                      {'type': 'value', 'name': '归母净利（亿元）'}],
             'series': [
-                {'name': '营业收入', 'type': 'bar', 'data': fin['rev'],
+                {'name': '营业收入', 'type': 'bar', 'yAxisIndex': 0, 'data': fin['rev'],
                  'itemStyle': {'color': RED},
                  'label': {'show': True, 'position': 'top', 'fontSize': 10, 'color': '#9a7d82'}},
-                {'name': '归母净利', 'type': 'line', 'yAxisIndex': 0, 'smooth': True,
+                {'name': '归母净利', 'type': 'bar', 'yAxisIndex': 1,
                  'data': fin.get('np') or [], 'itemStyle': {'color': '#c9a227'},
-                 'lineStyle': {'width': 3}}]}
+                 'label': {'show': True, 'position': 'top', 'fontSize': 10, 'color': '#9a7d82'}}]}
 
     # 2 毛利率/净利率/ROE
     if fin.get('gm') or fin.get('nm'):
@@ -1902,7 +2007,12 @@ def chart_opts(d):
 
     # 11 估值区间（历史 PE / PB）
     yv = g(d, 'valuation', default={}) or {}
-    rows = yv.get('rows') or []
+    # ★ 2026-10-16：存量报告的 `valuation.rows` 常是「估值速览表」
+    #   （收盘价 / 市值 / PE / PB / BPS / 换手率 …，列义＝指标名 | 数值 | 来源）——
+    #   拿它画 PE/PB 时间序列会**一行也取不到**（000762 的这张图 13 行全空）。
+    #   新增可选键 `chart_rows`（列＝时点 | PE | PB | 说明），有就优先用它；
+    #   没提供时行为逐字节不变（603227 的 rows 本来就是 PE/PB 序列，照旧走 rows）。
+    rows = yv.get('chart_rows') or yv.get('rows') or []
     if rows and len(rows[0]) >= 3:
         ch['chartValuation'] = {
             'tooltip': {'trigger': 'axis'}, 'legend': {'bottom': 0},
@@ -1919,16 +2029,34 @@ def chart_opts(d):
 
     # 11b 收入结构（分产品/分板块）—— 与 chartShare 同款横向对比
     bz = g(d, 'bizmix', default={}) or {}
-    if bz.get('rows'):
+    # ★★ 2026-10-16：`bizmix` 的**列口径有两套**，不能再按列号硬取 —— `rows` 的列义随 `head` 变：
+    #     新口径（603227 / 000762，7 列）= 产品 | 收入(元) | **毛利率** | 收入(万元) | 收入占比 | 毛利占比 | 排名变化
+    #     旧口径（603977 等，5 列）     = 板块 | 收入(亿元) | 收入占比 | **毛利率** | 定位
+    #   毛利率一个在**列 2**、一个在**列 3** ⇒ 原来固定 `numcol(rows, 3)`，在新口径上取到的是
+    #   **收入（万元）**，于是图把「万元」当「毛利率 %」画（000762 一直在画这张错图；
+    #   603227 同样错，只因它的 m11 后来被 `mkmod11_ring.py` 的双环覆盖，才没人看见）。
+    #   新口径的 seed 本来就备好了专用字段 `mix / income / margin`（income 单位＝万元）⇒ 有就用，
+    #   没有才回落列号（旧口径走原路径，逐字节不变）。
+    bzm, bzi, bzg = bz.get('mix'), bz.get('income'), bz.get('margin')
+    if bzm and bzi and bzg:
+        names = list(bzm)
+        revs = list(bzi)
+        gms = list(bzg)
+        yunit = bz.get('chart_unit') or '万元'
+    elif bz.get('rows'):
         names = [r[0] for r in bz['rows']]
         revs = numcol(bz['rows'], 1, len(bz['rows']))
         gms = numcol(bz['rows'], 3, len(bz['rows']))
+        yunit = unit_ax(bz, '亿元')
+    else:
+        names = None
+    if names and any(v is not None for v in revs):
         ch['chartMix'] = {
             'tooltip': {'trigger': 'axis'}, 'legend': {'bottom': 0},
             'grid': {'left': 76, 'right': 56, 'top': 30, 'bottom': 60},
             'xAxis': {'type': 'category', 'data': names,
                       'axisLabel': {'interval': 0, 'rotate': 20, 'fontSize': 10}},
-            'yAxis': [{'type': 'value', 'name': unit_ax(bz, '亿元')},
+            'yAxis': [{'type': 'value', 'name': yunit},
                       {'type': 'value', 'name': '毛利率 %', 'max': 100}],
             'series': [
                 {'name': '收入', 'type': 'bar', 'data': revs,
@@ -1954,42 +2082,74 @@ def chart_opts(d):
 
     # 6 产能与产能利用率（渲染器 m6）
     cap = g(d, 'capacity', default={}) or {}
-    if cap.get('rows'):
+    # ★ 2026-10-16：`capacity.rows` 常是**混合单位的文字表**
+    #   （000762：碳酸锂「1.2 万吨/年」、锂精矿「298.5 km²」、铬铁矿「15 万吨/年」+ 「约 5.5%」；
+    #    002237：黄金「109.817 吨」/ 白银「1,200 吨」/ 电解铜「33.5 万吨」/ 硫酸「168 万吨」，
+    #    后者单位既不同、量级还差 15 万倍）⇒ 列 1 / 列 2 全被 numcol 转 None ⇒ 图空白。
+    #   ① 有 `chart_rows`（**只放单位可比的那几行、纯数值**）+ `chart_unit` 就用它画；
+    #   ② 连 `chart_rows` 都没有、且 rows 里一个数值都没有 ⇒ **不建图**（`numeric_rows` 闸），
+    #      m6 端同步不挂槽 —— 利用率信息留在表格里，比一张空图有用。
+    cp = cap.get('chart_rows') or cap.get('rows') or []
+    # ★★ 闸要卡**图真正用到的那两列**（列 1 = 产能柱、列 2 = 利用率线），不能卡任意列：
+    #   002237 的利用率在**列 3**（「68.31%」能转成 68.31），若用 `need=1` 判任意列就会放行，
+    #   结果图照样建出来、列 1/列 2 全是 None ⇒ 又一张「只有坐标轴」的空图。
+    if numeric_rows(cp, idx=(1, 2), need=1):
+        _util = numcol(cp, 2, len(cp))
+        _has_util = any(v is not None for v in _util)
         ch['chartCap'] = {
             'tooltip': {'trigger': 'axis'}, 'legend': {'bottom': 0},
             'grid': {'left': 64, 'right': 56, 'top': 30, 'bottom': 70},
-            'xAxis': {'type': 'category', 'data': [r[0] for r in cap['rows']],
+            'xAxis': {'type': 'category', 'data': [r[0] for r in cp],
                       'axisLabel': {'interval': 0, 'rotate': 25, 'fontSize': 10}},
-            'yAxis': [{'type': 'value', 'name': unit_ax(cap, '吨')},
-                      {'type': 'value', 'name': '产能利用率 %', 'max': 100}],
+            'yAxis': [{'type': 'value', 'name': cap.get('chart_unit') or unit_ax(cap, '吨')}]
+                     + ([{'type': 'value', 'name': '产能利用率 %', 'max': 100}]
+                        if _has_util else []),
             'series': [
-                {'name': '产能', 'type': 'bar', 'data': numcol(cap['rows'], 1, len(cap['rows'])),
+                {'name': '产能', 'type': 'bar', 'data': numcol(cp, 1, len(cp)),
                  'itemStyle': {'color': RED},
-                 'label': {'show': True, 'position': 'top', 'fontSize': 10, 'color': '#9a7d82'}},
-                {'name': '产能利用率', 'type': 'line', 'yAxisIndex': 1, 'smooth': True,
-                 'data': numcol(cap['rows'], 2, len(cap['rows'])),
-                 'itemStyle': {'color': '#c9a227'}}]}
+                 'label': {'show': True, 'position': 'top', 'fontSize': 10, 'color': '#9a7d82'}}]
+                + ([{'name': '产能利用率', 'type': 'line', 'yAxisIndex': 1, 'smooth': True,
+                     'data': _util, 'itemStyle': {'color': '#c9a227'}}]
+                   if _has_util else [])}
 
     # 7 产销量量价拆分（渲染器 m7）
     # ★ 2026-09-20：production 可能是**百分比口径**（公司只披露同比增减，如「+42.87%」），
     #   此时画「产量/销量绝对值 + 产销率」是错的（会把 +42.87 当成 42.87 吨）。
     #   故只有为绝对量口径（absolute=True）时才出图。
     pr = g(d, 'production', default={}) or {}
-    if pr.get('rows') and pr.get('absolute'):
+    # ★ 2026-10-16：`production.rows` 的列义往往是**「2025 全年 / 2026H1」两期对照**
+    #   （如 000762：产品 | 2025 产量 | 2026H1 产量 | 2026H1 销量 | 产量同比 | 销量同比）——
+    #   而本图的三条系列固定读「列 1 = 产量 / 列 2 = 销量 / 列 3 = 产销率」，
+    #   于是把「2026H1 产量」当销量、「2026H1 销量」当产销率画出去 —— **不是空图，是错图**。
+    #   新增可选键 `chart_rows`（列＝产品 | 产量 | 销量 | 产销率 %，同一期间、同一单位），
+    #   有就用它；没有时逐字节回落 rows。
+    prows = pr.get('chart_rows') or pr.get('rows') or []
+    # ★★ 2026-10-16：原来只卡 `absolute`，挡不住「**口径对照表**被画成产量-销量图」——
+    #   601118 的 3 行是「自产橡胶 10.42 / 加工量 131 / 贸易量 337」，三个**互不重叠**的口径
+    #   各占一列；601958 的列 2 是「权益产量」而非销量。
+    #   两者画出来都**不是空图、而是错图**（把不同口径并排成「产量 vs 销量」）。
+    #   ⇒ 再加两道语义闸：
+    #     ① 表头必须出现「销量」字样（否则列 2 根本不是销量）；
+    #     ② 至少有一行**同时**有列 1 与列 2 的值（否则各行是互斥口径，无法成对比较）。
+    #   已全库对比：对本来正常的 8 份逐字节无影响。
+    _phead = ' '.join(str(x) for x in (pr.get('head') or []))
+    _p1, _p2 = numcol(prows, 1, len(prows)), numcol(prows, 2, len(prows))
+    _paired = any(a is not None and b is not None for a, b in zip(_p1, _p2))
+    if prows and pr.get('absolute') and '销量' in _phead and _paired:
         ch['chartProd'] = {
             'tooltip': {'trigger': 'axis'}, 'legend': {'bottom': 0},
             'grid': {'left': 64, 'right': 56, 'top': 30, 'bottom': 70},
-            'xAxis': {'type': 'category', 'data': [r[0] for r in pr['rows']],
+            'xAxis': {'type': 'category', 'data': [r[0] for r in prows],
                       'axisLabel': {'interval': 0, 'rotate': 25, 'fontSize': 10}},
-            'yAxis': [{'type': 'value', 'name': pr.get('unit') or '吨'},
+            'yAxis': [{'type': 'value', 'name': pr.get('chart_unit') or pr.get('unit') or '吨'},
                       {'type': 'value', 'name': '产销率 %'}],
             'series': [
-                {'name': '产量', 'type': 'bar', 'data': numcol(pr['rows'], 1, len(pr['rows'])),
+                {'name': '产量', 'type': 'bar', 'data': numcol(prows, 1, len(prows)),
                  'itemStyle': {'color': RED}},
-                {'name': '销量', 'type': 'bar', 'data': numcol(pr['rows'], 2, len(pr['rows'])),
+                {'name': '销量', 'type': 'bar', 'data': numcol(prows, 2, len(prows)),
                  'itemStyle': {'color': '#c9a227'}},
                 {'name': '产销率', 'type': 'line', 'yAxisIndex': 1, 'smooth': True,
-                 'data': numcol(pr['rows'], 3, len(pr['rows'])),
+                 'data': numcol(prows, 3, len(prows)),
                  'itemStyle': {'color': '#00b0f0'}}]}
 
     # 23 上游原料价格（渲染器 m14）
@@ -2010,21 +2170,40 @@ def chart_opts(d):
                            rcols, [RED, '#c9a227', '#00b0f0', '#8c0a20']))]}
 
     # 12 产品价格与成本剪刀差（渲染器 m15）
+    # ★ 2026-10-16：`chart_rows` 专供本图（与表格用的 `rows` 解耦，同 `price_rows` 的做法）。
+    #   表格可以是「产品维度文字表」，图必须是「期间/品种 × 均价/成本/毛利」的数值表。
+    #   两者都没有数值 ⇒ **整图不出**（`numeric_rows` 闸），m15 端同步判据，免留灰框。
     pz = g(d, 'pricecost', default={}) or {}
-    if pz.get('rows'):
+    pzr = pz.get('chart_rows') or pz.get('rows')
+    # ★ 2026-10-16：闸从「三列都要有值」放宽成 **`need=1`（至少一列有值）** ——
+    #   因为下面已经把系列**按列条件化**了：只有「均价」一列有值也应当出图
+    #   （000762 就是这种：公司只披露现货价、不披露成本与毛利）。
+    #   存量研报的三列本就有值 ⇒ 判据恒真，行为不变。
+    if numeric_rows(pzr, need=1):
+        # ★ 2026-10-16：**哪一列有值就出哪条系列**。原来三条系列写死，而有的公司只披露「均价」
+        #   （如 000762：碳酸锂三时点现货价 196,150 / 162,000 / 107,750 元/吨，成本与毛利均未披露）
+        #   ⇒ 写死会多出两条「图例有点、线上无点」的空系列。列全空时不挂那条。
+        #   ★ 空白基线未变：三列都有值时，产出的三条系列与顺序与原来逐字节一致。
+        _p1 = numcol(pzr, 1, len(pzr))
+        _p2 = numcol(pzr, 2, len(pzr))
+        _p3 = numcol(pzr, 3, len(pzr))
+        _pser = []
+        if any(v is not None for v in _p1):
+            _pser.append({'name': pz.get('s1') or '产品均价', 'type': 'bar', 'data': _p1,
+                          'itemStyle': {'color': RED}})
+        if any(v is not None for v in _p2):
+            _pser.append({'name': pz.get('s2') or '单位成本', 'type': 'bar', 'data': _p2,
+                          'itemStyle': {'color': '#00b0f0'}})
+        if any(v is not None for v in _p3):
+            _pser.append({'name': pz.get('s3') or '单位毛利', 'type': 'line', 'smooth': True,
+                          'data': _p3,
+                          'itemStyle': {'color': '#c9a227'}, 'lineStyle': {'width': 3}})
         ch['chartPrice'] = {
             'tooltip': {'trigger': 'axis'}, 'legend': {'bottom': 0},
             'grid': {'left': 60, 'right': 40, 'top': 30, 'bottom': 40},
-            'xAxis': {'type': 'category', 'data': [r[0] for r in pz['rows']]},
-            'yAxis': {'type': 'value', 'name': unit_ax(pz, '元/吨')},
-            'series': [
-                {'name': '产品均价', 'type': 'bar', 'data': numcol(pz['rows'], 1, len(pz['rows'])),
-                 'itemStyle': {'color': RED}},
-                {'name': '单位成本', 'type': 'bar', 'data': numcol(pz['rows'], 2, len(pz['rows'])),
-                 'itemStyle': {'color': '#00b0f0'}},
-                {'name': '单位毛利', 'type': 'line', 'smooth': True,
-                 'data': numcol(pz['rows'], 3, len(pz['rows'])),
-                 'itemStyle': {'color': '#c9a227'}, 'lineStyle': {'width': 3}}]}
+            'xAxis': {'type': 'category', 'data': [r[0] for r in pzr]},
+            'yAxis': {'type': 'value', 'name': pz.get('chart_unit') or unit_ax(pz, '元/吨')},
+            'series': _pser}
 
     # 28 股价走势（渲染器 m28，并入「估值分析」）
     # ★ 2026-09-22：`volprice` 这个键被两个槽共用 —— 槽 7（量价拆分，列＝
@@ -2083,7 +2262,8 @@ def build_shell(d):
                    ('（%s）' % ('%+.2f%%' % growth) if growth is not None else ''),
                    fnum(pe, 2), fnum(mktcap, 2)))
     badges = ['A股 · %s' % (ind or '未分类'),
-              '数据区间 %s~%s（10 年）' % (years[0], years[-1]) if years else '数据区间待补',
+              '数据区间 %s~%s（%d 年）' % (years[0], years[-1], span_n(years))
+              if years else '数据区间待补',
               '现价 %s 元' % fnum(price, 2),
               '总市值 %s 亿元' % fnum(mktcap, 2),
               'PE(TTM) %s 倍' % fnum(pe, 2)]
@@ -2121,25 +2301,31 @@ def build_shell(d):
     verdict_html = shell.get('verdict') or (
         '<strong>%s（%s）</strong>为「寒武纪投资2026」板块成分股（细分行业：%s）。'
         '%s 年营业收入 <strong>%s 亿元</strong>、归母净利 <strong>%s 亿元</strong>%s。'
-        '本报告按 31 模块标准模板建档：<strong>财务数据为 10 年序列（%s~%s，取自 iFinD）</strong>，'
+        % (name, code, ind or '未分类', y_last or '最近一个完整年度',
+           fnum(lr, 2), fnum(ln, 2),
+           ('（同比 %+.2f%%）' % growth) if growth is not None else ''))
+
+    # ★ 2026-10-14：建档说明 / 口径注解从核心结论里拆出来，单独存 notice_html，
+    #   由研报页页头「ⓘ 报告说明」弹窗展示（用户口径：「研报里不要有这种注解，
+    #   在头部做一个点击弹窗，注解之类的全部归到一起」）。核心结论只留结论本身。
+    notice_html = shell.get('notice') or (
+        '<p>本报告按 31 模块标准模板建档：<strong>财务数据为 %d 年序列（%s~%s，取自 iFinD）</strong>，'
         '模型可推算的指标（ROIC 近似、三档情景）已给出并标注 [模型输出]；'
         '<strong>行业规模、下游结构、管理层、护城河分项等需要一手来源的模块暂标 [MISSING]，'
         '并已在 M31 跟踪清单中列明补齐路径。</strong>'
-        '基于当前资料深度，<strong>不给出评级与目标价</strong>。'
-        % (name, code, ind or '未分类', y_last or '最近一个完整年度',
-           fnum(lr, 2), fnum(ln, 2),
-           ('（同比 %+.2f%%)' % growth) if growth is not None else '',
-           years[0] if years else '—', years[-1] if years else '—'))
+        '基于当前资料深度，<strong>不给出评级与目标价</strong>。</p>'
+        % (span_n(years), years[0] if years else '—', years[-1] if years else '—'))
 
     essence_html = shell.get('essence') or (
         '<div class="essence" id="essence">\n'
         '    <div class="et">THE ESSENCE · 一句话本质（可证伪命题）</div>\n'
         '    <div class="ec">%s 属于「%s」，%s 年营收 %s 亿元、归母净利 %s 亿元。'
-        '<strong>本报告当前只能回答「这家公司过去十年赚了多少钱、赚钱质量如何」</strong>'
-        '（营收/净利/毛利率/净现比/ROIC−WACC 利差均为 10 年实测），'
+        '<strong>本报告当前只能回答「这家公司过去%s年赚了多少钱、赚钱质量如何」</strong>'
+        '（营收/净利/毛利率/净现比/ROIC−WACC 利差均为 %d 年实测），'
         '<strong>还不能回答「未来三年能赚多少」</strong>——前者是一手数据，后者需要产能、订单与'
-        '价格假设，属于下一轮补齐项。</div>\n</div>' % (name, ind or '未分类行业', y_last or '最近年度',
-                                                  fnum(lr, 2), fnum(ln, 2)))
+        '价格假设，属于下一轮补齐项。</div>\n</div>'
+        % (name, ind or '未分类行业', y_last or '最近年度',
+           fnum(lr, 2), fnum(ln, 2), span_cn(span_n(years)), span_n(years)))
 
     footer = ('<footer>\n    <div class="disclaimer">\n      <strong>免责声明</strong>：'
               '以上内容基于公开数据和量化分析，仅供参考，不构成投资建议。市场有风险，投资需谨慎。'
@@ -2152,7 +2338,8 @@ def build_shell(d):
 
     return {'code': code, 'name': name, 'kicker': kicker, 'title': title,
             'subtitle': subtitle, 'badges': badges, 'verdict_title': verdict_title,
-            'verdict_html': verdict_html, 'kpis': kpis, 'kpi_note': kpi_note,
+            'verdict_html': verdict_html, 'notice_html': notice_html,
+            'kpis': kpis, 'kpi_note': kpi_note,
             'toc': new_toc(), 'essence_html': essence_html, 'footer_html': footer,
             'theme': 'red', 'version': TEMPLATE_VERSION}
 
@@ -2208,6 +2395,25 @@ def build(code):
     d.setdefault('code', code)
     if not d.get('name'):
         d['name'] = resolve_name(d, code)
+
+    # ★★★ 2026-10-16 完整性闸（已实踩：000731 / 000830 / 600456）
+    #   本函数在 main() 里会**覆写** seed/report_<code>.json。若 data 是「薄文件」
+    #   （顶层键缺若干块），重渲染出来的模块会残缺，一写盘就把 seed 里完整的内容
+    #   换成残缺版 —— **不报错**，只表现为「图少了、表没了」。
+    #   实测：000731 25 键 / 000830 24 键 / 600456 12 键（正常 40+）。
+    #   ⇒ 判据用顶层键数（实测 <30 必然缺块），并列出缺的必需块便于定位。
+    _need = ['bizmix', 'capacity', 'production', 'pricecost', 'expense',
+             'sdbalance', 'valuation', 'resource', 'industry_note', 'fin']
+    _miss = [k for k in _need if k not in d]
+    _nk = len([k for k in d if k != 'code'])
+    if (_nk < 30 or len(_miss) >= 3) and '--force-thin' not in sys.argv:
+        raise SystemExit(
+            '\n[已阻止] seed/data_v31_%s.json 只有 %d 个顶层键（正常 ≥ 30），缺块：%s\n'
+            '  本脚本会用这份 data 重新渲染并 **覆写** seed/report_%s.json，\n'
+            '  缺块对应的模块表与图会**一起消失**，且不报错。\n'
+            '  ⇒ 这份标的请用「改库 + sync_seed_full.py %s --go」维护，不要重跑 build。\n'
+            '  ⇒ 若 data 确已补全，加 --force-thin 强制继续。\n'
+            % (code, _nk, ', '.join(_miss) or '—', code, code))
 
     # 行业名（batch_assemble 里 industry 被 dict 覆盖，行业名另存 industry_name）
     ind_name = d.get('industry_name') or d.get('subIndustry') or ''

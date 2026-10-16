@@ -32,8 +32,11 @@ B = os.path.dirname(os.path.abspath(__file__))
 CFG = json.load(io.open(os.path.join(B, 'cloud.json'), encoding='utf-8'))
 BASE = 'https://%s.api.tcloudbasegateway.com/v1/rdb/rest/' % CFG['envId']
 HDR = {'apikey': CFG['key'], 'Authorization': 'Bearer ' + CFG['key'], 'Accept': 'application/json'}
+# ★ 2026-10-16：原来只列最早的 10 家，后来新加的 000762 / 600392 / 603227 不在表里
+#   ⇒ `--all` 会**静默漏掉这三份**（不报错、汇总里也没有），已补齐为全部 13 家。
 ALL = ['600456', '600459', '002237', '000731', '000830',
-       '603977', '601118', '601958', '603599', '002408']
+       '603977', '601118', '601958', '603599', '002408',
+       '000762', '600392', '603227']
 GO = '--go' in sys.argv
 #: 位置参数里的 6 位数字 = 指定公司；`--all` = 全部 10 家；缺省只做母本 600456
 _ARG = [a for a in sys.argv[1:] if len(a) == 6 and a.isdigit()]

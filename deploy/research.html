@@ -4,12 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>研究报告库 · 矿产战略工作台</title>
-<script>
-/* 最早注入错误钩子：脚本块语法错之外的运行时错误都能抓到（探针用） */
-window.__LIB_ERR = [];
-window.onerror = function(m, s, l, c){ window.__LIB_ERR.push(String(m) + ' @' + l + ':' + c); };
-window.addEventListener('unhandledrejection', function(e){ window.__LIB_ERR.push('unhandled: ' + String(e.reason && e.reason.message || e.reason)); });
-</script>
 <style>
 /* ============================================================================
    研究报告库 · 独立页面（不塞进 index.html）
@@ -147,13 +141,13 @@ body{
   background:var(--brand-soft);color:var(--brand-deep);border:1px solid var(--brand-line);white-space:nowrap}
 .ctop .kind.g{background:var(--gold-soft);color:var(--gold-deep);border-color:rgba(201,162,39,.36)}
 .kick{font-size:11px;font-weight:700;letter-spacing:.9px;color:var(--gold-deep);text-transform:uppercase;
-  margin-bottom:7px;line-height:1.6}
-.ti{margin:0 0 8px;font-size:16px;font-weight:800;line-height:1.5;color:#2b1a1e}
-.sb{margin:0 0 11px;font-size:13.5px;color:var(--ink2);line-height:1.85;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.bdg{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  margin-bottom:7px;line-height:1.6;overflow-wrap:anywhere}
+.ti{margin:0 0 8px;font-size:16px;font-weight:800;line-height:1.5;color:#2b1a1e;overflow-wrap:anywhere}
+.sb{margin:0 0 11px;font-size:13.5px;color:var(--ink2);line-height:1.8;
+  overflow-wrap:anywhere}
+.bdg{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;min-width:0}
 .bdg span{font-size:11.5px;padding:3px 9px;border-radius:7px;background:#faf6f7;color:#7d6369;
-  border:1px solid rgba(140,10,32,.09);white-space:nowrap}
+  border:1px solid rgba(140,10,32,.09);max-width:100%;overflow-wrap:anywhere}
 .sum{margin:0;padding:12px 14px;border-radius:12px;font-size:13.5px;line-height:1.9;color:var(--ink2);
   background:linear-gradient(135deg,#fff8f9,#fdf1f3);border-left:3px solid var(--brand);
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;flex:1}
@@ -228,6 +222,71 @@ body{
 .toast.bad{background:linear-gradient(135deg,#c8102e,#8c0a20);box-shadow:0 12px 34px rgba(200,16,46,.34)}
 .toast.ok{background:linear-gradient(135deg,#0b8a5c,#076b46)}
 
+/* ---------------- 卡片评分块 ----------------
+   仿研报正文里 m29「企业评分」那一套：conic-gradient 环形（外圈进度 + ::before 内圆遮罩）
+   + 金色评级胶囊。尺寸压到卡片可用（82px），色阶与 .gauge/.gauge-badge 同源。 */
+.scard{display:flex;align-items:center;gap:15px;padding:13px 15px;border-radius:14px;margin-top:auto;
+  background:linear-gradient(148deg,#fffdfd,#fdf2f4 60%,#fdf7e8);border:1px solid rgba(200,16,46,.14);
+  box-shadow:inset 0 1px 0 #fff,0 2px 10px rgba(140,10,32,.05)}
+.sgauge{position:relative;flex:none;width:82px;height:82px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 18px rgba(200,16,46,.18);animation:gaugePulse 3s ease-in-out infinite}
+.sgauge::before{content:'';position:absolute;inset:7px;border-radius:50%;
+  background:radial-gradient(circle at 32% 28%,#fff,#fbf6f7)}
+.sgauge .gin{position:relative;z-index:1;text-align:center;line-height:1}
+.sgauge .gnum{font-size:21px;font-weight:900;letter-spacing:-.7px;font-variant-numeric:tabular-nums;
+  background:linear-gradient(180deg,#c8102e,#8c0a20);-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent}
+.sgauge .gnum small{font-size:9px;font-weight:700;letter-spacing:0;margin-left:5px;
+  -webkit-text-fill-color:#a98d92}
+.sgauge .glb{font-size:8.5px;color:#a98d92;letter-spacing:.7px;margin-top:4px}
+.sinfo{flex:1;min-width:0}
+.srate{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:800;letter-spacing:.5px;
+  padding:3px 12px;border-radius:999px;color:#fff;
+  background:linear-gradient(135deg,#d4a830,#9a7518);box-shadow:0 3px 9px rgba(154,117,24,.24)}
+.srate.g-best {background:linear-gradient(135deg,#d0202f,#8c0a20);box-shadow:0 3px 9px rgba(200,16,46,.28)}
+.srate.g-good {background:linear-gradient(135deg,#d4a830,#9a7518)}
+.srate.g-watch{background:linear-gradient(135deg,#c08a3e,#8a6d10)}
+.srate.g-care {background:linear-gradient(135deg,#8e9bb0,#5b6b82);box-shadow:none}
+.srate.g-avoid{background:linear-gradient(135deg,#8b8b93,#565660);box-shadow:none}
+.srate.g-none {background:linear-gradient(135deg,#b9b9c0,#8b8b93);box-shadow:none}
+/* 顶部一行：评级胶囊 + 净利同比徽章（块内宽度只够「标签+数值」，同比放这里不挤块） */
+.shead{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.skyoy{font-size:9.5px;font-weight:800;letter-spacing:0;line-height:1.3;padding:2px 7px;
+  border-radius:999px;font-variant-numeric:tabular-nums}
+.skyoy.up  {background:rgba(200,16,46,.10);color:var(--up)}
+.skyoy.down{background:rgba(11,138,92,.11);color:var(--down)}
+/* 「小块块」：每项一格白底磁贴 —— 上行小标签、下行粗数值 */
+.skv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:9px}
+.skv .kv{min-width:0;padding:6px 10px 7px;border-radius:11px;background:#fff;
+  border:1px solid rgba(200,16,46,.13);box-shadow:0 1px 2px rgba(140,10,32,.05),inset 0 1px 0 #fff}
+.skv .kv em{display:block;font-style:normal;font-size:9.5px;font-weight:700;letter-spacing:.2px;
+  color:#b1949a;line-height:1.4;overflow-wrap:anywhere}
+.skv .kv b{display:flex;align-items:baseline;gap:3px;min-width:0;margin-top:2px;line-height:1.3}
+.skv .kv b .v{min-width:0;font-weight:900;font-size:13px;letter-spacing:-.2px;color:#2b1a1e;
+  font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.skv .kv b i{font-style:normal;font-size:9.5px;font-weight:700;color:#a98d92;margin-left:1px}
+/* 只解析出一格时（个别研报的 kpis 只有净利），让它铺满整行，不留半格空 */
+.skv .kv:only-child{grid-column:1 / -1}
+/* 缺项占位格：库里没有这个指标。留一个浅色空格 + 淡「—」，
+   这样四格的位置永远对齐（不会因为少一格就让后面的往前挤）。 */
+.skv .kv.na{background:#fbf7f8;border-style:dashed;border-color:rgba(140,10,32,.10);box-shadow:none}
+.skv .kv.na .v{color:#d5c3c7;font-weight:700}
+.skv .kv.na em{color:#cbb6ba}
+/* 未评分态（m29 存在但总分位是「—」）：整块降饱和，环形变灰环，不假装有分 */
+.scard.pend{background:linear-gradient(148deg,#fdfdfd,#faf6f7 60%,#f9f7f4)}
+.scard.pend .sgauge{box-shadow:none;animation:none}
+.scard.pend .gnum{-webkit-text-fill-color:#b9a3a8;background:none;color:#b9a3a8}
+.scard.pend .gnum small{-webkit-text-fill-color:#cbb6ba}
+.scard.pend .glb{color:#c0aeb2}
+.skyoy.pendtip{background:rgba(140,10,32,.07);color:#9b8188}
+.skv .up{color:var(--up)}
+.skv .down{color:var(--down)}
+@keyframes gaugePulse{
+  0%,100%{box-shadow:0 6px 18px rgba(200,16,46,.18),0 0 0 0 rgba(200,16,46,.16)}
+  50%    {box-shadow:0 6px 22px rgba(200,16,46,.24),0 0 0 9px rgba(200,16,46,0)}
+}
+
 /* ---------------- 响应式 ---------------- */
 @media (max-width:1080px){ .stats{grid-template-columns:repeat(2,1fr)} }
 @media (max-width:860px){
@@ -241,6 +300,13 @@ body{
   .cfoot{padding:12px 15px}
   .lbar .tag{display:none}
   .st .vl{font-size:28px}
+  .scard{gap:12px;padding:11px 12px}
+  .sgauge{width:70px;height:70px}
+  .sgauge .gnum{font-size:18px}
+  .sgauge .glb{font-size:8px}
+  .skv{gap:5px}
+  .skv .kv{padding:4px 8px 5px}
+  .skv .kv b .v{font-size:12.5px}
 }
 @media print{
   .lbar,.bar,.bg-orbs,.toast{display:none!important}
@@ -319,7 +385,8 @@ body{
    ============================================================================ */
 var CFG  = window.WB_CFG || {envId:'', key:''};
 var REST = CFG.envId ? ('https://' + CFG.envId + '.api.tcloudbasegateway.com/v1/rdb/rest/') : '';
-var COLS = 'id,code,name,kicker,title,subtitle,badges,verdict_html,t,theme,sort';
+/* kpis 是卡片评分块里「营业收入 / 归母净利」那两格的来源（8 格结构化数组） */
+var COLS = 'id,code,name,kicker,title,subtitle,badges,kpis,verdict_html,t,theme,sort';
 var AUTH_KEY = 'wb_auth_v1';
 
 /* ---------------- 拼音首字母搜索（构建时注入锚点表） ---------------- */
@@ -552,6 +619,144 @@ function visibleRows(){
   }
   return rows;
 }
+/* ---------------------------------------------------------------- 评分（取自 m29「企业评分」模块） */
+/* 评分的事实来源就是 m29 的 HTML —— 用户在研报页改分并「提交到数据库」后，
+   列表页刷新即同步。**刻意不往 wb_reports 加冗余分数列**（加了就会两边打架）。
+   m29 的结构由 build/score_lock.py 冻结：
+     <div class="sc-total">…<span class="tn">75.3</span>…<span class="tt">评级：看好</span></div> */
+var SC = {};                              /* { code: {total:75.3, rating:'看好', pending:false} } */
+function parseScoreHtml(html){
+  var s = String(html == null ? '' : html);
+  var i = s.indexOf('sc-total');
+  if(i < 0) return null;
+  var seg = s.slice(i, i + 900);          /* 只在这块内找，免得撞上别处的 .tn/.tt */
+  var m = /class="tn"[^>]*>\s*(-?\d+(?:\.\d+)?)/.exec(seg);
+  var r = /class="tt"[^>]*>([^<]{1,24}?)</.exec(seg);
+  var rating = r ? r[1].replace(/^\s*评级\s*[：:]\s*/, '').trim() : '';
+  /* m29 存在但**还没评分**时，总分位写的是「—」（不是数字）—— 这是数据的真实状态，
+     不是解析失败。以前这里直接 return null ⇒ 卡片回落到无样式长摘要，
+     在一排评分卡里显得极不规范（000762 西藏矿业就是这个症状）。
+     现在标成 pending，卡片照样出评分骨架（灰环 + 「待评分」胶囊），把 pending 交给渲染层。 */
+  if(!m) return (rating || /待评分|未评分/.test(seg)) ? { total: 0, rating: rating || '待评分', pending: true } : null;
+  return { total: parseFloat(m[1]), rating: rating, pending: false };
+}
+function scOf(r){ return SC[String((r && (r.code || r.id)) || '')] || null; }
+/* 评级 → 胶囊色阶，与 build/score_lock.py 的 GRADES 档位一致 */
+function rateCls(g){
+  if(!g) return 'g-none';
+  if(g.indexOf('重点看好') >= 0) return 'g-best';
+  if(g.indexOf('看好') >= 0)     return 'g-good';
+  if(g.indexOf('观察') >= 0)     return 'g-watch';
+  if(g.indexOf('谨慎') >= 0)     return 'g-care';
+  if(g.indexOf('回避') >= 0)     return 'g-avoid';
+  return 'g-none';
+}
+/* 从 kpis（8 格结构化数组）里按 label 关键词取一格。
+   ⚠️ 各研报写 label 的口径不统一：老研报写「营业收入（2025）」「2025年营业收入」，
+   新研报写「2026H1 营收」，还有「归母净利」/「净利润」/「归属于母公司股东的净利润」。
+   **只匹配一个词会整格落空**（000731/000830 就只剩 2 格，看着像"显示不全"），
+   所以每个指标给一组同义词，按顺序取第一个命中的。
+   ⚠️ 关键词要按「长的在前」排，否则 '营收' 会先撞上不含业务含义的串。 */
+var KPI_KW = {
+  rev : ['营业收入', '营收', '主营业务收入', '收入'],
+  npf : ['归母净利', '归属母公司', '净利润', '净利'],
+  gm  : ['销售毛利率', '毛利率', '毛利'],
+  roe : ['ROE', '净资产收益率', '加权 ROE']
+};
+function kpiOf(r, key){
+  var kws = KPI_KW[key] || [key];
+  var ks = asArr(r && r.kpis);
+  for(var w = 0; w < kws.length; w++){
+    for(var i = 0; i < ks.length; i++){
+      var lb = String((ks[i] || {}).label || '');
+      if(lb.toUpperCase().indexOf(kws[w].toUpperCase()) >= 0) return ks[i];
+    }
+  }
+  return null;
+}
+/* 磁贴上的 label 归一：不管库里原文怎么写，一律显示四个标准名。
+   不做这一步的话，一排卡片上会出现「营业收入（2025）」「2026H1 营收」「营收」三种写法，
+   长度不一 ⇒ 数值行起始位置对不齐，看着就"不规范"。 */
+function canonLabel(lb){
+  var s = String(lb || '');
+  var order = ['roe', 'gm', 'npf', 'rev'];      /* 先判长的/具体的，避免 'ROE' 抢 '毛利率' */
+  for(var i = 0; i < order.length; i++){
+    var kws = KPI_KW[order[i]];
+    for(var w = 0; w < kws.length; w++){
+      if(s.toUpperCase().indexOf(kws[w].toUpperCase()) >= 0){
+        return { roe:'ROE', gm:'毛利率', npf:'归母净利', rev:'营业收入' }[order[i]];
+      }
+    }
+  }
+  return s;
+}
+/* 卡片里的评分块：左「环形总分」，右「评级胶囊 + 营收/净利/毛利率/ROE 四格」。
+   ⚠️ 指标格**恒定 4 格**（缺项用「—」占位），不要来几格显示几格：
+   一排卡片里有的 4 格、有的 2 格，视觉上就是"显示不全"（用户 2026-10-15 报的正是这个）。
+   无评分数据时返回 ''，卡片回落到原来的摘要文字 —— 完全没有 m29 的老研报不受影响。 */
+function scoreHtml(r){
+  var sc = scOf(r);
+  if(!sc) return '';
+  var p = Math.max(0, Math.min(100, sc.total));
+  var pending = !!sc.pending;
+  /* 一格「小块块」：上行小标签、下行粗数值（块宽只够这两行，不放别的） */
+  function tile(label, vHtml){
+    /* label 精简：抹掉「2025年 / 2026H1 /（2025）」这类年份缀 —— 年份在副标题与
+       「数据区间」标签里已有，块内这点宽度留给数值本身更值当。抹空了则回退原串。 */
+    var lb = String(label == null ? '' : label)
+      .replace(/^\s*20\d{2}\s*[Hh][12]\s*/, '')
+      .replace(/^\s*20\d{2}\s*年?\s*/, '')
+      .replace(/\s*(?:[·•|]\s*)?20\d{2}\s*[Hh][12]\s*$/, '')
+      .replace(/\s*[（(]\s*20\d{2}\s*[）)]\s*$/, '')
+      .replace(/\s*[·•|]\s*$/, '').trim();
+    if(!lb) lb = String(label || '');
+    /* label 也走一遍同义词归一：不管库里写的是「营业收入（2025）」还是「2026H1 营收」，
+       磁贴上永远只显示「营业收入」，四格标签在整排卡片里才对得齐。 */
+    lb = canonLabel(lb);
+    return '<div class="kv' + (vHtml ? '' : ' na') + '"><em>' + esc(lb) + '</em>' +
+           '<b><span class="v">' + (vHtml || '—') + '</span></b></div>';
+  }
+  var kv = '';
+  var rev = kpiOf(r, 'rev');
+  kv += tile('营业收入', rev ? (esc(rev.val) + '<i>' + esc(rev.unit || '') + '</i>') : '');
+  var npf = kpiOf(r, 'npf'), yoyBadge = '';
+  if(npf){
+    /* 同比只在 subtitle 里（kpis 存的是绝对值），取「归母净利 …（+304.93%）」那一截。
+       磁贴一格放不下「标签+数值+同比」，所以同比提到顶部与评级胶囊并排。 */
+    var yoyM = /归母净利[^（(]*[（(]\s*([+\-]?[\d.]+)\s*%\s*[）)]/.exec(String(r.subtitle || ''));
+    var yoy = yoyM ? yoyM[1] : '';
+    var neg = yoy.charAt(0) === '-';
+    /* 原串常自带 +/−，别再补一个 —— 否则会出现「++304.93%」 */
+    var ytxt = (yoy.charAt(0) === '+' || neg) ? yoy : '+' + yoy;
+    if(yoy) yoyBadge = '<span class="skyoy ' + (neg ? 'down' : 'up') + '">净利 ' + esc(ytxt) + '%</span>';
+  }
+  kv += tile('归母净利', npf ? (esc(npf.val) + '<i>' + esc(npf.unit || '') + '</i>') : '');
+  var gm = kpiOf(r, 'gm'), roe = kpiOf(r, 'roe');
+  kv += tile('毛利率', gm  ? (esc(gm.val)  + esc(gm.unit  || '%')) : '');
+  kv += tile('ROE',    roe ? (esc(roe.val) + esc(roe.unit || '%')) : '');
+  /* 未评分：灰环 + 提示胶囊，不假装有分也不回落成裸摘要 */
+  var gaugeStyle = pending
+    ? 'background:conic-gradient(#e6d5d9 0 100%);'
+    : 'background:conic-gradient(#c8102e 0 ' + p + '%, #f6e6e9 ' + p + '% 100%);';
+  var gnum = pending ? '—<small>/100</small>' : (p.toFixed(1) + '<small>/100</small>');
+  return '<div class="scard' + (pending ? ' pend' : '') + '">' +
+      '<div class="sgauge" style="' + gaugeStyle + '">' +
+        '<div class="gin">' +
+          '<div class="gnum">' + gnum + '</div>' +
+          '<div class="glb">加权总分</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="sinfo">' +
+        '<div class="shead">' +
+          '<span class="srate ' + rateCls(pending ? '' : sc.rating) + '">评级 · ' +
+            esc(pending ? '待评分' : (sc.rating || '待评分')) + '</span>' +
+          (pending ? '<span class="skyoy pendtip">尚未评分</span>' : yoyBadge) +
+        '</div>' +
+        '<div class="skv">' + kv + '</div>' +
+      '</div>' +
+    '</div>';
+}
+
 function cardHtml(r){
   var k = repKind(r);
   var bd = asArr(r.badges).slice(0, 5);
@@ -571,7 +776,8 @@ function cardHtml(r){
       (bd.length ? '<div class="bdg">' + bd.map(function(x){
           return '<span>' + esc(x) + '</span>';
         }).join('') + '</div>' : '') +
-      (sum ? '<p class="sum">' + esc(sum) + '</p>' : '') +
+      /* 有评分数据就上评分块（环形总分 + 评级 + 当年营收/净利），没有才回落成摘要文字 */
+      (scoreHtml(r) || (sum ? '<p class="sum">' + esc(sum) + '</p>' : '')) +
     '</div>' +
     '<div class="cfoot">' +
       '<span class="go">打开研报 →</span>' +
@@ -641,9 +847,24 @@ var Lib = {
         return res.json();
       })
       .then(function(rows){
-        L.loading = false;
         L.rows = (rows || []).filter(function(r){ return r && (r.code || r.id); });
         L.src = 'cloud';
+        /* 并行补拉 m29（企业评分模块），拿总分与评级给卡片用。
+           这一步失败**不能拖垮列表** —— 内部 catch 成空数组，卡片回落成摘要文字 */
+        return fetch(REST + 'wb_report_mods?select=report_id,html&no=eq.29',
+                     { headers:{ 'Authorization':'Bearer ' + CFG.key }, cache:'no-store' })
+          .then(function(res){ return res.ok ? res.json() : []; })
+          .catch(function(){ return []; })
+          .then(function(ms){
+            SC = {};
+            (ms || []).forEach(function(m){
+              var v = parseScoreHtml(m && m.html);
+              if(v) SC[String(m.report_id)] = v;
+            });
+          });
+      })
+      .then(function(){
+        L.loading = false;
         /* 类型集合可能变了（新研报、标题改过）→ 旧筛选值若已不存在就退回「全部」 */
         var ks = [];
         L.rows.forEach(function(r){ var kk = repKind(r).k; if(ks.indexOf(kk) < 0) ks.push(kk); });

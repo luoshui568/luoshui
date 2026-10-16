@@ -1,0 +1,3477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>大宗商品日线对比图 · 2005—2026</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#070a10; --bg2:#0c111b; --panel:rgba(255,255,255,.038); --panel2:rgba(255,255,255,.065);
+  --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.17);
+  --tx:#eef2f9; --tx2:#a9b6cb; --tx3:#6b7891;
+  --gold:#F5C542; --up:#ff6a6a; --dn:#28c98a;
+  --r:15px;
+}
+html,body{background:var(--bg);color:var(--tx)}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased;
+  background:
+    radial-gradient(1100px 520px at 8% -8%,rgba(245,197,66,.10),transparent 62%),
+    radial-gradient(900px 460px at 96% 4%,rgba(74,163,223,.09),transparent 60%),
+    var(--bg);
+  min-height:100vh;
+}
+.wrap{max-width:1520px;margin:0 auto;padding:0 26px 40px}
+
+/* ---------- header ---------- */
+.eyebrow{font-size:11.5px;letter-spacing:.24em;color:var(--gold);font-weight:700;margin:34px 0 12px;
+  display:flex;align-items:center;gap:11px}
+.eyebrow::before{content:'';width:26px;height:2px;background:var(--gold);border-radius:2px}
+h1{font-size:40px;letter-spacing:-.02em;line-height:1.12;font-weight:800;
+  background:linear-gradient(100deg,#fff 8%,#ffe9a8 58%,#F5C542 96%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.sub{color:var(--tx2);font-size:15px;margin-top:13px;max-width:1000px;line-height:1.78}
+.sub b{color:var(--tx);font-weight:600}
+.srcrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.srcchip{font-size:12px;padding:5px 12px;border-radius:999px;border:1px solid var(--line2);
+  background:var(--panel);color:var(--tx2);white-space:nowrap}
+.srcchip b{color:var(--gold);font-weight:600}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:13px;margin:26px 0 4px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:15px 17px;
+  position:relative;overflow:hidden;transition:.25s}
+.stat:hover{border-color:var(--line2);background:var(--panel2);transform:translateY(-2px)}
+.stat::after{content:'';position:absolute;left:0;top:0;width:3px;height:100%;background:var(--accent,var(--gold));opacity:.85}
+.stat .k{font-size:12px;color:var(--tx3);letter-spacing:.06em}
+.stat .v{font-size:25px;font-weight:800;margin:6px 0 3px;font-variant-numeric:tabular-nums}
+.stat .d{font-size:11.5px;color:var(--tx3)}
+
+/* ---------- card ---------- */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:20px 22px;margin-top:18px}
+h2{font-size:17px;font-weight:700;display:flex;align-items:center;gap:10px}
+.tag{font-size:11px;font-weight:600;padding:3px 9px;border-radius:6px;background:rgba(245,197,66,.13);
+  color:var(--gold);border:1px solid rgba(245,197,66,.28)}
+.desc{font-size:13px;color:var(--tx2);line-height:1.72;margin-top:9px}
+.desc b{color:var(--tx)}
+
+/* ---------- toolbar ---------- */
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:16px;
+  padding:12px 14px;background:rgba(255,255,255,.022);border:1px solid var(--line);border-radius:12px}
+.lab{font-size:12px;color:var(--tx3);letter-spacing:.05em}
+.seg{display:inline-flex;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg button{font:inherit;font-size:12.5px;padding:6px 13px;background:none;border:0;color:var(--tx2);cursor:pointer;transition:.16s}
+.seg button:hover{color:var(--tx);background:rgba(255,255,255,.05)}
+.seg button.on{background:var(--gold);color:#131313;font-weight:700}
+.rng{display:inline-flex;gap:5px}
+.rng button{font:inherit;font-size:12px;padding:5px 11px;border-radius:8px;cursor:pointer;
+  background:rgba(255,255,255,.045);border:1px solid var(--line);color:var(--tx2);transition:.16s}
+.rng button:hover{color:var(--tx);border-color:var(--line2);background:rgba(255,255,255,.09)}
+.rng button.on{background:rgba(245,197,66,.16);border-color:rgba(245,197,66,.5);color:var(--gold);font-weight:600}
+.spacer{flex:1}
+.vlen{font-size:12px;color:var(--tx3);font-variant-numeric:tabular-nums}
+
+/* ---------- 自定义区间 ---------- */
+.rng button[data-r="custom"].open{border-color:rgba(245,197,66,.5);color:var(--gold)}
+.custombar{margin-top:10px;background:rgba(245,197,66,.045);border-color:rgba(245,197,66,.22)}
+.dt{font:inherit;font-size:12.5px;padding:5px 10px;border-radius:8px;
+  background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--tx);
+  font-variant-numeric:tabular-nums;color-scheme:dark;cursor:pointer;transition:.16s}
+.dt:hover{border-color:var(--line2);background:rgba(255,255,255,.1)}
+.dt:focus{outline:none;border-color:rgba(245,197,66,.6);background:rgba(245,197,66,.1)}
+.dt::-webkit-calendar-picker-indicator{filter:invert(.75) sepia(1) saturate(3) hue-rotate(3deg);cursor:pointer;opacity:.85}
+.dash{color:var(--tx3);font-size:12.5px}
+.rng button.primary{background:rgba(245,197,66,.92);color:#141414;font-weight:700;border-color:transparent}
+.rng button.primary:hover{background:var(--gold);color:#141414}
+.warn{color:#ffb454}
+.dt-hint{font-size:12px;color:var(--tx3)}
+.dt-hint.ok{color:var(--dn)}
+.dt-hint.bad{color:#ff8a7a}
+@media(max-width:760px){
+  .dt{font-size:12px;padding:5px 8px}
+  .custombar{gap:8px}
+  #seg-range,#dt-quick{flex-wrap:wrap;row-gap:5px}
+  #seg-range button,#dt-quick button{white-space:nowrap}
+  .custombar .lab{margin-top:4px}
+}
+
+/* ---------- chips ---------- */
+.chips{margin-top:14px}
+.grp{margin-bottom:9px;display:flex;flex-wrap:wrap;align-items:center;gap:7px}
+.grp .gt{font-size:11.5px;color:var(--tx3);width:62px;flex:none;letter-spacing:.04em}
+.chip{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:12.5px;padding:6px 12px;
+  border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.03);
+  color:var(--tx2);cursor:pointer;transition:.16s;white-space:nowrap}
+.chip:hover{border-color:var(--line2);color:var(--tx);background:rgba(255,255,255,.07)}
+.chip .dot{width:8px;height:8px;border-radius:50%;flex:none;opacity:.42;transition:.16s}
+.chip.on{color:#fff;font-weight:600}
+.chip.on .dot{opacity:1;box-shadow:0 0 8px currentColor}
+
+/* ---------- 自定义商品：chip 角标 / 新增按钮 ---------- */
+.chip .ed{font-size:11px;opacity:.4;margin-left:1px;padding:0 3px;border-radius:5px;transition:.16s;line-height:1}
+.chip:hover .ed{opacity:1;background:rgba(255,255,255,.13)}
+.chip .ed:hover{background:var(--gold);color:#141414;opacity:1}
+.chip .ovr{width:4px;height:4px;border-radius:50%;background:var(--gold);flex:none;margin-left:-2px;
+  box-shadow:0 0 6px rgba(245,197,66,.85)}
+.chip.own{border-style:dashed}
+.chip.own .dot{border-radius:2px}
+.chip.add{border-style:dashed;border-color:rgba(245,197,66,.45);color:var(--gold)}
+.chip.add:hover{background:rgba(245,197,66,.13);border-color:rgba(245,197,66,.72);color:var(--gold)}
+.chip.dim{opacity:.4}
+/* 自建标签的分组标签：宽度跟着标签名走（内置分组仍固定 62px 保持对齐） */
+.grp .gt.own{width:auto;min-width:62px;max-width:170px;white-space:nowrap}
+.gt.tog{cursor:pointer;transition:.15s;user-select:none}
+.gt.tog:hover{color:var(--gold)}
+.gt .mine{font-style:normal;font-size:10px;color:var(--gold);border:1px solid rgba(245,197,66,.4);border-radius:3px;padding:0 3px;margin-left:5px;letter-spacing:0}
+/* 第一组自建标签前加一条分隔线，把「内置」和「我的」在视觉上分开 */
+.grp.sep{margin-top:11px;padding-top:11px;border-top:1px solid var(--line)}
+
+/* ---------- 弹窗骨架 ---------- */
+.mask{position:fixed;inset:0;background:rgba(3,5,9,.74);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+  display:none;z-index:90;overflow-y:auto;padding:42px 16px 60px}
+.mask.on{display:block}
+.dlg{position:relative;width:100%;max-width:900px;margin:0 auto;background:#0e131d;
+  border:1px solid var(--line2);border-radius:16px;padding:22px 24px 20px;
+  box-shadow:0 28px 80px rgba(0,0,0,.66)}
+.dlg.wide{max-width:1040px}
+.dlg h3{font-size:17.5px;font-weight:700;display:flex;align-items:center;gap:9px}
+.dlg h3 .tag{margin-left:2px}
+.dlg .x{position:absolute;right:14px;top:13px;width:30px;height:30px;border-radius:8px;
+  font:inherit;font-size:16px;line-height:1;cursor:pointer;color:var(--tx3);
+  background:rgba(255,255,255,.05);border:1px solid var(--line);transition:.16s}
+.dlg .x:hover{color:#fff;background:rgba(255,255,255,.13)}
+.dlg .sub2{font-size:12.5px;color:var(--tx2);line-height:1.75;margin-top:7px}
+.dlg .sub2 b{color:var(--tx)}
+.dlg h4{font-size:13px;font-weight:700;color:var(--tx2);margin:16px 0 8px;
+  display:flex;align-items:center;gap:8px}
+.dlg h4::before{content:'';width:3px;height:13px;background:var(--gold);border-radius:2px}
+.dlg h4 .n{font-size:11.5px;color:var(--tx3);font-weight:400}
+
+/* ---------- 表单 ---------- */
+.frow{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:11px}
+.fld{display:flex;flex-direction:column;gap:5px;flex:1;min-width:148px}
+.fld.narrow{min-width:96px;flex:0 0 auto}
+.fld label{font-size:11.5px;color:var(--tx3);letter-spacing:.04em}
+.inp,.sel,textarea.inp{font:inherit;font-size:13px;padding:7px 11px;border-radius:9px;width:100%;
+  background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--tx);
+  transition:.16s;color-scheme:dark}
+.inp:focus,.sel:focus,textarea.inp:focus{outline:none;border-color:rgba(245,197,66,.62);background:rgba(245,197,66,.08)}
+.sel option{background:#141a26;color:var(--tx)}
+textarea.inp{resize:vertical;min-height:82px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.6}
+.inp.tiny{font-size:12.5px;padding:5px 8px}
+.hint{font-size:11.5px;color:var(--tx3);line-height:1.65}
+.hint.ok{color:var(--dn)}
+.hint.bad{color:#ff8a7a}
+.hint.warn{color:#ffb454}
+
+/* ---------- 按钮 ---------- */
+.btn{font:inherit;font-size:12.5px;padding:7px 14px;border-radius:9px;cursor:pointer;
+  background:rgba(255,255,255,.055);border:1px solid var(--line);color:var(--tx2);transition:.16s;white-space:nowrap}
+.btn:hover{color:var(--tx);border-color:var(--line2);background:rgba(255,255,255,.105)}
+.btn.pri{background:rgba(245,197,66,.92);color:#141414;font-weight:700;border-color:transparent}
+.btn.pri:hover{background:var(--gold);color:#141414}
+.btn.dan{color:#ff8a7a;border-color:rgba(255,138,122,.34)}
+.btn.dan:hover{background:rgba(255,138,122,.14);border-color:rgba(255,138,122,.62);color:#ff9c8e}
+.btn.sm{font-size:11.5px;padding:4px 9px;border-radius:7px}
+.btn:disabled{opacity:.42;cursor:not-allowed}
+.btnrow{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-top:16px;
+  padding-top:14px;border-top:1px solid var(--line)}
+.btnrow .spacer{flex:1}
+.kvs{display:grid;grid-template-columns:repeat(auto-fill,minmax(236px,1fr));gap:7px 20px;margin-top:9px}
+.kvs>div{display:flex;gap:9px;font-size:12.5px;line-height:1.65;min-width:0}
+.kvs>div>b{color:var(--tx3);font-weight:600;flex:none;min-width:72px}
+.kvs>div>span{color:var(--tx2);word-break:break-all}
+
+/* ---------- 文件投放区 ---------- */
+.drop{border:1.5px dashed rgba(255,255,255,.2);border-radius:12px;padding:22px 18px;text-align:center;
+  background:rgba(255,255,255,.022);cursor:pointer;transition:.2s}
+.drop:hover,.drop.over{border-color:rgba(245,197,66,.62);background:rgba(245,197,66,.075)}
+.drop .ic{font-size:26px;line-height:1}
+.drop .t1{font-size:13.5px;font-weight:600;margin-top:8px}
+.drop .t2{font-size:11.5px;color:var(--tx3);margin-top:5px;line-height:1.6}
+
+/* ---------- 预览 / 数据点表格 ---------- */
+.twrap{max-height:280px;overflow:auto;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.02)}
+.twrap.tall{max-height:400px}
+table.ftb{width:100%;border-collapse:collapse;font-size:12px}
+table.ftb th{position:sticky;top:0;z-index:1;text-align:left;font-size:11px;color:var(--tx3);font-weight:600;
+  padding:6px 9px;background:#131a26;border-bottom:1px solid var(--line);white-space:nowrap}
+table.ftb td{padding:4px 9px;border-bottom:1px solid rgba(255,255,255,.045);
+  font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--tx2)}
+table.ftb tr:hover td{background:rgba(255,255,255,.035)}
+table.ftb td.num{text-align:right}
+table.ftb .col-hi{background:rgba(245,197,66,.075);color:var(--gold)}
+table.ftb .col-date{background:rgba(74,163,223,.09);color:#7cc0ec}
+table.ftb .colname{font-size:11.5px;color:#8d9bb3;max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.idnote{font-size:12px;color:var(--tx3);padding:9px 0;display:block;line-height:1.5}
+table.ftb input{font:inherit;font-size:12px;padding:3px 7px;border-radius:6px;width:100%;
+  background:rgba(255,255,255,.05);border:1px solid transparent;color:var(--tx);
+  font-variant-numeric:tabular-nums;color-scheme:dark}
+table.ftb input:hover{border-color:var(--line2)}
+table.ftb input:focus{outline:none;border-color:rgba(245,197,66,.62);background:rgba(245,197,66,.09)}
+/* 表格里的下拉（导入面板的「分组」列）：跟同行输入框保持一致的观感 */
+table.ftb select{font:inherit;font-size:12px;padding:3px 6px;border-radius:6px;width:100%;
+  background:rgba(74,163,223,.12);border:1px solid rgba(74,163,223,.26);color:#9dd4f5;
+  cursor:pointer;transition:.16s;color-scheme:dark;font-variant-numeric:tabular-nums}
+table.ftb select:hover{border-color:rgba(74,163,223,.55);background:rgba(74,163,223,.18)}
+table.ftb select:focus{outline:none;border-color:rgba(245,197,66,.62);background:rgba(245,197,66,.09);color:var(--tx)}
+table.ftb select option{background:#141a26;color:var(--tx)}
+table.ftb tr.g-dirty select{border-color:rgba(245,197,66,.62)}
+.emptyg{font-size:11px;color:#6b7891}
+.pager{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px;font-size:12px;color:var(--tx3)}
+.pager .spacer{flex:1}
+.colpick{display:flex;gap:8px;align-items:flex-end}
+
+/* ---------- 云端状态徽标 / 覆盖标记 ---------- */
+.cst{font-size:11px;padding:2px 8px;border-radius:9px;white-space:nowrap;line-height:1.7}
+.cst.on{color:#6ee7b7;background:rgba(40,201,138,.12);border:1px solid rgba(40,201,138,.35)}
+.cst.off{color:#ffb454;background:rgba(255,180,84,.12);border:1px solid rgba(255,180,84,.35)}
+.cst.wait{color:var(--tx3);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12)}
+.ovtag{font-size:10.5px;color:#ffb454;border:1px solid rgba(255,180,84,.42);border-radius:3px;padding:0 4px;white-space:nowrap}
+.mgtag{font-size:11px;color:#8fd6ff;background:rgba(74,163,223,.13);border:1px solid rgba(74,163,223,.3);border-radius:4px;padding:1px 6px;white-space:nowrap}
+/* 管理面板顶部的批量操作条（全选 / 按标签选 / 已选计数） */
+.mgbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:4px 0 9px;font-size:11.5px;color:var(--tx3)}
+.mgbar .ckall{display:inline-flex;align-items:center;gap:6px;cursor:pointer;color:var(--tx2);font-size:12px}
+.mgbar .lbl{color:var(--tx3);margin-left:6px}
+.mgbar .mgsel{color:var(--gold);font-weight:600}
+
+/* ---------- 空态 ---------- */
+.empty{text-align:center;padding:26px 16px;color:var(--tx3);font-size:13px;line-height:1.8}
+.empty .ic{font-size:30px;opacity:.6;display:block;margin-bottom:9px}
+
+/* ---------- 取色器 / 轻提示 ---------- */
+input[type=color].inp{padding:2px 3px;height:34px;cursor:pointer;background:rgba(255,255,255,.06)}
+input[type=color].inp::-webkit-color-swatch-wrapper{padding:0}
+input[type=color].inp::-webkit-color-swatch{border:1px solid var(--line2);border-radius:6px}
+.toast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,22px);z-index:200;
+  max-width:min(720px,92vw);padding:11px 18px;border-radius:11px;font-size:13px;line-height:1.62;
+  background:rgba(19,25,37,.97);border:1px solid var(--line2);color:var(--tx);
+  box-shadow:0 16px 44px rgba(0,0,0,.58);opacity:0;pointer-events:none;transition:.26s}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.toast.ok{border-color:rgba(40,201,138,.52)}
+.toast.bad{border-color:rgba(255,138,122,.62)}
+.toast.warn{border-color:rgba(245,197,66,.55)}
+
+@media(max-width:760px){
+  .dlg{padding:18px 15px 16px}
+  .fld{min-width:120px}
+  .mask{padding:18px 10px 40px}
+}
+
+/* ---------- chart ---------- */
+.chartbox{position:relative;width:100%;height:620px;margin-top:6px;cursor:crosshair}
+.chartbox.panning{cursor:grabbing}
+#cempty{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+  text-align:center;line-height:2.1;color:#6b7891;font-size:13.5px;pointer-events:none}
+
+/* ---------- 十字光标 ---------- */
+/* 十字线由 Chart.js 插件画在主画布上（见 JS 第 6.5 节），仅限绘图区内。
+   踩坑记录：曾先后尝试 ① 预置 <div> 切 display、② 运行期新建覆盖 <canvas> 两种方案，
+   元素几何与画布像素都实测正确，但在"页面加载阶段就存在、当时内容为空"的节点上，
+   后续绘制不会进入最终合成（同款代码若在加载后新建则一切正常）。
+   画在主画布上可完全绕开该问题，且顺带省掉每帧 DOM/重排开销。 */
+.tip{font-size:11.5px;color:var(--tx3);margin-top:9px;display:flex;flex-wrap:wrap;gap:16px}
+.tip b{color:var(--tx2)}
+
+/* ---------- rank ---------- */
+.grid2{display:grid;grid-template-columns:1.35fr 1fr;gap:18px;margin-top:8px}
+table.tb{width:100%;border-collapse:collapse;font-size:13px}
+table.tb th{text-align:left;font-size:11.5px;color:var(--tx3);font-weight:600;padding:7px 9px;
+  border-bottom:1px solid var(--line);letter-spacing:.05em;white-space:nowrap}
+table.tb td{padding:7px 9px;border-bottom:1px solid rgba(255,255,255,.045);font-variant-numeric:tabular-nums}
+table.tb tr:hover td{background:rgba(255,255,255,.035)}
+.n{text-align:right}
+.pos{color:var(--up);font-weight:700}
+.neg{color:var(--dn);font-weight:700}
+.bar-cell{position:relative;height:20px}
+.bar-cell i{position:absolute;left:0;top:5px;height:10px;border-radius:3px;opacity:.55}
+.scroll{max-height:430px;overflow-y:auto}
+.scroll::-webkit-scrollbar{width:8px}
+.scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:4px}
+
+footer{color:var(--tx3);font-size:12px;padding:32px 0 0;border-top:1px solid var(--line);margin-top:34px;line-height:1.9}
+footer b{color:var(--tx2)}
+.warn{margin-top:12px;padding:11px 14px;border-radius:10px;font-size:12.5px;line-height:1.7;
+  background:rgba(245,197,66,.07);border:1px solid rgba(245,197,66,.24);color:var(--tx2)}
+.warn b{color:var(--gold)}
+
+@media(max-width:900px){
+  .grid2{grid-template-columns:1fr}
+  .chartbox{height:420px}
+  h1{font-size:29px}
+  .wrap{padding:0 15px 30px}
+  .grp .gt{width:100%}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">MACRO COMMODITIES · DAILY SERIES · 2005 — 2026</div>
+  <h1>大宗商品日线对比图</h1>
+  <p class="sub" id="sub">数据取自<b>「我的商品」</b>，共 <b id="ptn">—</b> 个数据点。
+  支持<b>自由缩放</b>：滚轮缩放、拖拽平移、Alt 框选区间；归一化基期<b>随视窗左端自动跟随</b>——缩到哪一段，就以那一段的起点作为 100，直接比出谁涨得更凶。</p>
+  <div class="srcrow" id="srcrow"></div>
+  <div class="stats" id="stats"></div>
+</header>
+
+<div class="card">
+  <h2>对比主图 <span class="tag" id="mode-tag">归一化 · 基期随视窗左端</span></h2>
+  <p class="desc" id="mode-desc"></p>
+
+  <div class="bar">
+    <span class="lab">口径</span>
+    <span class="seg" id="seg-mode">
+      <button data-m="norm" class="on">归一化 = 100</button>
+      <button data-m="raw">原始价格</button>
+    </span>
+    <span class="lab">刻度</span>
+    <span class="seg" id="seg-scale">
+      <button data-s="log" class="on">对数</button>
+      <button data-s="linear">线性</button>
+    </span>
+    <span class="lab">区间</span>
+    <span class="rng" id="seg-range">
+      <button data-r="1m">1月</button>
+      <button data-r="3m">3月</button>
+      <button data-r="6m">6月</button>
+      <button data-r="1y">1年</button>
+      <button data-r="3y">3年</button>
+      <button data-r="5y" class="on">5年</button>
+      <button data-r="all">全部</button>
+      <button data-r="custom" class="open" id="btn-custom">自定义 ▾</button>
+    </span>
+    <span class="spacer"></span>
+    <span class="vlen" id="baseline"></span>
+    <span class="vlen" id="vlen" style="margin-left:14px"></span>
+  </div>
+
+  <div class="bar custombar" id="custombar">
+    <span class="lab">自定义区间</span>
+    <input type="date" class="dt" id="dt-from" aria-label="起始日期">
+    <span class="dash">→</span>
+    <input type="date" class="dt" id="dt-to" aria-label="结束日期">
+    <span class="rng"><button class="primary" id="dt-apply">应用</button></span>
+    <span class="rng"><button id="dt-reset">复位</button></span>
+    <span class="lab" style="margin-left:2px">快捷</span>
+    <span class="rng" id="dt-quick">
+      <button data-cy="thisY">本年度</button>
+      <button data-cy="lastY">上一年</button>
+      <button data-cy="lastM">上月</button>
+      <button data-cy="y10">近 10 年</button>
+      <button data-cy="y20">近 20 年</button>
+    </span>
+    <span class="spacer"></span>
+    <span class="dt-hint" id="dt-hint"></span>
+  </div>
+
+  <div class="chips" id="chips"></div>
+  <div class="bar" style="margin-top:12px;padding:9px 13px">
+    <button class="rng" style="display:inline-flex;gap:6px"><button id="sel-all" style="all:unset;cursor:pointer">全选</button></button>
+    <span class="lab" style="margin-left:4px">快速选择</span>
+    <span class="rng" id="quick">
+      <button data-q="precious">贵金属</button>
+      <button data-q="metal">有色</button>
+      <button data-q="agri">农产品</button>
+      <button data-q="energy">能化</button>
+    </span>
+    <span class="lab" style="margin-left:4px">我的商品</span>
+    <span class="rng">
+      <button id="btn-up">⬆ 上传 Excel</button>
+      <button id="btn-my">☰ 管理</button>
+      <button id="btn-bak">⋯ 备份</button>
+    </span>
+    <span class="lab" style="margin-left:4px">光标</span>
+    <span class="seg" id="seg-xh">
+      <button data-x="on" class="on">十字读数</button>
+      <button data-x="off">跟随提示</button>
+    </span>
+    <span class="spacer"></span>
+    <span id="cst" title="「我的商品」的存储位置"></span>
+    <span class="vlen" id="cnt"></span>
+  </div>
+
+  <div class="chartbox" id="cbox">
+    <canvas id="cv"></canvas>
+    <div id="cempty">还没有数据 —— 点上方「⬆ 上传 Excel」把商品的日线价格导进来<br>
+      一张宽表里的多个品种可以一次全部导入</div>
+  </div>
+  <div class="tip">
+    <span><b>滚轮</b> 缩放时间轴</span>
+    <span><b>拖拽</b> 平移</span>
+    <span><b>Alt / Shift + 拖拽</b> 框选区间</span>
+    <span><b>双击</b> 复位</span>
+    <span><b>十字光标</b> 图区内显示，右上角列出命中序列读数</span>
+    <span><b>自定义区间</b> 直接指定起止日期</span>
+  </div>
+</div>
+
+<div class="card">
+  <h2>视窗内涨跌排行 <span class="tag" id="rank-tag">随缩放实时更新</span></h2>
+  <p class="desc">统计范围为<b>当前图表时间窗内</b>每条序列的首末收盘价变化，与主图完全联动——缩放或平移后自动重算。</p>
+  <div class="grid2">
+    <div>
+      <div class="scroll"><table class="tb" id="rank"></table></div>
+    </div>
+    <div>
+      <h2 style="font-size:15px;margin-bottom:9px">序列覆盖区间</h2>
+      <div class="scroll"><table class="tb" id="cover"></table></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div><b>数据来源</b>：日线行情取自新浪财经期货频道（国内四大交易所主力连续合约 + 国际期货连续合约）；磷酸二铵取自 iFinD EDB 现货指标
+  <code>S005402480</code>（生意社口径，<b>2024-06-28 后已停止更新</b>）。</div>
+  <div style="margin-top:7px"><b>口径说明</b>：国内序列为人民币计价（主力连续，已做换月拼接，非复权）；国际序列为美元/美分计价。两者单位与计价货币不同，
+  <b>只有切换到「归一化」口径后才可以横向比较</b>；「原始价格」模式请配合对数刻度查看量级分布。</div>
+  <div class="warn"><b>关于 iFinD 日线长度的限制</b>：iFinD EDB 取数接口对单次请求存在返回条数上限（日频仅回吐<b>最近约 60 个交易日</b>，
+  且时间范围参数不生效，实测无法取出长历史日线）。因此本页长历史日线改用公开行情通道，iFinD 用于口径校核与现货指标补充。</div>
+  <div style="margin-top:9px;color:var(--tx3)">本页为宏观周期研究与历史复盘用途，所有涨跌幅均为历史统计，<b>不构成任何投资建议</b>。</div>
+</footer>
+
+</div>
+
+<!-- 弹窗骨架：内容由 openDlg(html) 填 -->
+<div class="mask" id="mask"><div class="dlg" id="dlg"></div></div>
+
+<!-- 云端凭据：构建时由 build_daily.py 从 build/cloud.json 注入。
+     离线打开（file://）或断网时，「我的商品」自动降级为本机存储。 -->
+<script>/*__CLOUD__*/</script>
+<script>/*__CHARTJS__*/</script>
+<script>/*__XLSX__*/</script>
+<script>const DATA = /*__DATA__*/;</script>
+<script>
+/* ============================================================
+   0. 基础工具
+   ============================================================ */
+const DAY = 86400000;
+const dayToStr = n => new Date(n*DAY).toISOString().slice(0,10);
+const dayToYM  = n => { const d=new Date(n*DAY); return d.getUTCFullYear()+'.'+String(d.getUTCMonth()+1).padStart(2,'0'); };
+const strToDay = s => { const t = Date.parse(s+'T00:00:00Z'); return isNaN(t) ? NaN : t/DAY; };
+const fmt = v => v==null?'—':(Math.abs(v)>=10000 ? v.toLocaleString('zh-CN',{maximumFractionDigits:0})
+                    : Math.abs(v)>=100? v.toFixed(1) : v.toFixed(2));
+const fmtPct = r => (r>=0?'+':'')+r.toFixed(1)+'%';
+
+/* 展开内置序列（价格由「分」还原）
+   —— 内置数据现在是**可选**的：build/commodity100/build_opts.json 里 "builtin": false
+      时构建阶段就不注入 DATA.groups，于是 GROUPS 为空、整页只剩「我的商品」。
+      下面所有内置相关分支都用 HAS_BUILTIN 守卫，两种形态都能跑。 */
+const ALL = [];
+const GROUPS = (DATA && DATA.groups) || [];  // 内置分组（顺序固定；自定义商品按标签成组）
+const HAS_BUILTIN = GROUPS.length > 0;       // 这个页面里还有没有打包的内置序列
+/* 标签的推荐名/排序依据：有内置数据时用分组名，没有时用这份常量（仍作为标签建议） */
+const CAT_HINTS = ['贵金属', '有色金属', '农产品', '能源化工'];
+GROUPS.forEach(g => g.series.forEach(s => {
+  s.gname = g.name;
+  s.src = 'builtin';
+  s.pts = s.d.map(p => [p[0], p[1]/100]);     // [dayNo, price]
+  s.t0 = s.pts[0][0]; s.t1 = s.pts[s.pts.length-1][0];
+  s.cat = g.name;
+  /* 原始值留底：内置序列支持改名/单位/配色（存在本机覆盖层里），
+     有底才能「恢复默认」。 */
+  s.n0 = s.n; s.u0 = s.u; s.col0 = s.col;
+  /* 数据点原始副本 + 原始区间：直接编辑内置价格后用来「恢复内置原始数据」 */
+  s.pts0 = s.pts; s.t00 = s.t0; s.t10 = s.t1;
+  ALL.push(s);
+}));
+const BYCODE = {}; ALL.forEach(s => BYCODE[s.c] = s);
+const TOTAL_PTS = ALL.reduce((a,s)=>a+s.pts.length,0);   // 内置数据点总量（页头统计口径）
+
+/* ============================================================
+   1. 状态
+   ============================================================ */
+/* 时间边界。没有内置数据时先给一个「近 5 年」的占位区间，
+   「我的商品」从云端/本机缓存载入后由 recomputeBounds() 重算。 */
+const TODAY0 = Math.round(Date.now() / DAY);
+let LAST  = ALL.length ? Math.max(...ALL.map(s => s.t1)) : TODAY0;
+let FIRST = ALL.length ? Math.min(...ALL.map(s => s.t0)) : TODAY0 - 1825;
+let FIN = Math.round(FIRST), LIN = Math.round(LAST);    // 时间边界（自定义商品可能把范围撑大）
+const state = {
+  mode : 'norm',        // norm | raw
+  scale: 'log',         // log | linear
+  xhair: true,          // 十字光标读数（关闭后改用原生跟随提示）
+  view : {min:0, max:LAST},
+  active: new Set(HAS_BUILTIN ? ['gold','copper','nickel','wheat','sugar','crude_i'] : [])
+};
+/* 内置数据不在时，等「我的商品」载入后自动全部勾选（否则打开页面是空图）；
+   用户一旦自己点过 chip / 全选 / 快速选择，就不再自动接管。 */
+let autoPicked = HAS_BUILTIN;
+function syncRangeBtns(key){
+  document.querySelectorAll('#seg-range button').forEach(b =>
+    b.classList.toggle('on', key!=null && b.dataset.r===key));
+}
+function setRangeDays(days, key){
+  const max = LAST;
+  const min = days==null ? FIRST : Math.max(FIRST, max - days);
+  state.view = clampView(min, max);
+  syncRangeBtns(key);
+  redraw();
+}
+
+/* ============================================================
+   2. Header —— 自定义商品会改变条数、点数与时间边界，
+      所以这里做成 renderHead()，在「我的商品」变动后按需重渲染。
+   ============================================================ */
+const BUILTIN = ALL.length;
+
+/* 内置来源说明是静态的，只渲染一次 —— 没有内置数据时整块隐藏 */
+if(HAS_BUILTIN){
+  document.getElementById('srcrow').innerHTML = [
+    ['国内期货', '沪金 / 沪银 / 沪铜 / 沪铝 / 沪锌 / 沪铅 / 沪锡 / 沪镍 / 沪胶 / SC原油 / 连玉米 / 连豆一 / 郑棉 / 郑糖 / 郑尿素 / 郑强麦'],
+    ['国际期货', 'COMEX 金银铜 · NYMEX 原油 / 天然气 · ICE 棉花 / 咖啡 · LME 六种基础金属 · 伦敦铂钯'],
+    ['iFinD', 'EDB 宏观行业数据库 · 磷酸二铵现货（S005402480）'],
+  ].map(([k,v]) => `<span class="srcchip"><b>${k}</b> · ${v}</span>`).join('');
+}else{
+  const sr = document.getElementById('srcrow');
+  if(sr) sr.style.display = 'none';
+}
+
+const ZOOM_TXT = '　支持<b>自由缩放</b>：滚轮缩放、拖拽平移、Alt 框选区间；归一化基期<b>随视窗左端自动跟随</b>' +
+                 '——缩到哪一段，就以那一段的起点作为 100，直接比出谁涨得更凶。';
+
+function renderHead(){
+  const pts  = ALL.reduce((a,s) => a + s.pts.length, 0);
+  const ownList = CUSTOM.filter(s => s.src !== 'overlay');
+  const own  = ownList.length;
+  const ownP = ownList.reduce((a,s) => a + s.pts.length, 0);
+  const has  = ALL.length > 0 && isFinite(FIRST) && isFinite(LAST);
+  const yrs  = has ? ((LAST - FIRST) / 365.25).toFixed(0) : '—';
+  const tagL = Array.from(new Set(ownList.map(s => tagOf(s))));
+  /* 注意：#ptn 就在 #sub 里面，整段重写时必须把它一起带上，
+     否则 getElementById('ptn') 会变成 null（探针与外链都依赖这个 id）。 */
+  document.getElementById('sub').innerHTML = HAS_BUILTIN
+    ? `覆盖 <b>贵金属 / 有色金属 / 农产品 / 能源化工</b> 四大类、<b>20 个主力品种</b>、` +
+      `<b>${BUILTIN} 条日线序列</b>（国内期货主力连续 + 国际期货连续），共 ` +
+      `<b id="ptn">${pts.toLocaleString('zh-CN')}</b> 个交易日数据点。` +
+      (own ? `　另含<b>我的商品 ${own} 条</b>（${ownP.toLocaleString('zh-CN')} 点），与内置序列同一套口径参与对比。` : '') +
+      ZOOM_TXT
+    : `数据全部来自<b>「我的商品」</b>：当前 <b>${own} 条</b>序列、共 ` +
+      `<b id="ptn">${pts.toLocaleString('zh-CN')}</b> 个数据点` +
+      (tagL.length ? `，分布在 <b>${tagL.map(esc).join(' / ')}</b> 等分组下` : '') + '。' +
+      `　用<b>「⬆ 上传 Excel」</b>把商品的日线价格导进来（<b>一张宽表可一次导入多列</b>），` +
+      `导入时给每一行挑一个<b>分组</b>（默认「${TAG_DEFAULT}」）就会自动归位。` + ZOOM_TXT;
+
+  document.getElementById('stats').innerHTML = HAS_BUILTIN ? `
+  <div class="stat" style="--accent:#F5C542"><div class="k">覆盖品种</div><div class="v">${20 + own} 个</div><div class="d">贵金属 4 · 有色 6 · 农产品 7 · 能化 5${own ? ' · 我的 ' + own : ''}</div></div>
+  <div class="stat" style="--accent:#4AA3DF"><div class="k">日线序列</div><div class="v">${ALL.length} 条</div><div class="d">内置 ${BUILTIN} 条${own ? ' · 自定义 ' + own + ' 条' : ''}</div></div>
+  <div class="stat" style="--accent:#E07B39"><div class="k">数据点总量</div><div class="v">${(pts/10000).toFixed(1)} 万</div><div class="d">逐日收盘价，未做任何降采样${own ? '（自定义 ' + ownP.toLocaleString('zh-CN') + ' 点）' : ''}</div></div>
+  <div class="stat" style="--accent:#28C98A"><div class="k">时间跨度</div><div class="v">${yrs} 年</div><div class="d">${has ? dayToStr(FIRST) + ' → ' + dayToStr(LAST) : '—'}</div></div>
+  <div class="stat" style="--accent:#A78BFA"><div class="k">最新交易日</div><div class="v">${has ? dayToStr(LAST) : '—'}</div><div class="d">数据截止日</div></div>` : `
+  <div class="stat" style="--accent:#F5C542"><div class="k">商品条数</div><div class="v">${own} 条</div><div class="d">${tagL.length ? '分组 ' + tagL.map(esc).join(' · ') : '尚未上传商品'}</div></div>
+  <div class="stat" style="--accent:#4AA3DF"><div class="k">分组</div><div class="v">${tagL.length} 组</div><div class="d">chip 区按分组一行一组</div></div>
+  <div class="stat" style="--accent:#E07B39"><div class="k">数据点总量</div><div class="v">${(pts/10000).toFixed(1)} 万</div><div class="d">逐日价格，未做任何降采样</div></div>
+  <div class="stat" style="--accent:#28C98A"><div class="k">时间跨度</div><div class="v">${yrs} 年</div><div class="d">${has ? dayToStr(FIRST) + ' → ' + dayToStr(LAST) : '—'}</div></div>
+  <div class="stat" style="--accent:#A78BFA"><div class="k">最新交易日</div><div class="v">${has ? dayToStr(LAST) : '—'}</div><div class="d">数据截止日</div></div>`;
+}
+/* ============================================================
+   2.5 我的商品（自定义序列：云端存储 + 本机缓存）
+   —— 上传的 Excel/CSV 商品、以及「直接编辑内置价格」产生的覆盖记录，
+      都在这里落成一条普通序列后并入 ALL，于是绘图 / 排行 / 十字光标 /
+      归一化全部自动复用，不需要另写一套。
+      存储：优先写云端（表 wb_c100_series，跨设备、团队共享）；
+      localStorage 只作本机缓存 —— file:// 打开或断网时自动降级，功能不中断。
+   ============================================================ */
+const CUSTOM_KEY  = 'wb_c100_custom_v1';
+const CLOUD_TABLE = 'wb_c100_series';
+/* 自定义商品的备选配色：刻意避开内置 31 条已用的金/橙/蓝紫/青绿/灰粉色系，
+   免得新曲线和内置曲线糊在一起。用户随时可以在编辑面板里改成任意颜色。 */
+const PALETTE = ['#FF4D6D','#00E0B8','#FFB020','#8B5CF6','#00B8FF','#FF7A00',
+                 '#A3E635','#FF3D9A','#00E676','#651FFF','#FFD600','#00CFFF'];
+let CUSTOM = [];        // [{c,n,m,u,col,pts:[[day,price]...],note,src,base,owner,t}]
+/* 云端连通状态：'on' 可用 · 'off' 不可用（已降级本机）· 'wait' 尚未探测 */
+let CLOUD_STATE = 'wait';
+
+/* ---------- 云端读写（CloudBase PostgREST 直连） ----------
+   两点与项目其余页面一致：
+     ① 只带 Bearer key，不带 apikey；
+     ② 删除走「软删」（UPDATE is_del=true）—— 匿名凭据没有 DELETE 权限，
+        这是项目的既定设计；服务端硬删需管理员 token + 密码。
+   file:// 打开时 Origin 为 null，会被网关白名单挡回 403 → 自动降级本机。 */
+const WBCloud = (function(){
+  const CFG = (typeof window !== 'undefined' && window.WB_CFG) || {};
+  const OFF = !CFG.rest || !CFG.key;
+  let lastErr = '';
+
+  async function req(method, qs, body){
+    if(OFF) throw new Error('未配置云端（离线页面）');
+    const h = { 'Authorization': 'Bearer ' + CFG.key };
+    if(body != null){
+      h['Content-Type'] = 'application/json';
+      h['Prefer'] = 'resolution=merge-duplicates,return=minimal';
+    }
+    const r = await fetch(CFG.rest + CLOUD_TABLE + (qs || ''), {
+      method, headers: h, body: body == null ? undefined : JSON.stringify(body)
+    });
+    if(!r.ok){
+      const t = (await r.text().catch(() => '')).slice(0, 180);
+      throw new Error('HTTP ' + r.status + (t ? ' · ' + t : ''));
+    }
+    return method === 'GET' ? r.json() : true;
+  }
+  async function guard(fn){
+    try{ return await fn(); }
+    catch(e){ lastErr = String((e && e.message) || e); return null; }
+  }
+
+  return {
+    off: () => OFF,
+    lastErr: () => lastErr,
+    /* 取全表（含软删记录，交给调用方按 is_del 过滤） */
+    list: () => guard(() => req('GET', '?select=*&order=up.asc')),
+    upsert: rec => guard(() => req('POST', '?on_conflict=id', rec)).then(v => v !== null),
+    upsertMany: recs => recs.length
+      ? guard(() => req('POST', '?on_conflict=id', recs)).then(v => v !== null)
+      : Promise.resolve(true),
+    softDel: id => guard(() => req('PATCH', '?id=eq.' + encodeURIComponent(id),
+                                  { is_del: true, up: Date.now() })).then(v => v !== null),
+    /* 批量软删：一条 PATCH 干掉多条（管理面板的「批量删除」用，别循环发请求） */
+    softDelMany: ids => ids.length
+      ? guard(() => req('PATCH', '?id=in.(' + ids.map(encodeURIComponent).join(',') + ')',
+                        { is_del: true, up: Date.now() })).then(v => v !== null)
+      : Promise.resolve(true)
+  };
+})();
+
+/* ---------- 本地模型 <-> 云端行 互转 ---------- */
+function whoAmI(){
+  try{
+    const a = JSON.parse(localStorage.getItem('wb_auth_v1') || 'null');
+    return (a && (a.n || a.u)) || '';
+  }catch(e){ return ''; }
+}
+function toRow(s){
+  const pts = s.pts || [];
+  return {
+    id: s.c, name: s.n || '', market: s.m || '', unit: s.u || '', color: s.col || '',
+    t0: (s.t0 != null) ? s.t0 : (pts.length ? pts[0][0] : null),
+    t1: (s.t1 != null) ? s.t1 : (pts.length ? pts[pts.length - 1][0] : null),
+    n: pts.length, pts: pts,
+    note: s.note || '', src: s.src === 'overlay' ? 'overlay' : 'upload',
+    tag: normTag(s.tag),
+    base: s.base || '', owner: s.owner || whoAmI() || '',
+    is_del: false, up: s.t || Date.now()
+  };
+}
+function fromRow(r){
+  const pts = (r.pts || []).map(p => [Math.round(+p[0]), +p[1]])
+                          .filter(p => isFinite(p[0]) && isFinite(p[1]))
+                          .sort((a, b) => a[0] - b[0]);
+  return {
+    c: r.id, n: r.name || '未命名', m: r.market || '', u: r.unit || '',
+    col: r.color || PALETTE[0], pts: pts, note: r.note || '',
+    src: r.src || 'upload', tag: r.tag || '', base: r.base || '', owner: r.owner || '',
+    t: +r.up || 0
+  };
+}
+
+function esc(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+/* ---------- 内置序列的本机覆盖层（改名 / 单位 / 配色） ----------
+   内置数据是打包在页面里的，本身不该被改动；用户要的「编辑」主要是
+   改显示名、单位、颜色。这些覆盖项存 localStorage，载入后套回序列上。
+   想改数据本身，就用面板里的「复制为我的商品」——复制出来的那条可任意改。 */
+const BOVER_KEY = 'wb_c100_bover_v1';
+let BOVER = {};
+function loadBover(){
+  try{
+    const o = JSON.parse(localStorage.getItem(BOVER_KEY) || '{}');
+    BOVER = (o && typeof o === 'object' && !Array.isArray(o)) ? o : {};
+  }catch(e){ BOVER = {}; }
+}
+function saveBover(){
+  try{ localStorage.setItem(BOVER_KEY, JSON.stringify(BOVER)); return true; }
+  catch(e){ toast('⚠ 本机存储写入失败（可能已满）：' + (e.message || e), 'bad'); return false; }
+}
+function applyBover(){
+  Object.keys(BOVER).forEach(c => {
+    const s = BYCODE[c], o = BOVER[c];
+    if(!s || !o || s.src !== 'builtin') return;
+    s.n   = (o.n != null && o.n !== '') ? o.n : s.n0;
+    s.u   = (o.u != null) ? o.u : s.u0;
+    s.col = (o.col != null && o.col !== '') ? o.col : s.col0;
+  });
+}
+function hasBover(c){ return !!BOVER[c] && Object.keys(BOVER[c]).length > 0; }
+/* 只把「与原始值不同」的项写进覆盖层，免得存一堆无意义的默认值 */
+function setBover(c, patch){
+  const s = BYCODE[c];
+  if(!s) return;
+  const o = Object.assign({}, BOVER[c] || {}, patch);
+  const keep = {};
+  if(o.n != null && o.n !== '' && o.n !== s.n0) keep.n = o.n;
+  if(o.u != null && o.u !== s.u0) keep.u = o.u;
+  if(o.col != null && o.col !== '' && String(o.col).toLowerCase() !== String(s.col0).toLowerCase())
+    keep.col = String(o.col).toLowerCase();
+  if(Object.keys(keep).length) BOVER[c] = keep; else delete BOVER[c];
+  saveBover();
+  applyBover();
+}
+function clearBover(c){
+  delete BOVER[c];
+  saveBover();
+  const s = BYCODE[c];
+  if(s){ s.n = s.n0; s.u = s.u0; s.col = s.col0; }
+}
+
+function loadCustom(){
+  try{
+    const arr = JSON.parse(localStorage.getItem(CUSTOM_KEY) || '[]');
+    CUSTOM = (Array.isArray(arr) ? arr : []).filter(s => {
+      if(!s || !s.c || !Array.isArray(s.pts) || !s.pts.length) return false;
+      s.pts = s.pts
+        .map(p => [Math.round(+p[0]), +p[1]])
+        .filter(p => isFinite(p[0]) && isFinite(p[1]))
+        .sort((a,b) => a[0] - b[0]);
+      s.src  = (s.src === 'overlay') ? 'overlay' : 'upload';   // 覆盖记录不能被抹成普通上传
+      s.base = s.base || '';
+      s.cat = '我的商品';
+      s.tag  = normTag(s.tag);            // 标签＝商品分组；空值归入「我的商品」
+      s.m = s.m || '自定义上传';
+      s.u = s.u || '';
+      s.col = s.col || PALETTE[0];
+      return s.pts.length > 0;
+    });
+  }catch(e){ CUSTOM = []; }
+}
+/* 本机缓存：始终写一份，断网时照样能看。（云端写入由 cloudPush / cloudDel 负责） */
+function saveCustom(){
+  try{ localStorage.setItem(CUSTOM_KEY, JSON.stringify(CUSTOM)); return true; }
+  catch(e){ toast('⚠ 本机存储写入失败（可能已满）：' + (e.message || e), 'bad'); return false; }
+}
+
+/* ---------- 云端写入（不阻塞 UI：失败只提示，本机缓存仍然生效） ---------- */
+function cloudPush(rec, silent){
+  if(WBCloud.off()) return;
+  WBCloud.upsert(toRow(rec)).then(ok => {
+    if(ok) CLOUD_STATE = 'on';
+    else if(!silent){
+      CLOUD_STATE = 'off';
+      toast('⚠ 云端保存失败（已存本机）：' + WBCloud.lastErr(), 'warn');
+    }
+  });
+}
+function cloudPushMany(recs, silent){
+  if(WBCloud.off() || !recs.length) return;
+  WBCloud.upsertMany(recs.map(toRow)).then(ok => {
+    if(ok) CLOUD_STATE = 'on';
+    else if(!silent) toast('⚠ 云端批量保存失败（已存本机）：' + WBCloud.lastErr(), 'warn');
+  });
+}
+function cloudDel(id, silent){
+  if(WBCloud.off()) return;
+  WBCloud.softDel(id).then(ok => {
+    if(ok) CLOUD_STATE = 'on';
+    else if(!silent) toast('⚠ 云端删除失败：' + WBCloud.lastErr(), 'warn');
+  });
+}
+function cloudDelMany(ids, silent){
+  if(WBCloud.off() || !ids.length) return;
+  WBCloud.softDelMany(ids).then(ok => {
+    if(ok) CLOUD_STATE = 'on';
+    else if(!silent) toast('⚠ 云端批量删除失败：' + WBCloud.lastErr(), 'warn');
+  });
+}
+/* 云端状态后缀：让用户一眼看清这份数据到底进没进库 */
+function cloudNote(){
+  if(WBCloud.off()) return '　（仅存本机：页面未配置云端）';
+  if(CLOUD_STATE === 'off') return '　⚠ 云端暂不可用，已存本机';
+  return '　· 已同步云端';
+}
+function cloudBadge(){
+  if(WBCloud.off()) return '<span class="cst off">本机模式</span>';
+  if(CLOUD_STATE === 'off') return '<span class="cst off">⚠ 云端不可达 · 已降级本机</span>';
+  if(CLOUD_STATE === 'on')  return '<span class="cst on">☁ 已连接云端</span>';
+  return '<span class="cst wait">☁ 连接中…</span>';
+}
+
+/* ---------- 商品标签（自定义分组） ----------
+   上传商品时可以给它打一个「标签」；chip 区就按标签一行一组显示，不再把所有
+   上传的商品都挤在「我的商品」一个组里。标签可以直接用内置的分类名
+   （贵金属 / 有色金属 / 农产品 / 能源化工），也可以自己新建（钼系 / 钢铁原料…）。
+   空标签＝归入默认的「我的商品」组。 */
+/* 分组注册表（wb_c100_groups）的存放位：声明放在这里，是为了让下面的 allTags()
+   与各处的 normTag() 无论如何都不会踩到暂时性死区。模块实体见 tagField() 之后。 */
+const GRP_KEY = 'wb_c100_groups_v1';
+const GROUP_TABLE = 'wb_c100_groups';
+let GRP = [];             // [{c,n,sort,color,note,owner,t}] —— n 即分组名（与商品 tag 同名即同组）
+let GRP_STATE = 'wait';   // 'on' 云端可用 · 'off' 降级本机 · 'wait' 尚未探测
+const TAG_DEFAULT = '我的商品';
+function tagOf(s){ return (s && s.tag ? String(s.tag).trim() : '') || TAG_DEFAULT; }
+/* 标签名做统一清洗：去换行、压空格、限长 12 字（太长会把分组标签列撑爆） */
+function normTag(v){
+  let t = String(v == null ? '' : v).replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim();
+  if(t.length > 12) t = t.slice(0, 12);
+  return t;
+}
+/* 标签的推荐顺序：有内置数据时＝内置分类顺序；没有时用常量（贵金属 → 有色金属 → …） */
+function builtinTagNames(){ return HAS_BUILTIN ? GROUPS.map(g => g.name) : CAT_HINTS.slice(); }
+/* 可选标签（＝可选分组）：内置分类名 → 已登记的分组（优先 sort 小的、再按创建先后）
+   → 商品身上实际出现过的标签。注册表里的空分组也会出现，所以可以「先建组、后导入」。 */
+function allTags(){
+  const list = builtinTagNames().slice();
+  const add = t => { if(t && t !== TAG_DEFAULT && list.indexOf(t) < 0) list.push(t); };
+  GRP.slice().sort((a, b) => (a.sort - b.sort) || (a.t - b.t)).forEach(g => add(g.n));
+  CUSTOM.forEach(s => add(tagOf(s)));
+  return list;
+}
+/* 自定义商品按标签分组；顺序＝内置分类顺序 → 自建标签（按创建先后）→「我的商品」 */
+function customByTag(){
+  const m = new Map();
+  CUSTOM.forEach(s => {
+    if(s.src === 'overlay') return;                 // 覆盖记录不单独成 chip
+    const t = tagOf(s);
+    if(!m.has(t)) m.set(t, []);
+    m.get(t).push(s);
+  });
+  const bi = builtinTagNames();
+  const keys = Array.from(m.keys()).sort((a, b) => {
+    if(a === TAG_DEFAULT) return 1;
+    if(b === TAG_DEFAULT) return -1;
+    const ia = bi.indexOf(a), ib = bi.indexOf(b);
+    if(ia >= 0 || ib >= 0) return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+    const ta = Math.min.apply(null, m.get(a).map(s => +s.t || 0));
+    const tb = Math.min.apply(null, m.get(b).map(s => +s.t || 0));
+    return ta - tb || a.localeCompare(b, 'zh-Hans-CN');
+  });
+  return { map: m, keys: keys };
+}
+/* 标签输入框：可以直接敲新名字，也可以点开选已有标签 */
+function tagField(id, val, ph){
+  const dl = id + '-dl';
+  return '<input class="inp" id="' + id + '" list="' + dl + '" value="' + esc(normTag(val)) +
+         '" placeholder="' + esc(ph || TAG_DEFAULT) + '">' +
+         '<datalist id="' + dl + '">' +
+         allTags().map(t => '<option value="' + esc(t) + '"></option>').join('') +
+         '</datalist>';
+}
+
+/* ---------- 商品分组（分组注册表） ----------
+   商品属于哪个组，记在商品自己的 tag 上（见 tagOf / customByTag）；但「分组」本身
+   也是个可管理的对象：要能新建一个暂时还没有商品的分组、要能改名、要能删除。
+   所以另开一张表 wb_c100_groups，只存分组的元数据（名字 / 排序 / 创建者）；
+   商品的归属仍然靠同名 tag。两张表走同一套「云端为准 + 本机缓存」策略。 */
+const WBGrp = (function(){
+  const CFG = (typeof window !== 'undefined' && window.WB_CFG) || {};
+  const OFF = !CFG.rest || !CFG.key;
+  let lastErr = '';
+  async function req(method, qs, body){
+    if(OFF) throw new Error('未配置云端（离线页面）');
+    const h = { 'Authorization': 'Bearer ' + CFG.key };
+    if(body != null){
+      h['Content-Type'] = 'application/json';
+      h['Prefer'] = 'resolution=merge-duplicates,return=minimal';
+    }
+    const r = await fetch(CFG.rest + GROUP_TABLE + (qs || ''), {
+      method, headers: h, body: body == null ? undefined : JSON.stringify(body)
+    });
+    if(!r.ok){
+      const t = (await r.text().catch(() => '')).slice(0, 180);
+      throw new Error('HTTP ' + r.status + (t ? ' · ' + t : ''));
+    }
+    return method === 'GET' ? r.json() : true;
+  }
+  async function guard(fn){
+    try{ return await fn(); }
+    catch(e){ lastErr = String((e && e.message) || e); return null; }
+  }
+  return {
+    off: () => OFF,
+    lastErr: () => lastErr,
+    list: () => guard(() => req('GET', '?select=*&order=up.asc')),
+    upsertMany: recs => recs.length
+      ? guard(() => req('POST', '?on_conflict=id', recs)).then(v => v !== null)
+      : Promise.resolve(true),
+    /* 与商品一致：前端凭据没有 DELETE 权限，删除统一走软删 is_del=true */
+    softDelMany: ids => ids.length
+      ? guard(() => req('PATCH', '?id=in.(' + ids.map(encodeURIComponent).join(',') + ')',
+                        { is_del: true, up: Date.now() })).then(v => v !== null)
+      : Promise.resolve(true)
+  };
+})();
+
+function loadGrp(){
+  try{
+    const arr = JSON.parse(localStorage.getItem(GRP_KEY) || '[]');
+    GRP = (Array.isArray(arr) ? arr : []).filter(g => g && g.c && g.n).map(g => ({
+      c: String(g.c), n: normTag(g.n), sort: (g.sort == null ? 99 : +g.sort),
+      color: g.color || '', note: g.note || '', owner: g.owner || '', t: +g.t || 0
+    }));
+  }catch(e){ GRP = []; }
+}
+function saveGrp(){
+  try{ localStorage.setItem(GRP_KEY, JSON.stringify(GRP)); return true; }
+  catch(e){ toast('⚠ 本机存储写入失败（可能已满）：' + (e.message || e), 'bad'); return false; }
+}
+function grpToRow(g){
+  return { id: g.c, name: normTag(g.n), color: g.color || '',
+           sort: (g.sort == null ? 99 : +g.sort), note: g.note || '',
+           owner: g.owner || whoAmI() || '', is_del: false, up: g.t || Date.now() };
+}
+function grpFromRow(r){
+  return { c: r.id, n: normTag(r.name), sort: (r.sort == null ? 99 : +r.sort),
+           color: r.color || '', note: r.note || '', owner: r.owner || '', t: +r.up || 0 };
+}
+/* 云端 ←→ 本机 合并：规则与「我的商品」完全一致（谁 up 新听谁的，墓碑优先） */
+async function syncGroups(){
+  if(WBGrp.off()){ GRP_STATE = 'off'; saveGrp(); return false; }
+  const rows = await WBGrp.list();
+  if(rows === null){ GRP_STATE = 'off'; return false; }
+  GRP_STATE = 'on';
+  const rmap = {}, lmap = {}, out = [], push = [];
+  rows.forEach(r => { rmap[r.id] = r; });
+  GRP.forEach(g => { lmap[g.c] = g; });
+  const before = JSON.stringify(GRP.map(g => [g.c, g.n]));
+  new Set(Object.keys(rmap).concat(Object.keys(lmap))).forEach(id => {
+    const r = rmap[id], l = lmap[id];
+    if(r && !l){ if(!r.is_del) out.push(grpFromRow(r)); return; }      // 云端独有
+    if(l && !r){ out.push(l); push.push(l); return; }                  // 本机独有 → 补推
+    const ru = +r.up || 0, lu = +l.t || 0;
+    if(lu > ru){ out.push(l); push.push(l); }                          // 本机较新 → 推上去
+    else if(!r.is_del) out.push(grpFromRow(r));                        // 云端较新（或一致）
+  });
+  GRP = out;
+  saveGrp();
+  if(push.length) WBGrp.upsertMany(push.map(grpToRow));
+  return JSON.stringify(out.map(g => [g.c, g.n])) !== before;
+}
+function grpFind(name){
+  const t = normTag(name);
+  return t ? (GRP.find(g => g.n === t) || null) : null;
+}
+/* 新建一个分组（已存在则原样返回）。空分组也会持久化，导入时可以直接选它。 */
+function newGroup(name){
+  const n = normTag(name);
+  if(!n || n === TAG_DEFAULT) return null;
+  const had = grpFind(n);
+  if(had) return had;
+  const g = { c: 'g_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 4),
+              n: n, sort: 99, color: '', note: '', owner: whoAmI() || '', t: Date.now() };
+  GRP.push(g);
+  saveGrp();
+  WBGrp.upsertMany([grpToRow(g)]);
+  return g;
+}
+/* 找注册记录；没有就补一条（把「只靠商品捎带存在」的标签转成正式分组） */
+function ensureGroup(name){
+  const n = normTag(name);
+  if(!n || n === TAG_DEFAULT) return null;
+  return grpFind(n) || newGroup(n);
+}
+/* 分组概览：注册表 + 商品实际归属 + 内置分类名 合成一份列表（空分组也在里面） */
+function groupStats(){
+  const m = new Map();
+  const put = n => { if(!m.has(n)) m.set(n, []); return m.get(n); };
+  put(TAG_DEFAULT);
+  CUSTOM.forEach(s => {
+    if(s.src === 'overlay') return;            // 内置覆盖记录不参与分组
+    put(tagOf(s)).push(s);
+  });
+  GRP.forEach(g => { if(g.n) put(g.n); });
+  if(HAS_BUILTIN) builtinTagNames().forEach(put);
+  const order = allTags();
+  const keys = Array.from(m.keys()).sort((a, b) => {
+    if(a === TAG_DEFAULT) return 1;
+    if(b === TAG_DEFAULT) return -1;
+    const ia = order.indexOf(a), ib = order.indexOf(b);
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b, 'zh-Hans-CN');
+  });
+  return keys.map(k => {
+    const list = m.get(k);
+    return { name: k, list: list, n: list.length,
+             pts: list.reduce((a, s) => a + (s.pts ? s.pts.length : 0), 0),
+             t0: list.length ? Math.min.apply(null, list.map(s => +s.t0 || 0)) : null,
+             t1: list.length ? Math.max.apply(null, list.map(s => +s.t1 || 0)) : null,
+             reg: grpFind(k), fix: (k === TAG_DEFAULT) };
+  });
+}
+/* 重命名分组：该组商品一起搬过去；目标是已有分组时＝合并。
+   只改内存与云端，界面收尾交给调用方（afterCustomChange + cloudPushMany）。 */
+function renameGroup(oldName, newName){
+  const o = normTag(oldName), n = normTag(newName);
+  if(o === TAG_DEFAULT) return { ok: false, msg: '「我的商品」是默认分组，不能改名' };
+  if(!o) return { ok: false, msg: '原分组名无效' };
+  if(!n)  return { ok: false, msg: '新分组名不能为空' };
+  if(o === n) return { ok: true, moved: 0, merged: false, list: [] };
+  const merged = (n !== TAG_DEFAULT) && !!grpFind(n);
+  const list = CUSTOM.filter(s => s.src !== 'overlay' && tagOf(s) === o);
+  list.forEach(s => { s.tag = (n === TAG_DEFAULT ? '' : n); s.t = Date.now(); });
+  const reg = grpFind(o);
+  if(reg){
+    if(merged || n === TAG_DEFAULT){          // 并入目标组（或并入默认组）：旧登记作废
+      GRP = GRP.filter(g => g.c !== reg.c);
+      saveGrp();
+      WBGrp.softDelMany([reg.c]);
+    } else {                                   // 原地改名
+      reg.n = n; reg.t = Date.now();
+      saveGrp();
+      WBGrp.upsertMany([grpToRow(reg)]);
+    }
+  }
+  if(n !== TAG_DEFAULT) ensureGroup(n);
+  return { ok: true, moved: list.length, merged: merged, list: list };
+}
+/* 删除分组：组内商品**不删**，退回默认的「我的商品」，避免误删数据 */
+function deleteGroup(name){
+  const o = normTag(name);
+  if(o === TAG_DEFAULT) return { ok: false, msg: '「我的商品」是默认分组，不能删除' };
+  const list = CUSTOM.filter(s => s.src !== 'overlay' && tagOf(s) === o);
+  list.forEach(s => { s.tag = ''; s.t = Date.now(); });
+  const reg = grpFind(o);
+  if(reg){
+    GRP = GRP.filter(g => g.c !== reg.c);
+    saveGrp();
+    WBGrp.softDelMany([reg.c]);
+  }
+  return { ok: true, moved: list.length, list: list };
+}
+/* 导入面板「分组」列的下拉：默认组排最前（＝默认选中），其余为已有分组 */
+function groupOpts(sel, rowKey){
+  const cur = normTag(sel) || TAG_DEFAULT;
+  const list = [TAG_DEFAULT].concat(allTags().filter(t => t !== TAG_DEFAULT));
+  if(list.indexOf(cur) < 0) list.push(cur);
+  const a = (rowKey == null) ? '' : ' data-tg="' + rowKey + '"';
+  return '<select class="grpsel"' + a + '>' + list.map(t =>
+    '<option value="' + esc(t) + '"' + (t === cur ? ' selected' : '') + '>' + esc(t) + '</option>').join('') + '</select>';
+}
+
+/* ---------- 打开页面时：云端 ←→ 本机 合并 ----------
+   规则：按 up 时间戳较新者为准，别让 B 设备的旧缓存盖掉 A 设备的新改动。
+     · 云端有、本机无          → 拉下来
+     · 本机有、云端无          → 保留并补推云端（离线期间新建的商品）
+     · 两边都有                → 比 up；云端较新则覆盖本机（含「已被删除」的标记）
+   返回 true 表示数据发生了变化（调用方据此决定是否提示）。 */
+async function syncFromCloud(){
+  if(WBCloud.off()){ CLOUD_STATE = 'off'; return false; }
+  const rows = await WBCloud.list();
+  if(rows === null){ CLOUD_STATE = 'off'; return false; }
+  CLOUD_STATE = 'on';
+
+  const rmap = {}, lmap = {}, out = [], push = [];
+  rows.forEach(r => { rmap[r.id] = r; });
+  CUSTOM.forEach(s => { lmap[s.c] = s; });
+  const before = JSON.stringify(CUSTOM.map(s => [s.c, s.t, s.pts.length]));
+
+  new Set(Object.keys(rmap).concat(Object.keys(lmap))).forEach(id => {
+    const r = rmap[id], l = lmap[id];
+    if(r && !l){ if(!r.is_del) out.push(fromRow(r)); return; }          // 云端独有
+    if(l && !r){ out.push(l); push.push(l); return; }                   // 本机独有 → 补推
+    const ru = +r.up || 0, lu = +l.t || 0;
+    if(lu > ru){ out.push(l); push.push(l); }                           // 本机较新 → 推上去
+    else if(!r.is_del) out.push(fromRow(r));                            // 云端较新（或一致）
+  });
+
+  CUSTOM = out;
+  if(push.length) await WBCloud.upsertMany(push.map(toRow));
+  afterCustomChange();
+  return JSON.stringify(out.map(s => [s.c, s.t, s.pts.length])) !== before;
+}
+/* 挑一个当前没被占用的颜色（内置 + 已入库的自定义一起算，避免两条曲线同色）
+   ★ 必须统一小写再比：<input type="color"> 会把值规范化为小写（#FF4D6D → #ff4d6d），
+     不归一化的话去重永远失效，每条新曲线都会拿到同一个颜色。 */
+function freeColor(){
+  const used = {};
+  ALL.forEach(s => { if(s.col) used[String(s.col).toLowerCase()] = 1; });
+  for(let i = 0; i < PALETTE.length; i++)
+    if(!used[PALETTE[i].toLowerCase()]) return PALETTE[i].toLowerCase();
+  return PALETTE[CUSTOM.length % PALETTE.length].toLowerCase();
+}
+/* 把自定义序列并入 ALL：先摘掉旧的，再整体重挂，保证顺序稳定。
+   overlay（内置数据覆盖）记录**不单独成线** —— 它由 applyOverlay() 覆写到内置序列上。 */
+function mergeCustom(){
+  for(let i = ALL.length - 1; i >= 0; i--) if(ALL[i].src === 'upload') ALL.splice(i, 1);
+  const alive = {};
+  CUSTOM.forEach(s => { alive[s.c] = 1; });
+  /* 顺手清掉 BYCODE 里的孤儿键（被删掉的自定义序列），否则图表标签会指向幽灵数据 */
+  Object.keys(BYCODE).forEach(c => {
+    if((c.indexOf('u_') === 0 || c.indexOf('ov_') === 0) && !alive[c]) delete BYCODE[c];
+  });
+  CUSTOM.forEach(s => {
+    if(!s.pts || !s.pts.length) return;
+    s.pts.sort((a, b) => a[0] - b[0]);
+    /* 时间区间两类记录都要维护 —— 管理面板、备份页、导出都会读 t0/t1 */
+    s.t0 = s.pts[0][0]; s.t1 = s.pts[s.pts.length - 1][0];
+    if(s.src === 'overlay') return;        // 覆盖记录不单独成线，只覆写到内置序列上
+    s.gname = tagOf(s); s.cat = TAG_DEFAULT;
+    ALL.push(s); BYCODE[s.c] = s;
+  });
+  applyOverlay();
+}
+
+/* ---------- 内置序列的数据覆盖（「直接编辑内置价格」的落点） ----------
+   内置数据随页面打包、改不动；所以编辑内置价格时另存一条 ov_<code> 记录（进云端），
+   每次渲染前先把它覆写到内置序列的 pts 上 —— 效果就是「内置那条的价格被改了」。
+   原始数据留在 pts0，面板里一键就能恢复。 */
+function applyOverlay(){
+  /* ① 先把所有内置序列复位到「打包原始值」，再套本机覆盖层（改名/单位/颜色）
+     —— 每次都从头算，避免反复应用后互相污染。 */
+  ALL.forEach(s => {
+    if(s.src !== 'builtin' || !s.pts0) return;
+    s.pts = s.pts0; s.t0 = s.t00; s.t1 = s.t10; delete s.ovId;
+    s.n = s.n0; s.u = s.u0; s.col = s.col0;
+  });
+  applyBover();
+  /* ② 再把云端下来的「数据覆盖」记录覆写上去 */
+  CUSTOM.forEach(ov => {
+    if(ov.src !== 'overlay' || !ov.base || !ov.pts.length) return;
+    const b = BYCODE[ov.base];
+    if(!b || b.src !== 'builtin') return;
+    b.pts  = ov.pts;
+    b.t0   = ov.pts[0][0];
+    b.t1   = ov.pts[ov.pts.length - 1][0];
+    b.ovId = ov.c;
+    if(ov.n)   b.n   = ov.n;
+    if(ov.u != null) b.u = ov.u;
+    if(ov.col) b.col = ov.col;
+  });
+}
+/* 某条内置序列的覆盖记录（没有则 null） */
+function overlayOf(code){
+  return CUSTOM.find(s => s.src === 'overlay' && s.base === code) || null;
+}
+/* 重算时间边界。自定义商品可能把范围撑大，也可能被删掉后缩回 */
+function recomputeBounds(){
+  if(!ALL.length) return false;
+  const oF = FIN, oL = LIN;                  // 旧边界：用来判断用户当前是不是在看全区间
+  const nf = Math.min(...ALL.map(s => s.t0));
+  const nl = Math.max(...ALL.map(s => s.t1));
+  const grew = (nf < FIRST) || (nl > LAST);
+  FIRST = nf; LAST = nl;
+  FIN = Math.round(FIRST); LIN = Math.round(LAST);
+  dtFrom.min = dtTo.min = dayToStr(FIN);
+  dtFrom.max = dtTo.max = dayToStr(LIN);
+  /* 只在「原本看的就是全区间」时才跟着扩，免得打断用户正盯着的窗口 */
+  const wasAll = state.view.min <= oF + 2 && state.view.max >= oL - 2;
+  if(grew && wasAll) state.view = clampView(FIN, LIN);
+  else state.view = clampView(state.view.min, state.view.max);
+  return grew;
+}
+/* 内置数据不在时，第一次载入「我的商品」自动全部勾选（否则打开页面是空图）；
+   用户一旦自己点过 chip / 全选 / 快速选择，就不再自动接管。
+   ★ 除了 afterCustomChange()，启动流程里也要显式调一次 —— 本机模式（file:// 打开、
+     云端不可达）下 syncFromCloud() 会提前返回，不会走到 afterCustomChange()。 */
+function autoPickIfNeeded(){
+  if(autoPicked || !ALL.length) return;
+  ALL.forEach(s => state.active.add(s.c));
+  autoPicked = true;
+}
+
+/* 自定义商品变动后的统一收尾 */
+function afterCustomChange(){
+  saveCustom();
+  mergeCustom();
+  autoPickIfNeeded();
+  recomputeBounds();
+  buildChips();
+  renderHead();
+  renderCover();
+  redraw();
+}
+
+/* ============================================================
+   3. 品种 chips（即图例）
+   ============================================================ */
+const chipHost = document.getElementById('chips');
+
+function chipHTML(s, own){
+  const on = state.active.has(s.c);
+  const st = on ? `background:${s.col}1f;border-color:${s.col}88` : `border-color:${s.col}30`;
+  const mine = s.src === 'upload';
+  const tip  = mine ? (s.pts.length + ' 点 · 自定义 · 标签 ' + tagOf(s))
+                    : (s.ovId ? '价格数据已被编辑 · ' + s.pts.length + ' 点'
+                              : (hasBover(s.c) ? '已自定义名称/单位/颜色' : (s.m || '内置序列')));
+  const mark = s.ovId ? '<span class="ovr" title="价格数据已被编辑"></span>'
+                      : (hasBover(s.c) ? '<span class="ovr" title="已改过名称 / 单位 / 颜色"></span>' : '');
+  return `<button class="chip${on?' on':''}${own?' own':''}" data-c="${s.c}" style="${st}"
+      title="${esc(s.n)}　${esc(tip)}">` +
+    `<span class="dot" style="background:${s.col};color:${s.col}"></span>${esc(s.n)}` + mark +
+    `<span class="ed" title="${mine ? '编辑：改价格、改名、删除' : '编辑：改价格 / 改名 / 单位 / 颜色 / 复制为我的商品'}">✎</span>` +
+    `</button>`;
+}
+
+function buildChips(){
+  const tg = customByTag();
+  const bi = builtinTagNames();
+  /* ① 内置分组（点分组名＝整组选中 / 取消）—— 没有内置数据时这一块整体为空 */
+  let html = GROUPS.map(g => `
+      <div class="grp">
+        <span class="gt tog" data-grp="${esc(g.name)}" title="点一下＝选中 / 取消整组「${esc(g.name)}」">${esc(g.name)}</span>
+        ${g.series.map(s => chipHTML(s, false)).join('')}
+      </div>`).join('');
+  /* ② 自定义商品：一个标签一行。标签名与内置分类同名时补个「我的」小标区分 */
+  html += tg.keys.map((t, i) => {
+    const clash = HAS_BUILTIN && bi.indexOf(t) >= 0;
+    const first = (i === 0) && HAS_BUILTIN;      // 只有前面还有内置分组时才画那条分隔线
+    return `
+      <div class="grp${first ? ' sep' : ''}">
+        <span class="gt tog own" data-tag="${esc(t)}" title="我的商品 · 标签「${esc(t)}」　点一下＝选中 / 取消整组">${esc(t)}${clash ? '<i class="mine">我的</i>' : ''}</span>
+        ${tg.map.get(t).map(s => chipHTML(s, true)).join('')}
+      </div>`;
+  }).join('');
+  /* ③ 「＋ 上传 Excel」固定挂在最后一行的行尾 */
+  const addBtn = `<button class="chip add" id="chip-add" title="上传 Excel / CSV，把商品价格加进来一起对比">＋ 上传 Excel</button>`;
+  html += tg.keys.length
+    ? `<div class="grp"><span class="gt"></span>${addBtn}</div>`
+    : `<div class="grp${HAS_BUILTIN ? ' sep' : ''}"><span class="gt">我的商品</span>${addBtn}</div>`;
+  chipHost.innerHTML = html;
+  wireChips();
+}
+
+function wireChips(){
+  chipHost.querySelectorAll('.chip[data-c]').forEach(b => {
+    b.onclick = ev => {
+      /* 点 ✎ 进编辑，其余区域照旧是勾选 / 取消 */
+      if(ev.target.classList && ev.target.classList.contains('ed')){
+        ev.stopPropagation(); openEdit(b.dataset.c); return;
+      }
+      toggleSeries(b.dataset.c, b);
+    };
+  });
+  /* 点分组标签＝整组全选 / 全不选（内置分组与自建标签都支持） */
+  chipHost.querySelectorAll('.gt.tog').forEach(g => {
+    g.onclick = () => {
+      autoPicked = true;
+      const codes = g.dataset.grp
+        ? ((GROUPS.find(x => x.name === g.dataset.grp) || {}).series || []).map(s => s.c)
+        : CUSTOM.filter(s => s.src !== 'overlay' && tagOf(s) === g.dataset.tag).map(s => s.c);
+      if(!codes.length) return;
+      const allIn = codes.every(c => state.active.has(c));
+      codes.forEach(c => allIn ? state.active.delete(c) : state.active.add(c));
+      buildChips(); redraw();
+    };
+  });
+  const add = document.getElementById('chip-add');
+  if(add) add.onclick = openUpload;
+}
+
+function toggleSeries(c, btn){
+  autoPicked = true;                          // 用户自己点过就不再自动全选
+  state.active.has(c) ? state.active.delete(c) : state.active.add(c);
+  const s = BYCODE[c]; if(!s) return;
+  const on = state.active.has(c);
+  if(btn){
+    btn.classList.toggle('on', on);
+    btn.style.background  = on ? s.col + '1f' : '';
+    btn.style.borderColor = on ? s.col + '88' : s.col + '30';
+  }
+  redraw();
+}
+
+/* ============================================================
+   4. 视窗内的取数与抽样
+   ============================================================ */
+function lowerBound(a, v){ let lo=0, hi=a.length; while(lo<hi){ const m=(lo+hi)>>1; if(a[m][0]<v) lo=m+1; else hi=m; } return lo; }
+function upperBound(a, v){ let lo=0, hi=a.length; while(lo<hi){ const m=(lo+hi)>>1; if(a[m][0]<=v) lo=m+1; else hi=m; } return lo; }
+
+/* 取 [min,max] 内的点；超出目标点数则等距抽样（保留首末） */
+function slice(pts, min, max, target){
+  let lo = lowerBound(pts, min), hi = upperBound(pts, max);
+  if(hi <= lo) return [];
+  // 两端各留一个点，避免曲线在视窗边缘断开
+  if(lo>0) lo--;
+  if(hi<pts.length) hi++;
+  const n = hi-lo;
+  if(n <= target) return pts.slice(lo,hi);
+  const step = n/target, out = [];
+  for(let i=0;i<target;i++) out.push(pts[lo + Math.floor(i*step)]);
+  out.push(pts[hi-1]);
+  return out;
+}
+
+/* 视窗内首末值（用于归一化基期与涨跌幅） */
+function windowStats(s, min, max){
+  const p = s.pts;
+  let lo = lowerBound(p, min), hi = upperBound(p, max);
+  if(hi <= lo) return null;
+  return { first: p[lo][1], last: p[hi-1][1], n: hi-lo,
+           from: p[lo][0], to: p[hi-1][0] };
+}
+
+/* ============================================================
+   5. 图表
+   ============================================================ */
+Chart.defaults.color = '#8d9bb3';
+Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+Chart.defaults.font.size = 11.5;
+Chart.defaults.borderColor = 'rgba(255,255,255,.07)';
+
+let chart = null;
+const TIP = {
+  backgroundColor:'rgba(8,11,17,.95)', borderColor:'rgba(255,255,255,.18)', borderWidth:1,
+  titleColor:'#fff', bodyColor:'#dfe6f2', padding:11, cornerRadius:9,
+  titleFont:{size:12.5,weight:'700'}, bodyFont:{size:12}, displayColors:true,
+  boxWidth:9, boxHeight:9, boxPadding:5
+};
+
+function buildDatasets(min, max, pxw){
+  const target = Math.max(600, Math.min(2200, pxw*1.6));
+  const ds = [];
+  ALL.forEach(s => {
+    if(!state.active.has(s.c)) return;
+    const st = windowStats(s, min, max);
+    if(!st) return;
+    const base = st.first;
+    const raw = slice(s.pts, min, max, target);
+    // 注意：options.parsing=false 时 Chart.js 直接读 point.x / point.y，
+    // 因此这里必须给对象字面量，不能传 [x, y] 数组（数组会被读成 undefined）。
+    let data;
+    if(state.mode === 'norm'){
+      if(!(base>0)) return;
+      data = raw.map(p => ({x:p[0], y:+(p[1]/base*100).toFixed(2)}));
+    } else {
+      data = raw.map(p => ({x:p[0], y:p[1]}));
+    }
+    ds.push({ label:s.n, data, borderColor:s.col, backgroundColor:s.col,
+      _c: s.c, _own: s.src === 'upload',
+      borderWidth: (s.c==='gold'||s.c==='gold_i') ? 2.2 : 1.5,
+      pointRadius:0, pointHoverRadius:4, tension:0, spanGaps:true });
+  });
+  return ds;
+}
+
+function buildOptions(min, max){
+  return {
+    responsive:true, maintainAspectRatio:false, animation:false,
+    parsing:false, normalized:true, spanGaps:true,
+    interaction:{ mode:'nearest', axis:'x', intersect:false },
+    plugins:{
+      legend:{ display:false },
+      tooltip:{ ...TIP,
+        enabled: !state.xhair,          // 十字光标接管读数展示，避免两套浮层重叠
+        callbacks:{
+          title: it => dayToStr(Math.round(it[0].parsed.x)) + '　' + (state.mode==='norm'?'指数':'价格'),
+          label: it => {
+            const v = it.parsed.y;
+            const s = BYCODE[it.dataset._c];
+            const tag = it.dataset._own ? '（自定义）' : '';
+            return state.mode==='norm'
+              ? ` ${it.dataset.label}${tag}：指数 ${fmt(v)}`
+              : ` ${it.dataset.label}${tag}：${fmt(v)} ${s ? (s.u || '') : ''}`;
+          }
+        } }
+    },
+    scales:{
+      x:{ type:'linear', min, max,
+          grid:{ color:'rgba(255,255,255,.05)' },
+          ticks:{ maxTicksLimit:13, autoSkip:true, maxRotation:0,
+                  callback: v => { const y=new Date(v*DAY).getUTCFullYear();
+                    return (state.view.max-state.view.min) > 1200 ? y : dayToYM(v); } } },
+      y:{ type: state.scale==='log' ? 'logarithmic' : 'linear',
+          grid:{ color:'rgba(255,255,255,.055)' },
+          title:{ display:true, color:'#68758d',
+                  text: state.mode==='norm' ? '相对视窗左端 = 100' : '价格（单位不一，建议对数）' },
+          ticks:{ callback: v => {
+            if(state.scale!=='log') return fmt(v);
+            const a=[0.5,1,2,5,10,20,50,100,200,500,1000,2000,5000,10000,20000,50000,100000];
+            return a.includes(v) ? fmt(v) : '';
+          } } }
+    }
+  };
+}
+
+function redraw(){
+  const {min,max} = state.view;
+  const pxw = document.getElementById('cbox').clientWidth || 1200;
+  const ds = buildDatasets(min, max, pxw);
+  if(!chart){
+    chart = new Chart(document.getElementById('cv'),
+      {type:'line', data:{datasets:ds}, options:buildOptions(min,max)});
+  } else {
+    chart.data.datasets = ds;
+    const o = chart.options;
+    o.scales.x.min = min; o.scales.x.max = max;
+    o.scales.y.type = state.scale==='log' ? 'logarithmic' : 'linear';
+    o.scales.y.title.text = state.mode==='norm' ? '相对视窗左端 = 100' : '价格（单位不一，建议对数）';
+    chart.update('none');
+  }
+  updateMeta(ds.length);
+  renderRank();
+}
+function updateMeta(n){
+  const d = state.view.max - state.view.min;
+  const yrs = (d/365.25);
+  const bs = dayToStr(Math.round(state.view.min));
+  const bl = document.getElementById('baseline');
+  bl.innerHTML = state.mode==='norm'
+    ? `归一化基期 <b style="color:#F5C542">${bs}</b> = 100`
+    : `原始价格 · 单位不一`;
+  bl.style.color = state.mode==='norm' ? '#a9b6cb' : '#6b7891';
+  document.getElementById('vlen').textContent =
+    `${bs} → ${dayToStr(Math.round(state.view.max))}　·　${d} 天（${yrs>=2?yrs.toFixed(1)+' 年':Math.round(d/30.4)+' 个月'}）`;
+  document.getElementById('cnt').textContent = `已选 ${n} / ${ALL.length} 条`;
+  /* 空图提示：一条数据都没有 / 或全都取消勾选时给一句话，别让人对着空白发呆 */
+  const eh = document.getElementById('cempty');
+  if(eh){
+    eh.innerHTML = ALL.length
+      ? '当前没有勾选任何品种 —— 在上面的 chip 区点一下商品即可加入对比'
+      : '还没有数据 —— 点上方「⬆ 上传 Excel」把商品的日线价格导进来<br>一张宽表里的多个品种可以一次全部导入';
+    eh.style.display = n ? 'none' : 'flex';
+  }
+  syncCustomInputs();
+}
+
+/* ============================================================
+   6. 缩放 / 平移 / 框选
+   ============================================================ */
+const cbox = document.getElementById('cbox');
+let dragging = null;
+
+function clampView(a, b){
+  const span = b-a;
+  const FULL = LAST-FIRST;
+  if(span >= FULL){ return {min:FIRST, max:LAST}; }
+  let min = a, max = b;
+  if(min < FIRST){ max += FIRST-min; min = FIRST; }
+  if(max > LAST){ min -= max-LAST; max = LAST; }
+  return {min:Math.max(FIRST,min), max:Math.min(LAST,max)};
+}
+function setView(a, b, key){ state.view = clampView(a,b); syncRangeBtns(key || null); redraw(); }
+
+cbox.addEventListener('wheel', e => {
+  e.preventDefault();
+  if(!chart) return;
+  const r = cbox.getBoundingClientRect();
+  const px = e.clientX - r.left;
+  const xv = chart.scales.x.getValueForPixel(px);
+  if(xv==null) return;
+  const f = e.deltaY > 0 ? 1.18 : 1/1.18;
+  const {min,max} = state.view;
+  setView(xv-(xv-min)*f, xv+(max-xv)*f);
+}, {passive:false});
+
+cbox.addEventListener('mousedown', e => {
+  if(!chart) return;
+  const r = cbox.getBoundingClientRect();
+  const x0 = e.clientX - r.left;
+  dragging = { x0, mode: (e.altKey||e.shiftKey) ? 'box' : 'pan',
+               v0: state.view.min, v1: state.view.max, moved:false };
+  xhHide();                                      // 拖拽期间收起十字线，避免与遮罩/平移打架
+  if(dragging.mode==='box'){ XH.box = [x0, x0]; chart.draw(); }
+  else cbox.classList.add('panning');
+});
+
+window.addEventListener('mousemove', e => {
+  if(!dragging || !chart) return;
+  const r = cbox.getBoundingClientRect();
+  const x = e.clientX - r.left;
+  XH.x = x; XH.y = e.clientY - r.top;      // 记下指针，松开后好把十字光标接回来
+  if(Math.abs(x-dragging.x0) > 3) dragging.moved = true;
+  if(dragging.mode==='box'){
+    XH.box = [Math.min(dragging.x0, x), Math.max(dragging.x0, x)];
+    chart.draw();
+  } else {
+    const per = (dragging.v1-dragging.v0) / r.width;
+    const shift = (x - dragging.x0) * per;
+    setView(dragging.v0 - shift, dragging.v1 - shift);
+  }
+});
+
+window.addEventListener('mouseup', e => {
+  if(!dragging) return;
+  if(dragging.mode==='box' && dragging.moved && chart){
+    const r = cbox.getBoundingClientRect();
+    const x = e.clientX - r.left;
+    const a = Math.min(dragging.x0,x), b = Math.max(dragging.x0,x);
+    if(b-a > 8){
+      const va = chart.scales.x.getValueForPixel(a), vb = chart.scales.x.getValueForPixel(b);
+      if(va!=null && vb!=null) setView(va, vb);
+    }
+  }
+  XH.box = null; cbox.classList.remove('panning');
+  dragging = null;
+  /* 拖拽结束后指针仍在图区内：把十字光标直接接回来，不必等下一次移动 */
+  if(chart && state.xhair){
+    const a = chart.chartArea;
+    if(a) XH.on = XH.x >= a.left && XH.x <= a.right && XH.y >= a.top && XH.y <= a.bottom;
+  }
+  if(chart) chart.draw();
+});
+
+cbox.addEventListener('dblclick', () => { setRangeDays(null, 'all'); });
+
+/* ============================================================
+   6.5 十字光标（限定在绘图区内）+ 框选遮罩
+   —— 由 Chart.js 插件画在主画布上，几何完全跟随 chartArea：
+      十字线只在绘图区内延伸，不侵入坐标轴带，也不铺到整页。
+      读数用三种暗色底 + 金色描边的浮层：交点光晕、各行最近点、右上方命中列表。
+   （为什么不用独立 DOM / 叠一层画布：见 CSS "十字光标" 处的踩坑记录）
+   ============================================================ */
+const FONT = Chart.defaults.font.family;
+const XH = { on: false, x: 0, y: 0, box: null };
+const XF = '700 11px ' + FONT;      // 胶囊 / 标题
+const XF2 = '500 11.5px ' + FONT;   // 列表正文
+const XF3 = '500 10.5px ' + FONT;   // 列表注脚
+
+/* 金色读数胶囊 */
+function xhChip(g, x, y, txt){
+  g.font = XF;
+  const w = Math.ceil(g.measureText(txt).width) + 16, h = 19;
+  g.beginPath();
+  if(g.roundRect) g.roundRect(x, y, w, h, 6); else g.rect(x, y, w, h);
+  g.fillStyle = 'rgba(245,197,66,.95)'; g.fill();
+  g.strokeStyle = 'rgba(20,20,15,.35)'; g.lineWidth = 1; g.stroke();
+  g.fillStyle = '#15150f';
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText(txt, x + w/2, y + h/2 + .5);
+}
+/* 升序点列里取最接近 xv 的点 */
+function xhNear(dp, xv){
+  let lo = 0, hi = dp.length - 1;
+  if(hi < 0) return null;
+  if(xv <= dp[0].x) return dp[0];
+  if(xv >= dp[hi].x) return dp[hi];
+  while(hi - lo > 1){ const m = (lo + hi) >> 1; if(dp[m].x <= xv) lo = m; else hi = m; }
+  return (xv - dp[lo].x) <= (dp[hi].x - xv) ? dp[lo] : dp[hi];
+}
+function xhCut(t, n){ return t.length > n ? t.slice(0, n) + '…' : t; }
+
+/* 右上角命中列表：胶囊化卡片，最多列 7 行，按数值降序；窄屏自动收窄减行 */
+function xhCard(g, a, xv, rows){
+  const narrow = (a.right - a.left) < 640;
+  const W = narrow ? 174 : 214, RH = 17.5, HD = 22, PAD = 10;
+  const MAX = narrow ? 5 : 7;
+  const list = rows.slice().sort((p,q) => q.v - p.v);
+  const show = list.slice(0, MAX);
+  const more = list.length - show.length;
+  const H = HD + show.length*RH + (more > 0 ? 15 : 0) + 8;
+  const x = a.right - W - 10, y = a.top + 10;
+  g.beginPath();
+  if(g.roundRect) g.roundRect(x, y, W, H, 10); else g.rect(x, y, W, H);
+  g.fillStyle = 'rgba(8,11,17,.9)'; g.fill();
+  g.strokeStyle = 'rgba(245,197,66,.26)'; g.lineWidth = 1; g.stroke();
+  g.textBaseline = 'middle';
+  g.textAlign = 'left'; g.font = XF; g.fillStyle = '#F5C542';
+  g.fillText(dayToStr(Math.round(xv)), x + PAD, y + HD/2 + 1);
+  g.textAlign = 'right'; g.font = XF3; g.fillStyle = '#6b7891';
+  g.fillText(rows.length + ' 条命中', x + W - PAD, y + HD/2 + 1);
+  g.strokeStyle = 'rgba(255,255,255,.09)'; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(x + 1, y + HD + .5); g.lineTo(x + W - 1, y + HD + .5); g.stroke();
+  let ty = y + HD + RH/2 + 1;
+  show.forEach(r => {
+    g.fillStyle = r.col;
+    g.beginPath(); g.arc(x + PAD + 2, ty, 3, 0, 6.2832); g.fill();
+    g.textAlign = 'left'; g.font = XF2; g.fillStyle = '#a9b6cb';
+    g.fillText(xhCut(r.label, narrow ? 7 : 9), x + PAD + 11, ty);
+    g.textAlign = 'right'; g.font = XF; g.fillStyle = '#eef2f9';
+    g.fillText(fmt(r.v), x + W - PAD, ty);
+    ty += RH;
+  });
+  if(more > 0){
+    g.textAlign = 'left'; g.font = XF3; g.fillStyle = '#6b7891';
+    g.fillText('另有 ' + more + ' 条命中', x + PAD, ty);
+  }
+}
+
+Chart.register({
+  id: 'xhair',
+  /* 只负责画；指针位置由下面的 DOM 监听写入 XH（不依赖 Chart.js 的事件管线） */
+  afterDraw(c){
+    const a = c.chartArea;
+    if(!a) return;
+    const g = c.ctx;
+    g.save();
+    /* ① 框选遮罩（Alt / Shift 拖拽时） */
+    if(XH.box){
+      const x0 = Math.min(XH.box[0], XH.box[1]), x1 = Math.max(XH.box[0], XH.box[1]);
+      g.fillStyle = 'rgba(245,197,66,.13)';
+      g.fillRect(x0, a.top, x1 - x0, a.bottom - a.top);
+      g.strokeStyle = 'rgba(245,197,66,.6)'; g.lineWidth = 1;
+      g.beginPath(); g.moveTo(Math.round(x0)+.5, a.top); g.lineTo(Math.round(x0)+.5, a.bottom); g.stroke();
+      g.beginPath(); g.moveTo(Math.round(x1)+.5, a.top); g.lineTo(Math.round(x1)+.5, a.bottom); g.stroke();
+    }
+    /* ② 十字光标 —— 全部画在绘图区内 */
+    if(XH.on && !dragging && state.xhair){
+      const px = Math.round(XH.x) + .5, py = Math.round(XH.y) + .5;   // 对齐像素，线更锐
+      // 竖线（实线，主读数线）
+      g.setLineDash([]);
+      g.strokeStyle = 'rgba(245,197,66,.58)'; g.lineWidth = 1;
+      g.beginPath(); g.moveTo(px, a.top); g.lineTo(px, a.bottom); g.stroke();
+      // 横线（虚线，弱化处理）
+      g.strokeStyle = 'rgba(245,197,66,.42)'; g.setLineDash([4,4]);
+      g.beginPath(); g.moveTo(a.left, py); g.lineTo(a.right, py); g.stroke();
+      g.setLineDash([]);
+      // 交点光晕
+      const rg = g.createRadialGradient(px, py, 0, px, py, 16);
+      rg.addColorStop(0, 'rgba(245,197,66,.34)');
+      rg.addColorStop(1, 'rgba(245,197,66,0)');
+      g.fillStyle = rg; g.beginPath(); g.arc(px, py, 16, 0, 6.2832); g.fill();
+      g.fillStyle = '#F5C542'; g.beginPath(); g.arc(px, py, 3.4, 0, 6.2832); g.fill();
+      g.strokeStyle = 'rgba(8,11,17,.9)'; g.lineWidth = 1.4; g.stroke();
+
+      const xv = c.scales.x.getValueForPixel(XH.x);
+      const yv = c.scales.y.getValueForPixel(XH.y);
+
+      /* ③ 各序列在光标处的最近点（描一圈深色边，像串珠） */
+      const rows = [];
+      if(xv != null){
+        chart.data.datasets.forEach(d => {
+          const p = xhNear(d.data, xv);
+          if(!p || Math.abs(p.x - xv) > 800) return;     // 离得太远（约两年）不点亮
+          const qx = c.scales.x.getPixelForValue(p.x), qy = c.scales.y.getPixelForValue(p.y);
+          if(qx < a.left - 1 || qx > a.right + 1 || qy < a.top - 1 || qy > a.bottom + 1) return;
+          g.fillStyle = d.borderColor;
+          g.beginPath(); g.arc(qx, qy, 3.1, 0, 6.2832); g.fill();
+          g.strokeStyle = 'rgba(8,11,17,.92)'; g.lineWidth = 1.5; g.stroke();
+          rows.push({ label:d.label, v:p.y, col:d.borderColor });
+        });
+      }
+      /* ④ 底部日期胶囊（跟随光标，贴边自动夹住） */
+      if(xv != null){
+        const txt = dayToStr(Math.round(xv));
+        g.font = XF;
+        const w = Math.ceil(g.measureText(txt).width) + 16;
+        xhChip(g, Math.max(a.left + 2, Math.min(a.right - w - 2, px - w/2)), a.bottom - 27, txt);
+      }
+      /* ⑤ 左端数值胶囊（跟随光标；下沿让开日期胶囊） */
+      if(yv != null){
+        const txt = fmt(yv);
+        g.font = XF;
+        const w = Math.ceil(g.measureText(txt).width) + 16;
+        const by = Math.max(a.top + 3, Math.min(a.bottom - 50, py - 9.5));
+        xhChip(g, a.left + 7, by, txt);
+      }
+      /* ⑥ 右上角命中列表 */
+      if(rows.length) xhCard(g, a, xv, rows);
+    }
+    g.restore();
+  }
+});
+
+/* 指针追踪：自己监听 cbox，把坐标换算成画布坐标系里的 CSS 像素（与 chartArea 同一坐标系）。
+   不用 Chart.js 的 afterEvent 钩子取指针位置——该钩子在无头/部分环境下收不到事件，
+   几何会一直是初始值，十字线便永远不亮。 */
+let xhRaf = 0;
+function xhPaint(){                       // 合帧重绘，避免每个 mousemove 都画一遍
+  if(xhRaf) return;
+  xhRaf = requestAnimationFrame(() => { xhRaf = 0; if(chart) chart.draw(); });
+}
+cbox.addEventListener('mousemove', e => {
+  if(!chart || !state.xhair){ if(XH.on){ XH.on = false; xhPaint(); } return; }
+  const a = chart.chartArea;
+  if(!a) return;
+  const r = cbox.getBoundingClientRect();
+  XH.x = (e.clientX - r.left) * (chart.canvas.clientWidth / r.width);
+  XH.y = (e.clientY - r.top)  * (chart.canvas.clientHeight / r.height);
+  // 只有指针落在绘图区内才点亮：轴区不点亮，避免误读
+  const on = XH.x >= a.left && XH.x <= a.right && XH.y >= a.top && XH.y <= a.bottom;
+  XH.on = on;
+  xhPaint();
+});
+cbox.addEventListener('mouseleave', () => { if(XH.on){ XH.on = false; xhPaint(); } });
+
+function xhHide(){ if(XH.on){ XH.on = false; if(chart) chart.draw(); } }
+window.addEventListener('resize', xhHide);
+
+/* ============================================================
+   7. 排行 / 覆盖区间
+   ============================================================ */
+function renderRank(){
+  const {min,max} = state.view;
+  const rows = [];
+  ALL.forEach(s => {
+    if(!state.active.has(s.c)) return;
+    const st = windowStats(s, min, max);
+    if(!st || st.n < 2) return;
+    rows.push({ s, r: (st.last/st.first - 1)*100, first: st.first, last: st.last, n: st.n });
+  });
+  rows.sort((a,b) => b.r - a.r);
+  const mx = Math.max(1, ...rows.map(r => Math.abs(r.r)));
+  document.getElementById('rank').innerHTML =
+    `<tr><th>#</th><th>序列</th><th class="n">区间首</th><th class="n">区间末</th><th class="n">涨跌幅</th><th style="width:110px">幅度</th></tr>` +
+    (rows.length ? rows.map((x,i) => {
+      const cls = x.r>=0 ? 'pos' : 'neg';
+      const w = Math.abs(x.r)/mx*104;
+      const col = x.r>=0 ? '#ff6a6a' : '#28c98a';
+      return `<tr>
+        <td style="color:${i<3?'#F5C542':'#6b7891'}">${i+1}</td>
+        <td style="color:${x.s.col};font-weight:600">${esc(x.s.n)}<div style="font-size:11px;color:#6b7891;font-weight:400">${esc(x.s.m || '')} · ${esc(x.s.u || '')}</div></td>
+        <td class="n">${fmt(x.first)}</td><td class="n">${fmt(x.last)}</td>
+        <td class="n ${cls}">${fmtPct(x.r)}</td>
+        <td><div class="bar-cell"><i style="width:${w}px;background:${col}"></i></div></td></tr>`;
+    }).join('') : '<tr><td colspan="6" style="color:#6b7891;padding:16px">当前视窗内没有已选序列的完整数据，请放宽时间区间或增选品种。</td></tr>');
+  document.getElementById('rank-tag').textContent =
+    `${dayToStr(Math.round(min))} → ${dayToStr(Math.round(max))}`;
+}
+
+function renderCover(){
+  document.getElementById('cover').innerHTML =
+    '<tr><th>序列</th><th>市场</th><th class="n">起始</th><th class="n">截止</th><th class="n">交易日</th></tr>' +
+    ALL.map(s => `<tr>
+      <td style="color:${s.col};font-weight:600">${esc(s.n)}${s.src==='upload'?' <span style="color:#F5C542;font-size:11px">✎</span>':''}</td>
+      <td style="font-size:11.5px;color:#8d9bb3">${esc(s.m || '')}</td>
+      <td class="n">${dayToStr(s.t0)}</td><td class="n">${dayToStr(s.t1)}</td>
+      <td class="n">${s.pts.length.toLocaleString('zh-CN')}</td></tr>`).join('');
+}
+renderCover();
+
+/* ============================================================
+   8. 交互控件
+   ============================================================ */
+document.querySelectorAll('#seg-mode button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#seg-mode button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); state.mode = b.dataset.m;
+  document.getElementById('mode-tag').textContent =
+    state.mode==='norm' ? '归一化 · 基期随视窗左端' : '原始价格 · 单位不一';
+  document.getElementById('mode-desc').innerHTML = state.mode==='norm'
+    ? '每条序列以<b>当前视窗左端</b>的收盘价为 100 换算相对涨幅。缩放时基期自动跟随，因此可以直接比出不同单位、不同货币的品种<b>谁涨得更凶</b>。'
+    : '显示<b>实际价格</b>。注意国内为人民币、国际为美元/美分，单位与量级差异极大，建议配合<b>对数刻度</b>查看，或切换回归一化口径做横向比较。';
+  redraw();
+});
+document.querySelectorAll('#seg-scale button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#seg-scale button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); state.scale = b.dataset.s; redraw();
+});
+document.querySelectorAll('#seg-range button:not([data-r="custom"])').forEach(b => b.onclick = () => {
+  const m = { '1m':30, '3m':91, '6m':182, '1y':365, '3y':1095, '5y':1825, 'all':null };
+  setRangeDays(m[b.dataset.r], b.dataset.r);
+});
+
+/* ---------- 自定义日期区间 ---------- */
+const dtFrom    = document.getElementById('dt-from');
+const dtTo      = document.getElementById('dt-to');
+const dtHint    = document.getElementById('dt-hint');
+const custombar = document.getElementById('custombar');
+const btnCustom = document.getElementById('btn-custom');
+/* FIN / LIN 在顶部声明，随 recomputeBounds() 维护（自定义商品可能撑大范围） */
+dtFrom.min = dtTo.min = dayToStr(FIN);
+dtFrom.max = dtTo.max = dayToStr(LIN);
+
+function dtNote(msg, cls){ dtHint.textContent = msg || ''; dtHint.className = 'dt-hint' + (cls?' '+cls:''); }
+function clearQuick(){ document.querySelectorAll('#dt-quick button').forEach(x => x.classList.remove('on')); }
+
+/* 视窗变化时把起止日期回填到输入框（正在编辑的框不打断） */
+function syncCustomInputs(){
+  const a = dayToStr(Math.round(state.view.min)), b = dayToStr(Math.round(state.view.max));
+  if(document.activeElement !== dtFrom && dtFrom.value !== a) dtFrom.value = a;
+  if(document.activeElement !== dtTo   && dtTo.value   !== b) dtTo.value   = b;
+}
+
+/* 应用自定义区间：自动对调、钳制到数据范围、保证最小 1 天跨度 */
+function applyCustom(quiet){
+  if(!dtFrom.value || !dtTo.value){ dtNote('请填写有效的起止日期','bad'); return; }
+  let n1 = strToDay(dtFrom.value), n2 = strToDay(dtTo.value);
+  if(isNaN(n1) || isNaN(n2)){ dtNote('日期格式不正确','bad'); return; }
+  const msg = [];
+  if(n1 > n2){ const t = n1; n1 = n2; n2 = t; msg.push('起止已自动对调'); }
+  if(n1 < FIN){ n1 = FIN; msg.push('起始早于数据起点，已调整为 '+dayToStr(FIN)); }
+  if(n2 > LIN){ n2 = LIN; msg.push('结束晚于最新交易日，已调整为 '+dayToStr(LIN)); }
+  n1 = Math.max(FIN, Math.min(LIN, n1));
+  n2 = Math.max(FIN, Math.min(LIN, n2));
+  if(n2 - n1 < 1){ if(n1 <= LIN-1) n2 = n1 + 1; else n1 = n2 - 1; }
+  setView(n1, n2, 'custom');
+  dtFrom.value = dayToStr(Math.round(state.view.min));
+  dtTo.value   = dayToStr(Math.round(state.view.max));
+  const span = Math.round(state.view.max - state.view.min);
+  if(!quiet){
+    dtNote((msg.length ? msg.join('；')+'　·　' : '') +
+           `已定位 ${span} 天（${dayToStr(Math.round(state.view.min))} → ${dayToStr(Math.round(state.view.max))}）`,
+           msg.length ? 'bad' : 'ok');
+  } else { dtNote(`已定位 ${span} 天`, 'ok'); }
+}
+
+/* 面板展开 / 折叠 */
+btnCustom.onclick = () => {
+  const show = custombar.style.display === 'none';
+  custombar.style.display = show ? 'flex' : 'none';
+  btnCustom.classList.toggle('open', show);
+  if(show){ syncCustomInputs(); dtNote(''); }
+};
+
+document.getElementById('dt-apply').onclick = () => { clearQuick(); applyCustom(); };
+document.getElementById('dt-reset').onclick = () => {
+  clearQuick();
+  dtFrom.value = dayToStr(FIN); dtTo.value = dayToStr(LIN);
+  setView(FIN, LIN, 'all');
+  dtNote('已复位为全部区间 '+dayToStr(FIN)+' → '+dayToStr(LIN), 'ok');
+};
+[dtFrom, dtTo].forEach(el => {
+  el.addEventListener('keydown', ev => { if(ev.key === 'Enter'){ clearQuick(); applyCustom(); } });
+  el.addEventListener('change', () => { clearQuick(); applyCustom(); });
+});
+
+document.querySelectorAll('#dt-quick button').forEach(b => b.onclick = () => {
+  const Y = new Date(LAST*DAY).getUTCFullYear();
+  const iso = (y,m,d) => new Date(Date.UTC(y,m,d)).toISOString().slice(0,10);
+  let n1, n2 = LIN;
+  const k = b.dataset.cy;
+  if(k === 'thisY'){ n1 = strToDay(Y+'-01-01'); n2 = LIN; }
+  else if(k === 'lastY'){ n1 = strToDay((Y-1)+'-01-01'); n2 = strToDay((Y-1)+'-12-31'); }
+  else if(k === 'lastM'){
+    const d0 = new Date(LAST*DAY), y = d0.getUTCFullYear(), m = d0.getUTCMonth();
+    n1 = strToDay(iso(y, m-1, 1)); n2 = strToDay(iso(y, m, 0));
+  }
+  else if(k === 'y10'){ n1 = n2 - 3653; }
+  else if(k === 'y20'){ n1 = n2 - 7305; }
+  n1 = Math.max(FIN, Math.round(n1));
+  n2 = Math.min(LIN, Math.round(n2));
+  dtFrom.value = dayToStr(n1); dtTo.value = dayToStr(n2);
+  clearQuick(); b.classList.add('on');
+  applyCustom(true);
+});
+
+document.getElementById('sel-all').onclick = () => {
+  autoPicked = true;
+  if(state.active.size === ALL.length) state.active.clear();
+  else ALL.forEach(s => state.active.add(s.c));
+  buildChips(); redraw();
+};
+/* 快速选择：按「商品标签」匹配（内置数据在时也兼容内置分类名）。
+   这样内置序列被移除、全部换成自建商品之后，这四个按钮照样能一键选同一标签的商品。 */
+document.querySelectorAll('#quick button').forEach(b => b.onclick = () => {
+  const map = {'precious':'贵金属','metal':'有色金属','agri':'农产品','energy':'能源化工'};
+  const g = map[b.dataset.q];
+  autoPicked = true;
+  const members = ALL.filter(s => (s.src === 'upload' ? tagOf(s) : s.cat) === g).map(s => s.c);
+  const allIn = members.length > 0 && members.every(c => state.active.has(c));
+  members.forEach(c => allIn ? state.active.delete(c) : state.active.add(c));
+  buildChips(); redraw();
+});
+
+/* ---------- 十字光标 / 跟随提示 切换 ---------- */
+document.querySelectorAll('#seg-xh button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#seg-xh button').forEach(x => x.classList.remove('on'));
+  b.classList.add('on');
+  state.xhair = b.dataset.x === 'on';
+  XH.on = false; XH.box = null;
+  if(chart){ chart.options.plugins.tooltip.enabled = !state.xhair; chart.update('none'); }
+});
+
+/* ============================================================
+   10. 我的商品：上传 / 编辑 / 管理 / 备份
+   —— 上传的 Excel 商品成为一条普通序列并入 ALL，
+      增删改查都在本页完成，存 localStorage，不依赖后端。
+   ============================================================ */
+const mask = document.getElementById('mask');
+const dlg  = document.getElementById('dlg');
+
+function openDlg(html, wide){
+  dlg.className = 'dlg' + (wide ? ' wide' : '');
+  dlg.innerHTML = '<button class="x" title="关闭（Esc）">✕</button>' + html;
+  mask.classList.add('on');
+  dlg.querySelector('.x').onclick = closeDlg;
+  return dlg;
+}
+function closeDlg(){ mask.classList.remove('on'); dlg.innerHTML = ''; }
+mask.addEventListener('mousedown', e => { if(e.target === mask) closeDlg(); });
+window.addEventListener('keydown', e => { if(e.key === 'Escape' && mask.classList.contains('on')) closeDlg(); });
+
+/* ---------- 轻提示 ---------- */
+let toastEl = null, toastTm = 0;
+function toast(msg, kind){
+  if(!toastEl){ toastEl = document.createElement('div'); toastEl.className = 'toast'; document.body.appendChild(toastEl); }
+  toastEl.textContent = msg;
+  toastEl.className = 'toast on' + (kind ? ' ' + kind : '');
+  clearTimeout(toastTm);
+  toastTm = setTimeout(() => { toastEl.className = 'toast'; }, 3600);
+}
+function pad2(n){ return (n < 10 ? '0' : '') + n; }
+function mkDay(y, mo, d){
+  const t = Date.UTC(y, mo - 1, d);
+  if(isNaN(t)) return NaN;
+  const dt = new Date(t);
+  if(dt.getUTCFullYear() !== y || dt.getUTCMonth() !== mo - 1 || dt.getUTCDate() !== d) return NaN;
+  return Math.round(t / DAY);
+}
+/* 宽容的日期解析：Date 对象 / 2024-01-02 / 2024/1/2 / 2024年1月2日 / 20240102 / 24-1-2 / Excel 序列号 */
+function parseDay(v){
+  if(v == null || v === '') return NaN;
+  if(v instanceof Date) return isNaN(v) ? NaN : Math.round(Date.UTC(v.getFullYear(), v.getMonth(), v.getDate()) / DAY);
+  if(typeof v === 'number' && isFinite(v)){
+    if(v > 20000 && v < 80000) return Math.round(Date.UTC(1899, 11, 30) / DAY + Math.floor(v));   // Excel 序列号
+    if(v >= 19000101 && v <= 20991231){                                                          // 20241012
+      const s = String(Math.round(v));
+      return mkDay(+s.slice(0,4), +s.slice(4,6), +s.slice(6,8));
+    }
+    return NaN;
+  }
+  let t = String(v).trim().replace(/[年月]/g, '-').replace(/日/g, '').replace(/[\/.]/g, '-');
+  t = t.split(/[\sT]/)[0];
+  let m = t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if(m) return mkDay(+m[1], +m[2], +m[3]);
+  m = t.match(/^(\d{4})(\d{2})(\d{2})$/);
+  if(m) return mkDay(+m[1], +m[2], +m[3]);
+  m = t.match(/^(\d{2})-(\d{1,2})-(\d{1,2})$/);
+  if(m) return mkDay((+m[1] > 60 ? 1900 : 2000) + (+m[1]), +m[2], +m[3]);
+  return NaN;
+}
+/* 宽容的数值解析：去千分位 / 货币符号 / 单位后缀 / 百分号 */
+function parseNum(v){
+  if(v == null) return NaN;
+  if(typeof v === 'number') return isFinite(v) ? v : NaN;
+  let t = String(v).replace(/[,\s，%、]/g, '');
+  t = t.replace(/^[^\d+\-.]+/, '').replace(/[^\d+\-.eE]+$/g, '');
+  if(t === '' || t === '-' || t === '.' || t === '+') return NaN;
+  const n = parseFloat(t);
+  return isFinite(n) ? n : NaN;
+}
+
+/* ---------- 结构识别：日期列 / 表头行 / 单位行 / 全部数值列 ----------
+   宽表（一列一个品种）是 iFinD / Wind / 同花顺导出的常见形态：
+   第一行往往是品种名、第二行是单位（元/吨），第三行起才是日期与数值。
+   这里把「能当序列导入的列」全部找出来，交给界面让用户一次全选。
+   ------------------------------------------------------------------ */
+const UNIT_HINT = /(元|美元|美分|人民币|日元|欧元|港币|吨|桶|盎司|克|千克|公斤|磅|蒲式耳|加仑|升|立方|点|千瓦|兆瓦|指数|%)/;
+
+/* 判断一列是不是「真·日期列」—— 只为了让下面的数值列筛选把它剔掉。
+   ★ 不能只看 parseDay 能不能解析：价格很容易落进 Excel 序列号的 20000~80000 区间
+     （沪铜 7.4 万元/吨、沪铝 2 万元/吨 都会被 parseDay 当成 2000 年后的某一天），
+     整列于是被误判成日期、直接丢掉 —— 「铜 · 沪铜」的 5293 个点就是这么丢的。
+   加两条硬条件把日期和价格分开：
+     ① 整列单调不减（日期天然有序，价格涨涨跌跌几乎不可能全程递增）；
+     ② 相邻步长的中位数要像日期（1~45 天），价格即便侥幸单调也不会逐日递增。 */
+function looksDateCol(rows, c){
+  let n = 0, outside = 0, prev = null, mono = true;
+  const steps = [];
+  for(let i = 0; i < rows.length; i++){
+    const v = (rows[i] || [])[c];
+    if(v === '' || v == null) continue;
+    n++;
+    const d = parseDay(v);
+    if(isNaN(d)){ outside++; continue; }
+    if(prev !== null){ if(d < prev) mono = false; else steps.push(d - prev); }
+    prev = d;
+  }
+  if(n < 2 || outside > n * 0.2) return false;
+  if(!mono || !steps.length) return false;
+  steps.sort((a, b) => a - b);
+  const med = steps[Math.floor(steps.length / 2)];
+  return med >= 1 && med <= 45;
+}
+
+function guessCols(grid){
+  let cols = 0;
+  grid.forEach(r => { if(r && r.length > cols) cols = r.length; });
+  const probe = Math.min(grid.length, 24);
+  const hitD = new Array(cols).fill(0), hitN = new Array(cols).fill(0);
+  for(let r = 0; r < probe; r++){
+    const row = grid[r] || [];
+    for(let c = 0; c < cols; c++){
+      const v = row[c];
+      if(v === '' || v == null) continue;
+      if(!isNaN(parseDay(v))) hitD[c]++;
+      if(!isNaN(parseNum(v))) hitN[c]++;
+    }
+  }
+  /* 日期列：命中最多，且至少一半探测行 */
+  let dCol = -1, best = 0;
+  for(let c = 0; c < cols; c++) if(hitD[c] > best){ best = hitD[c]; dCol = c; }
+  if(dCol >= 0 && best < Math.max(2, Math.floor(probe * 0.5))) dCol = -1;
+
+  /* 数据起始行 = 第一行「日期列是有效日期」的那一行 */
+  let dataStart = 0;
+  if(dCol >= 0){
+    for(let r = 0; r < grid.length; r++){
+      if(!isNaN(parseDay((grid[r] || [])[dCol]))){ dataStart = r; break; }
+    }
+  }
+
+  /* 数值列候选：数据区里「非空单元格以数字为主」的列（排除日期列、备注列）
+     日期列只认 looksDateCol() 认定的那种，不能只看 parseDay —— 见上面注释。 */
+  const dRows = grid.slice(dataStart);
+  const valCols = [];
+  for(let c = 0; c < cols; c++){
+    if(c === dCol) continue;
+    let n = 0, num = 0;
+    for(let i = 0; i < dRows.length; i++){
+      const v = (dRows[i] || [])[c];
+      if(v === '' || v == null) continue;
+      n++;
+      if(!isNaN(parseNum(v))) num++;
+    }
+    if(n >= 2 && num >= 2 && num >= n * 0.5 && !looksDateCol(dRows, c)) valCols.push(c);
+  }
+
+  /* dataStart 上方的行：区分「表头行」与「单位行」 */
+  let hdrRow = -1, unitRow = -1;
+  const units = {};
+  for(let r = 0; r < dataStart; r++){
+    const row = grid[r] || [];
+    let nums = 0, txts = 0;
+    for(let c = 0; c < cols; c++){
+      const v = row[c]; if(v === '' || v == null) continue;
+      if(!isNaN(parseNum(v))) nums++; else txts++;
+    }
+    if(!txts) continue;                                 // 空行 / 纯数字行
+    const cells = row.map(v => String(v == null ? '' : v).trim()).filter(Boolean);
+    const isUnit = nums === 0 && (
+      cells.some(t => t === '单位' || t === '计量单位') ||
+      cells.every(t => t.length <= 10 && (UNIT_HINT.test(t) || /[^\u4e00-\u9fa5A-Za-z0-9]/.test(t)))
+    );
+    if(isUnit){
+      unitRow = r;
+      for(const c of valCols){
+        const t = String(row[c] == null ? '' : row[c]).trim();
+        if(t) units[c] = t;
+      }
+    } else hdrRow = r;
+  }
+  return { dateCol: dCol, valCols: valCols, hdrRow: hdrRow, unitRow: unitRow, units: units,
+           dataStart: dataStart, cols: cols };
+}
+
+/* ---------- 按「日期列 + 某一个数值列」抽成一条日线序列 ---------- */
+function collectCol(grid, dateCol, valCol, startRow){
+  const out = new Map();
+  let ok = 0, bad = 0, dup = 0, firstBad = '';
+  if(dateCol < 0 || valCol < 0) return { pts: [], ok: 0, bad: 0, dup: 0, firstBad: '' };
+  for(let r = startRow; r < grid.length; r++){
+    const row = grid[r]; if(!row) continue;
+    const raw = row[valCol];
+    if(raw === '' || raw == null) continue;            // 该列这天没有数据，不算错误
+    const d = parseDay(row[dateCol]);
+    const v = parseNum(raw);
+    if(isNaN(d) || isNaN(v)){ bad++; if(!firstBad) firstBad = '第 ' + (r + 1) + ' 行'; continue; }
+    if(out.has(d)) dup++;
+    out.set(d, v); ok++;
+  }
+  const pts = Array.from(out.entries())
+    .filter(e => isFinite(e[0]) && isFinite(e[1]))
+    .sort((a, b) => a[0] - b[0]);
+  return { pts: pts, ok: ok, bad: bad, dup: dup, firstBad: firstBad };
+}
+
+/* ---------- 下载 ---------- */
+function download(name, text, mime){
+  const blob = new Blob([text], { type: mime || 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 60);
+}
+function csvOf(s){
+  return '日期,价格\n' + s.pts.map(p => dayToStr(p[0]) + ',' + p[1]).join('\n') + '\n';
+}
+
+/* ============================================================
+   10.0b 导出：宽表 Excel（.xlsx）/ CSV
+   —— 零依赖：.xlsx 就是个 zip，这里只用到最简的「store 存储」形态 + 自算 CRC32，
+      不压缩、不引第三方库，单文件离线照样用。
+   —— 布局刻意对齐「⬆ 上传 Excel」的识别规则：
+        第 1 行 品种名（首格「日期」）· 第 2 行 单位（首格「单位」）· 第 3 行起 日期 + 价格
+      所以导出的文件可以直接再拖回上传面板，一次全部识别。
+   ============================================================ */
+/* 宽表：日期取并集，一个品种一列（缺的格子留空） */
+function wideTable(list){
+  const rows = list.filter(s => s.pts && s.pts.length);
+  const set = new Set();
+  rows.forEach(s => s.pts.forEach(p => set.add(p[0])));
+  const days = Array.from(set).sort((a, b) => a - b);
+  const pos = {};
+  days.forEach((d, i) => { pos[d] = i; });
+  const cols = rows.map(s => {
+    const a = new Array(days.length).fill(null);
+    s.pts.forEach(p => { a[pos[p[0]]] = p[1]; });
+    return a;
+  });
+  return { days: days, rows: rows, cols: cols };
+}
+/* 0 → A · 25 → Z · 26 → AA */
+function colRef(i){
+  let s = '';
+  for(i++; i > 0; i = Math.floor((i - 1) / 26)) s = String.fromCharCode(65 + ((i - 1) % 26)) + s;
+  return s;
+}
+function xEsc(v){
+  return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                  .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+}
+/* 二维数组 → worksheet.xml：字符串走 inlineStr、数字走 <v>、日期用 {d:序列号} 走日期样式 */
+function sheetXml(grid){
+  const out = ['<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',
+    '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>'];
+  grid.forEach((row, r) => {
+    const cs = [];
+    row.forEach((v, c) => {
+      if(v === null || v === undefined || v === '') return;
+      const ref = colRef(c) + (r + 1);
+      if(typeof v === 'number' && isFinite(v)) cs.push('<c r="' + ref + '"><v>' + v + '</v></c>');
+      else if(typeof v === 'object' && v && v.d != null)
+        cs.push('<c r="' + ref + '" s="1"><v>' + v.d + '</v></c>');
+      else cs.push('<c r="' + ref + '" t="inlineStr"><is><t xml:space="preserve">' + xEsc(v) + '</t></is></c>');
+    });
+    out.push('<row r="' + (r + 1) + '">' + cs.join('') + '</row>');
+  });
+  out.push('</sheetData></worksheet>');
+  return out.join('');
+}
+/* CRC32（zip 头部要用；表只算一次） */
+let CRCT = null;
+function crc32(u8){
+  if(!CRCT){
+    CRCT = new Uint32Array(256);
+    for(let n = 0; n < 256; n++){
+      let c = n;
+      for(let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      CRCT[n] = c >>> 0;
+    }
+  }
+  let c = 0xFFFFFFFF;
+  for(let i = 0; i < u8.length; i++) c = CRCT[(c ^ u8[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+/* 极简 zip（只做 store 存储、不压缩）：条目名全 ASCII，所以不需要 UTF-8 名字标记 */
+function zipStore(files){
+  const enc = new TextEncoder();
+  const parts = [], cdir = [];
+  let off = 0;
+  files.forEach(f => {
+    const nm = enc.encode(f[0]), data = f[1], crc = crc32(data);
+    const lh = new Uint8Array(30 + nm.length), lv = new DataView(lh.buffer);
+    lv.setUint32(0, 0x04034B50, true); lv.setUint16(4, 20, true); lv.setUint16(6, 0x0800, true);
+    lv.setUint16(8, 0, true); lv.setUint16(10, 0, true); lv.setUint16(12, 0x21, true);
+    lv.setUint32(14, crc, true); lv.setUint32(18, data.length, true); lv.setUint32(22, data.length, true);
+    lv.setUint16(26, nm.length, true); lv.setUint16(28, 0, true);
+    lh.set(nm, 30);
+    parts.push(lh, data);
+    const ch = new Uint8Array(46 + nm.length), cv = new DataView(ch.buffer);
+    cv.setUint32(0, 0x02014B50, true); cv.setUint16(4, 20, true); cv.setUint16(6, 20, true);
+    cv.setUint16(8, 0x0800, true); cv.setUint16(10, 0, true); cv.setUint16(12, 0, true);
+    cv.setUint16(14, 0x21, true); cv.setUint32(16, crc, true);
+    cv.setUint32(20, data.length, true); cv.setUint32(24, data.length, true);
+    cv.setUint16(28, nm.length, true); cv.setUint32(42, off, true);
+    ch.set(nm, 46);
+    cdir.push(ch);
+    off += lh.length + data.length;
+  });
+  let cdSize = 0; cdir.forEach(c => { cdSize += c.length; });
+  const eo = new Uint8Array(22), ev = new DataView(eo.buffer);
+  ev.setUint32(0, 0x06054B50, true);
+  ev.setUint16(8, files.length, true); ev.setUint16(10, files.length, true);
+  ev.setUint32(12, cdSize, true); ev.setUint32(16, off, true);
+  const all = parts.concat(cdir, [eo]);
+  let total = 0; all.forEach(p => { total += p.length; });
+  const out = new Uint8Array(total);
+  let o = 0; all.forEach(p => { out.set(p, o); o += p.length; });
+  return out;
+}
+const XLSX_CT =
+  '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+  '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+  '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+  '<Default Extension="xml" ContentType="application/xml"/>' +
+  '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+  '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' +
+  '<Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' +
+  '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
+  '</Types>';
+const XLSX_RELS =
+  '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+  '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+  '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' +
+  '</Relationships>';
+const XLSX_WB =
+  '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+  '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ' +
+  'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+  '<sheets><sheet name="日线数据" sheetId="1" r:id="rId1"/>' +
+  '<sheet name="品种说明" sheetId="2" r:id="rId2"/></sheets></workbook>';
+const XLSX_WB_RELS =
+  '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+  '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+  '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>' +
+  '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/>' +
+  '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
+  '</Relationships>';
+/* 样式表：s=0 常规 · s=1 = yyyy-mm-dd 日期（自定义 numFmtId 164） */
+const XLSX_STYLES =
+  '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+  '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+  '<numFmts count="1"><numFmt numFmtId="164" formatCode="yyyy\\-mm\\-dd"/></numFmts>' +
+  '<fonts count="1"><font><sz val="11"/><name val="Calibri"/></font></fonts>' +
+  '<fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>' +
+  '<borders count="1"><border/></borders>' +
+  '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
+  '<cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>' +
+  '<xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/></cellXfs>' +
+  '<cellStyles count="1"><cellStyle name="常规" xfId="0" builtinId="0"/></cellStyles>' +
+  '</styleSheet>';
+
+/* 宽表 Excel 字节流（可直接 Blob 下载，也能再拖回上传面板） */
+function xlsxBytes(list){
+  const w = wideTable(list);
+  if(!w.rows.length) return null;
+  const g1 = [['日期'].concat(w.rows.map(s => s.n))];
+  g1.push(['单位'].concat(w.rows.map(s => s.u || '')));
+  w.days.forEach((d, i) => {
+    const r = [{ d: d + 25569 }];        // dayNo → Excel 日期序列号（1970-01-01 = 25569）
+    w.cols.forEach(c => { r.push(c[i] === null ? '' : c[i]); });
+    g1.push(r);
+  });
+  const g2 = [['#', '品种', '标签', '单位', '起始', '截止', '数据点', '来源']];
+  w.rows.forEach((s, i) => {
+    g2.push([i + 1, s.n, tagOf(s), s.u || '', dayToStr(s.t0), dayToStr(s.t1), s.pts.length,
+             s.note || (s.src === 'upload' ? '我的商品' : '内置序列')]);
+  });
+  const enc = s => new TextEncoder().encode(s);
+  return zipStore([
+    ['[Content_Types].xml', enc(XLSX_CT)],
+    ['_rels/.rels', enc(XLSX_RELS)],
+    ['xl/workbook.xml', enc(XLSX_WB)],
+    ['xl/_rels/workbook.xml.rels', enc(XLSX_WB_RELS)],
+    ['xl/styles.xml', enc(XLSX_STYLES)],
+    ['xl/worksheets/sheet1.xml', enc(sheetXml(g1))],
+    ['xl/worksheets/sheet2.xml', enc(sheetXml(g2))]
+  ]);
+}
+/* 宽表 CSV（带 BOM，Excel 双击打开不乱码） */
+function csvWideText(list){
+  const w = wideTable(list);
+  if(!w.rows.length) return null;
+  const q = v => {
+    const s = (v === null || v === undefined) ? '' : String(v);
+    return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  };
+  const out = [];
+  out.push(['日期'].concat(w.rows.map(s => s.n)).map(q).join(','));
+  out.push(['单位'].concat(w.rows.map(s => s.u || '')).map(q).join(','));
+  w.days.forEach((d, i) => {
+    const r = [dayToStr(d)];
+    w.cols.forEach(c => { r.push(c[i] === null ? '' : c[i]); });
+    out.push(r.map(q).join(','));
+  });
+  return '\uFEFF' + out.join('\r\n') + '\r\n';
+}
+/* 导出入口：kind = 'xlsx' | 'csv' */
+function exportWide(list, kind){
+  const rows = (list || []).filter(s => s.pts && s.pts.length);
+  if(!rows.length){ toast('还没有可导出的数据', 'warn'); return false; }
+  const stamp = dayToStr(Math.round(Date.now() / DAY));
+  if(kind === 'csv'){
+    const t = csvWideText(rows);
+    if(!t){ toast('还没有可导出的数据', 'warn'); return false; }
+    download('我的商品-' + stamp + '.csv', t, 'text/csv;charset=utf-8');
+    toast('✓ 已导出 CSV：' + rows.length + ' 条序列 · ' + t.split('\r\n').length + ' 行', 'ok');
+  }else{
+    const b = xlsxBytes(rows);
+    if(!b){ toast('还没有可导出的数据', 'warn'); return false; }
+    download('我的商品-' + stamp + '.xlsx', b,
+             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    toast('✓ 已导出 Excel：' + rows.length + ' 条序列 · ' + (b.length / 1024).toFixed(0) + ' KB', 'ok');
+  }
+  return true;
+}
+
+/* ============================================================
+   10.1 上传面板
+   ============================================================ */
+const UP = { grids: null, names: [], sheet: '', file: '', map: null, list: [], pick: null,
+             inited: false, res: null, tag: TAG_DEFAULT };
+
+function openUpload(){
+  UP.grids = null; UP.names = []; UP.sheet = ''; UP.file = ''; UP.map = null;
+  UP.list = []; UP.pick = new Set(); UP.inited = false; UP.res = null;
+  UP.tag = TAG_DEFAULT;                      // 默认分组：新导入的行都先归到它下面
+  openDlg(`
+    <h3>⬆ 上传商品数据 <span class="tag">Excel / CSV</span></h3>
+    <p class="sub2">表格里的<b>每一个数值列</b>都可以读成一条日线序列 —— 一张宽表里有多列品种时，
+    <b>一次全部勾选导入</b>，不用一列一列来。<b>每一行都能单独指定「分组」</b>（默认「我的商品」，
+    也可以选已有分组，或在上面「默认分组」里敲一个新名字），图表上方的 chip 区就按分组各自成行，
+    不会全挤在「我的商品」一组里。导入后与${HAS_BUILTIN ? '内置序列' : '已有商品'}<b>同一套口径</b>参与对比
+    （归一化、对数刻度、自由缩放、十字光标全都通用）。导入的数据会<b>保存到云端数据库</b>，
+    换设备、换浏览器都还在，团队成员打开也能看到同一批。</p>
+    <div class="drop" id="drop">
+      <div class="ic">📄</div>
+      <div class="t1">点击选择文件，或把 Excel 拖到这里</div>
+      <div class="t2">支持 .xlsx / .csv / .tsv　·　一列日期 + 任意多个数值列；表头行与单位行会自动识别<br>
+        老版 .xls 请先在 Excel 里「另存为」xlsx 或 CSV</div>
+    </div>
+    <input type="file" id="fpick" accept=".xlsx,.csv,.tsv,.txt" style="display:none">
+    <div id="upbody"><div class="hint" style="margin-top:12px">等待选择文件…</div></div>`, true);
+  const drop = document.getElementById('drop'), fp = document.getElementById('fpick');
+  drop.onclick = () => fp.click();
+  fp.onchange = () => { if(fp.files && fp.files[0]) readUpFile(fp.files[0]); };
+  ['dragenter','dragover'].forEach(k => drop.addEventListener(k, e => { e.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave','drop'].forEach(k => drop.addEventListener(k, e => { e.preventDefault(); drop.classList.remove('over'); }));
+  drop.addEventListener('drop', e => { const f = e.dataTransfer && e.dataTransfer.files[0]; if(f) readUpFile(f); });
+}
+
+function readUpFile(file){
+  const body = document.getElementById('upbody');
+  UP.file = file.name;
+  body.innerHTML = '<div class="hint" style="margin-top:12px">⏳ 正在解析 ' + esc(file.name) +
+                   '（' + (file.size / 1024).toFixed(0) + ' KB）…</div>';
+  const nm = file.name.toLowerCase();
+  const done = grids => {
+    const names = Object.keys(grids).filter(n => grids[n] && grids[n].length);
+    if(!names.length) throw new Error('没有解析到任何数据行');
+    UP.grids = grids; UP.names = names; UP.sheet = names[0];
+    renderUpForm();
+  };
+  const fail = err => {
+    body.innerHTML = '<div class="hint bad" style="margin-top:12px">✗ 解析失败：' +
+                     esc(err && err.message ? err.message : err) + '</div>';
+  };
+  try{
+    if(/\.(csv|tsv|txt)$/.test(nm)){
+      file.text().then(t => { try{ done({ 'CSV/TSV': XLSX.parseCsv(t) }); }catch(e){ fail(e); } }, fail);
+    } else if(/\.xlsx$/.test(nm)){
+      file.arrayBuffer().then(ab => XLSX.parseXlsx(ab).then(done, fail), fail);
+    } else {
+      throw new Error('只支持 .xlsx / .csv / .tsv —— 老版 .xls 请先用 Excel「另存为」xlsx 或 CSV');
+    }
+  }catch(e){ fail(e); }
+}
+
+function colLabel(c){
+  const grid = UP.grids[UP.sheet] || [];
+  const r0 = (UP.map && UP.map.hdrRow >= 0) ? (grid[UP.map.hdrRow] || []) : null;
+  const t = r0 ? String(r0[c] == null ? '' : r0[c]).trim() : '';
+  let lt = '', n = c;
+  do { lt = String.fromCharCode(65 + (n % 26)) + lt; n = Math.floor(n / 26) - 1; } while(n >= 0);
+  return lt + (t ? ' · ' + t : '');
+}
+function colOpts(sel){
+  const cols = UP.map ? UP.map.cols : 0;
+  let h = '';
+  for(let c = 0; c < cols; c++)
+    h += `<option value="${c}"${c === sel ? ' selected' : ''}>${esc(colLabel(c))}</option>`;
+  return h || '<option value="-1">（无可用列）</option>';
+}
+function defaultName(){
+  const base = (UP.file || '').replace(/\.[^.]+$/, '');
+  return base || '我的商品';
+}
+
+/* ---------- 多列导入：数据起始行 / 默认名称 / 默认单位 / 配色 ---------- */
+function effStart(){
+  const m = UP.map;
+  if(!m) return 0;
+  let s = 0;
+  if(m.hdrRow >= 0) s = m.hdrRow + 1;
+  if(m.unitRow >= s) s = m.unitRow + 1;
+  return s;
+}
+function nameFromHeader(c){
+  const grid = UP.grids[UP.sheet] || [];
+  const r = (UP.map && UP.map.hdrRow >= 0) ? (grid[UP.map.hdrRow] || []) : null;
+  let t = (r && r[c] != null) ? String(r[c]).trim() : '';
+  t = t.replace(/^(现货价|市场价|收盘价|结算价|报价|价格|指数|现货|期货)[:：]/, '');
+  t = t.replace(/[:：]+/g, ' · ').replace(/\s+/g, ' ').trim();
+  if(!t) t = '第 ' + (c + 1) + ' 列';
+  return t.length > 30 ? t.slice(0, 29) + '…' : t;
+}
+function unitFrom(c){
+  const u = (UP.map && UP.map.units) ? UP.map.units[c] : '';
+  if(u) return u;
+  const grid = UP.grids[UP.sheet] || [];
+  const r = (UP.map && UP.map.hdrRow >= 0) ? (grid[UP.map.hdrRow] || []) : null;
+  const s = (r && r[c] != null) ? String(r[c]) : '';
+  const m = s.match(/[（(]([^（()）]{1,10})[)）]/);
+  return (m && UNIT_HINT.test(m[1])) ? m[1] : '';
+}
+
+/* 构建「列 → 序列」清单；已存在的用户输入（名称/单位/颜色）保留 */
+function buildList(){
+  const grid = UP.grids[UP.sheet];
+  const prev = {}; (UP.list || []).forEach(it => { prev[it.c] = it; });
+  const start = effStart();
+  UP.list = UP.map.valCols.map((c, i) => {
+    const p = prev[c];
+    const r = collectCol(grid, UP.map.dateCol, c, start);
+    return { c: c, name: p ? p.name : nameFromHeader(c), unit: p ? p.unit : unitFrom(c),
+             col: p ? p.col : '', tag: p ? p.tag : (normTag(UP.tag) || TAG_DEFAULT),
+             tgTouched: p ? !!p.tgTouched : false,           // 是否被单独指定过分组
+             pts: r.pts, res: r };
+  });
+  /* 配色：内置与已选列都不撞色 */
+  const used = {};
+  ALL.forEach(s => { used[String(s.col).toLowerCase()] = 1; });
+  UP.list.forEach((it, i) => {
+    if(!it.col){
+      let pick = '';
+      for(let k = 0; k < PALETTE.length; k++) if(!used[PALETTE[k].toLowerCase()]){ pick = PALETTE[k]; break; }
+      it.col = pick || PALETTE[i % PALETTE.length];
+    }
+    used[String(it.col).toLowerCase()] = 1;
+  });
+  /* 首次进入：默认全选有数据的列 */
+  if(!UP.pick) UP.pick = new Set();
+  if(!UP.inited){
+    UP.list.forEach(it => { if(it.pts.length >= 2) UP.pick.add(it.c); });
+    UP.inited = true;
+  }
+}
+
+function upRow(it){
+  const n = it.pts.length, on = UP.pick.has(it.c);
+  const rng = n ? dayToStr(it.pts[0][0]) + ' → ' + dayToStr(it.pts[n - 1][0]) : '—';
+  return `<tr${n < 2 ? ' style="opacity:.45"' : ''}>
+    <td><input type="checkbox" data-pick="${it.c}"${on ? ' checked' : ''}${n < 2 ? ' disabled' : ''}></td>
+    <td class="colname">${esc(colLabel(it.c))}</td>
+    <td><input class="inp" data-nm="${it.c}" value="${esc(it.name)}" placeholder="商品名称"></td>
+    <td>${groupOpts(it.tag, it.c)}</td>
+    <td><input class="inp" data-un="${it.c}" value="${esc(it.unit)}" placeholder="可空"></td>
+    <td><input type="color" class="inp" data-col="${it.c}" value="${it.col}"></td>
+    <td class="num">${n.toLocaleString('zh-CN')}</td>
+    <td class="num" style="font-size:11px;color:#8d9bb3">${rng}</td>
+  </tr>`;
+}
+
+/* 把界面上已改的名称/单位/颜色/勾选抓回 UP.list */
+function harvest(){
+  if(!UP.list) return;
+  UP.list.forEach(it => {
+    const nm = document.querySelector('#up-list [data-nm="' + it.c + '"]');
+    const un = document.querySelector('#up-list [data-un="' + it.c + '"]');
+    const co = document.querySelector('#up-list [data-col="' + it.c + '"]');
+    const pk = document.querySelector('#up-list [data-pick="' + it.c + '"]');
+    const tg = document.querySelector('#up-list [data-tg="' + it.c + '"]');
+    if(nm) it.name = nm.value.trim();
+    if(un) it.unit = un.value.trim();
+    if(co) it.col = co.value;
+    if(tg) it.tag = normTag(tg.value) || TAG_DEFAULT;
+    if(pk && !pk.disabled){ pk.checked ? UP.pick.add(it.c) : UP.pick.delete(it.c); }
+  });
+}
+
+/* 实时把输入写回 UP.list，不必等 harvest */
+function bindList(){
+  const tb = document.getElementById('up-rows');
+  if(!tb) return;
+  const byC = c => UP.list.find(it => it.c === +c);
+  tb.oninput = e => {
+    const t = e.target, d = t.dataset;
+    if(d.nm != null){ const it = byC(d.nm); if(it){ it.name = t.value; updStat(); } }
+    else if(d.un != null){ const it = byC(d.un); if(it) it.unit = t.value; }
+    else if(d.col != null){ const it = byC(d.col); if(it){ it.col = t.value; updStat(); } }
+  };
+  tb.onchange = e => {
+    const t = e.target;
+    if(t.dataset.pick != null){
+      t.checked ? UP.pick.add(+t.dataset.pick) : UP.pick.delete(+t.dataset.pick);
+      updStat();
+    } else if(t.dataset.tg != null){
+      const it = byC(t.dataset.tg);
+      if(it){ it.tag = normTag(t.value) || TAG_DEFAULT; it.tgTouched = true; updStat(); }
+    }
+  };
+  const all = document.getElementById('up-ck-all');
+  if(all && !all.dataset.bound){
+    all.dataset.bound = '1';
+    all.onchange = () => {
+      const usable = UP.list.filter(it => it.pts.length >= 2);
+      if(all.checked) usable.forEach(it => UP.pick.add(it.c));
+      else UP.pick = new Set();
+      document.querySelectorAll('#up-list [data-pick]').forEach(b => { if(!b.disabled) b.checked = all.checked; });
+      updStat();
+    };
+  }
+}
+
+const UP_HEAD = `<tr><th style="width:34px"><input type="checkbox" id="up-ck-all" title="全选 / 全不选"></th>
+  <th>来源列</th><th>商品名称</th><th style="width:116px">分组</th><th style="width:104px">单位</th>
+  <th style="width:52px">颜色</th><th class="num" style="width:64px">点数</th>
+  <th class="num" style="width:126px">区间</th></tr>`;
+
+function renderUpForm(){
+  const grid = UP.grids[UP.sheet];
+  UP.map = guessCols(grid);
+  /* 兜底：识别不出数值列时，先把日期列之后的前几列放进来，免得界面空白 */
+  if(!UP.map.valCols.length && UP.map.dateCol >= 0){
+    for(let c = 0; c < UP.map.cols && UP.map.valCols.length < 6; c++)
+      if(c !== UP.map.dateCol) UP.map.valCols.push(c);
+  }
+  UP.list = []; UP.pick = new Set(); UP.inited = false;
+  const m = UP.map;
+  const struct = [
+    m.hdrRow >= 0 ? '表头在第 ' + (m.hdrRow + 1) + ' 行' : '未识别到表头',
+    m.unitRow >= 0 ? '单位在第 ' + (m.unitRow + 1) + ' 行' : '',
+    '数据自第 ' + (effStart() + 1) + ' 行起'
+  ].filter(Boolean).join('　·　');
+
+  document.getElementById('upbody').innerHTML = `
+    <h4>① 选工作表与列 <span class="n">${UP.names.length} 张工作表 · 共 ${grid.length} 行 · 找到 ${m.valCols.length} 个数值列</span></h4>
+    <div class="frow">
+      <div class="fld narrow"><label>工作表</label>
+        <select class="sel" id="up-sheet">${UP.names.map(n =>
+          `<option${n === UP.sheet ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select></div>
+      <div class="fld narrow"><label>日期列</label><select class="sel" id="up-dcol">${colOpts(m.dateCol)}</select></div>
+      <div class="fld narrow"><label>表头</label>
+        <select class="sel" id="up-hdr">
+          <option value="0"${m.hdrRow >= 0 ? ' selected' : ''}>第 1 行是表头</option>
+          <option value="1"${m.hdrRow < 0 ? ' selected' : ''}>没有表头</option>
+        </select></div>
+      <div class="fld"><label>自动识别</label><span class="idnote">${esc(struct)}</span></div>
+    </div>
+    <div class="frow">
+      <div class="fld narrow"><label>默认分组</label>${tagField('up-tag', UP.tag)}</div>
+      <div class="fld" style="flex:0 0 auto;justify-content:flex-end">
+        <button class="btn" id="up-tagall">⤓ 套用到所有行</button></div>
+      <div class="fld"><label>说明</label><span class="idnote">下面每一行都能单独选「分组」，默认是「<b>${TAG_DEFAULT}</b>」。
+        改这里的默认分组时，<b>还没单独指定过的行会自动跟着走</b>（已单独选过的保持不动）；想让所有行无条件
+        都换成它，点「⤓ 套用到所有行」。直接敲一个新名字＝顺便建一个新分组，之后能在「分组管理」里看到。</span></div>
+    </div>
+    <h4>② 勾选要导入的列 <span class="n" id="up-selinfo"></span></h4>
+    <div class="twrap tall"><table class="ftb" id="up-list">${UP_HEAD}<tbody id="up-rows"></tbody></table></div>
+    <div id="up-prev"></div>
+    <div id="up-stat" class="hint" style="margin-top:8px"></div>
+    <div class="btnrow">
+      <button class="btn pri" id="up-ok" disabled>全部导入</button>
+      <button class="btn" id="up-cancel">取消</button>
+      <span class="spacer"></span><span class="hint">日期做去重，同一天多条取最后一条</span>
+    </div>`;
+
+  const $ = id => document.getElementById(id);
+  $('up-sheet').onchange = e => {
+    UP.sheet = e.target.value;
+    UP.list = []; UP.pick = new Set(); UP.inited = false;
+    renderUpForm();
+  };
+  ['up-dcol','up-hdr'].forEach(id => { $(id).onchange = refreshUp; });
+  const utag = $('up-tag');
+  if(utag){
+    utag.oninput  = e => { UP.tag = e.target.value; };
+    utag.onchange = e => { UP.tag = e.target.value; applyTagDefault(); };
+  }
+  const tagall = $('up-tagall');
+  if(tagall) tagall.onclick = applyTagAll;
+  $('up-cancel').onclick = closeDlg;
+  $('up-ok').onclick = commitUpload;
+  refreshUp();
+}
+
+function refreshUp(){
+  const $ = id => document.getElementById(id);
+  harvest();
+  const m = UP.map;
+  m.dateCol = +$('up-dcol').value;
+  if(+$('up-hdr').value === 1){ m.hdrRow = -1; m.unitRow = -1; }
+  else if(m.hdrRow < 0) m.hdrRow = 0;
+  buildList();
+  const rows = document.getElementById('up-rows');
+  if(rows) rows.innerHTML = UP.list.map(upRow).join('') ||
+    '<tr><td colspan="8" class="empty">没有识别到可导入的数值列，请检查「日期列」的选择</td></tr>';
+  bindList();
+  updStat();
+  renderPrev(UP.grids[UP.sheet]);
+}
+
+/* 改了「默认分组」：还没被单独指定过的行自动跟随（已单独改过的尊重用户的选择）。
+   这样「选个分组 → 直接导入」仍然是一步；想让所有行无条件换成同一个组，用下面的按钮。 */
+function applyTagDefault(){
+  if(!UP.list || !UP.list.length) return;
+  const t = normTag(UP.tag) || TAG_DEFAULT;
+  harvest();                                   // 先把各行已改的名称 / 单位 / 颜色 / 勾选抓回来
+  let n = 0;
+  UP.list.forEach(it => { if(!it.tgTouched){ it.tag = t; n++; } });
+  redrawUpRows();
+  if(n) toast('✓ ' + n + ' 行跟随默认分组「' + t + '」', 'ok');
+}
+
+/* 把「默认分组」无条件套用到清单里的所有行（显式按钮，不做静默覆盖） */
+function applyTagAll(){
+  harvest();
+  const t = normTag(UP.tag) || TAG_DEFAULT;
+  UP.list.forEach(it => { it.tag = t; it.tgTouched = false; });   // 全部交回给默认分组管
+  redrawUpRows();
+  toast('✓ 已把 ' + UP.list.length + ' 行的分组都设为「' + t + '」', 'ok');
+}
+
+function redrawUpRows(){
+  const rows = document.getElementById('up-rows');
+  if(rows && UP.list.length) rows.innerHTML = UP.list.map(upRow).join('');
+  bindList();
+  updStat();
+}
+
+function updStat(){
+  const $ = id => document.getElementById(id);
+  const picks = UP.list.filter(it => UP.pick.has(it.c) && it.pts.length >= 2);
+  const tot = picks.reduce((a, it) => a + it.pts.length, 0);
+  const usable = UP.list.filter(it => it.pts.length >= 2);
+  /* 分组分布：让「这一批会分进几个组」在点导入之前就看得见 */
+  const gs = new Map();
+  picks.forEach(it => { const t = normTag(it.tag) || TAG_DEFAULT; gs.set(t, (gs.get(t) || 0) + 1); });
+  const gtxt = Array.from(gs.entries()).map(([t, k]) => esc(t) + ' ' + k).join(' · ');
+  const ok = $('up-ok');
+  if(ok){
+    ok.disabled = !picks.length;
+    ok.textContent = picks.length > 1 ? `全部导入（${picks.length} 条）` : '导入';
+  }
+  const si = $('up-selinfo');
+  if(si) si.textContent = `已选 ${picks.length} / ${UP.list.length} 列　·　共 ${tot.toLocaleString('zh-CN')} 个数据点`
+    + (picks.length ? `　·　分 ${gs.size} 组` : '');
+  const st = $('up-stat');
+  if(st){
+    st.className = 'hint' + (picks.length ? ' ok' : ' bad');
+    st.innerHTML = picks.length
+      ? `✓ 将导入 <b style="color:#F5C542">${picks.length}</b> 条序列 → <b style="color:#F5C542">${gs.size}</b> 个分组（${gtxt}）：` +
+        picks.map(it => `<span style="color:${it.col}">${esc(it.name)}</span> <span style="color:#6b7891">${it.pts.length} 点</span>`).join('　')
+      : (UP.list.length ? '✗ 请至少勾选一列，且该列要有 2 个以上有效数据点'
+                        : '✗ 没有识别到数值列，请检查「日期列」的选择');
+  }
+  const ca = $('up-ck-all');
+  if(ca) ca.checked = !!usable.length && picks.length === usable.length;
+}
+
+function renderPrev(grid){
+  const m = UP.map, R = 6;
+  const cols = Math.min(m.cols, 12);
+  const isV = c => m.valCols.indexOf(c) >= 0;
+  let h = '<h4 style="margin-top:12px">原始前几行 <span class="n">对不上就改上面的「日期列 / 表头」</span></h4>';
+  h += '<div class="twrap"><table class="ftb"><tr><th>#</th>';
+  for(let c = 0; c < cols; c++)
+    h += `<th class="${c === m.dateCol ? 'col-date' : (isV(c) ? 'col-hi' : '')}">${esc(colLabel(c))}</th>`;
+  h += '</tr>';
+  const last = Math.min(grid.length, R);
+  for(let r = 0; r < last; r++){
+    const tag = r === m.hdrRow ? ' 表头' : (r === m.unitRow ? ' 单位' : '');
+    h += `<tr><td style="color:#6b7891;white-space:nowrap">${r + 1}${tag}</td>`;
+    for(let c = 0; c < cols; c++){
+      const v = (grid[r] || [])[c];
+      h += `<td class="${c === m.dateCol ? 'col-date' : (isV(c) ? 'col-hi' : '')}">${esc(v == null ? '' : v)}</td>`;
+    }
+    h += '</tr>';
+  }
+  h += '</table></div>';
+  if(grid.length > last) h += `<div class="hint" style="margin-top:6px">仅预览前 ${last} 行，导入时会读全部 ${grid.length} 行</div>`;
+  document.getElementById('up-prev').innerHTML = h;
+}
+
+function commitUpload(){
+  harvest();
+  const picks = UP.list.filter(it => UP.pick.has(it.c) && it.pts.length >= 2);
+  if(!picks.length){ toast('请至少勾选一列，且该列要有 2 个以上有效数据点', 'bad'); return; }
+  const dup = picks.filter(it => CUSTOM.some(s => s.n === it.name));
+  if(dup.length && !confirm('已有同名商品：' + dup.slice(0, 3).map(d => d.name).join('、') +
+      (dup.length > 3 ? ' 等 ' + dup.length + ' 条' : '') + '。仍然新建？')) return;
+  const stamp = Date.now().toString(36) + Math.random().toString(36).slice(2, 4);
+  let tot = 0;
+  const made = [], gs = new Map();
+  picks.forEach((it, i) => {
+    /* 分组是「逐行」的：某一行为空 / 未选＝归入默认的「我的商品」（存空值，由 tagOf() 归位） */
+    const gt = normTag(it.tag) || TAG_DEFAULT;
+    const tag = (gt === TAG_DEFAULT) ? '' : gt;
+    gs.set(gt, (gs.get(gt) || 0) + 1);
+    const s = {
+      c: 'u_' + stamp + i.toString(36),
+      n: it.name || ('第 ' + (it.c + 1) + ' 列'),
+      m: '自定义上传',
+      u: it.unit || '',
+      col: it.col || PALETTE[i % PALETTE.length],
+      pts: it.pts,
+      note: '来自 ' + UP.file + ' · ' + UP.sheet + ' · 第 ' + (it.c + 1) + ' 列',
+      tag: tag,
+      src: 'upload', t: Date.now()
+    };
+    CUSTOM.push(s);
+    state.active.add(s.c);
+    made.push(s);
+    tot += it.pts.length;
+  });
+  /* 顺手把用到的分组登记进注册表 —— 之后在「分组管理」里就能改名 / 删除 */
+  Array.from(gs.keys()).forEach(t => { if(t !== TAG_DEFAULT) ensureGroup(t); });
+  afterCustomChange();
+  cloudPushMany(made, false);        // 一次性批量入库（wb_c100_series）
+  closeDlg();
+  const gtxt = Array.from(gs.entries()).map(([t, k]) => t + ' ' + k).join(' · ');
+  toast(`✓ 已导入 ${picks.length} 条商品（${gtxt}），共 ${tot.toLocaleString('zh-CN')} 个数据点` + cloudNote(), 'ok');
+}
+
+/* ============================================================
+   10.2 编辑面板（改名 / 改数据点 / 补点 / 删点 / 删除商品）
+   ============================================================ */
+const ED = { code: '', page: 0, pts: [], dirty: false, confirmDel: false, confirmClear: false };
+const ED_PS = 40;      // 数据点每页行数
+
+function openEdit(code){
+  /* 普通自定义在 BYCODE 里；内置覆盖记录（ov_xxx）不是独立曲线，得去 CUSTOM 里找 */
+  const s = BYCODE[code] || CUSTOM.find(x => x.c === code);
+  if(!s){ toast('找不到这条序列', 'bad'); return; }
+  if(s.src === 'builtin'){ openEditBuiltin(code); return; }   // 内置序列走轻量编辑面板
+  ED.code = code; ED.page = 0; ED.dirty = false; ED.confirmDel = false; ED.confirmClear = false;
+  ED.pts = s.pts.map(p => [p[0], p[1]]);
+  renderEdit();
+}
+
+/* ============================================================
+   10.1b 内置序列编辑（改名 / 单位 / 颜色 / 直接改价格 / 复制为我的商品）
+   内置数据随页面打包、不可改。所以这里做两件事：
+     · 改显示名 / 单位 / 颜色 → 存本机覆盖层（BOVER），随时恢复默认；
+     · 直接改价格数据         → 另存一条 ov_<code> 覆盖记录并同步云端，
+       图上这条曲线就按改后的数据绘制，「恢复内置原始数据」可撤销。
+   ============================================================ */
+function openEditBuiltin(code){
+  const s = BYCODE[code];
+  if(!s) return;
+  const ov = BOVER[code] || {};
+  const mo = overlayOf(code);
+  openDlg(`
+    <h3>✎ 编辑序列 <span class="tag">${esc(s.n0)}</span></h3>
+    <p class="sub2">这是<b>内置序列</b>，原始数据随页面打包、不可改。这里可以改它的
+    <b>显示名称 / 单位 / 颜色</b>（存本机，随时恢复默认）；也可以点
+    <b>「✎ 直接改价格数据」</b> —— 改后的价格会存成一条覆盖记录并<b>同步到云端</b>，
+    图上这条曲线就按你的数据画。想另起一条独立曲线，用<b>「⧉ 复制为我的商品」</b>。</p>
+    <div class="frow">
+      <div class="fld"><label>显示名称</label><input class="inp" id="eb-name" value="${esc(s.n)}"></div>
+      <div class="fld narrow"><label>单位</label><input class="inp" id="eb-unit" value="${esc(s.u || '')}" placeholder="美元/盎司…"></div>
+      <div class="fld narrow"><label>曲线颜色</label><input type="color" class="inp" id="eb-col" value="${s.col}"></div>
+    </div>
+    <h4>数据概览 <span class="n">${s.pts.length.toLocaleString('zh-CN')} 个交易日</span></h4>
+    <div class="kvs">
+      <div><b>市场</b><span>${esc(s.m || '—')}</span></div>
+      <div><b>区间</b><span>${dayToStr(s.t0)} → ${dayToStr(s.t1)}</span></div>
+      <div><b>首值 / 末值</b><span>${fmt(s.pts[0][1])} → ${fmt(s.pts[s.pts.length-1][1])}</span></div>
+      <div><b>原始名称</b><span>${esc(s.n0)}</span></div>
+      <div><b>原始单位</b><span>${esc(s.u0 || '—')}</span></div>
+      <div><b>数据状态</b><span style="color:${mo ? '#ffb454' : 'var(--tx3)'};font-weight:${mo ? 600 : 400}">${mo ? '已改价格 · ' + mo.pts.length.toLocaleString('zh-CN') + ' 点' : '原始数据'}</span></div>
+      <div><b>名称改动</b><span style="color:${hasBover(code) ? 'var(--gold)' : 'var(--tx3)'}">${hasBover(code) ? '已改：' + Object.keys(ov).map(k => ({n:'名称', u:'单位', col:'颜色'}[k] || k)).join('、') : '无'}</span></div>
+    </div>
+    <div class="btnrow">
+      <button class="btn pri" id="eb-save">保存</button>
+      <button class="btn" id="eb-data">✎ 直接改价格数据</button>
+      <button class="btn" id="eb-copy">⧉ 复制为我的商品</button>
+      <button class="btn" id="eb-csv">⬇ 导出 CSV</button>
+      <button class="btn" id="eb-reset"${hasBover(code) ? '' : ' disabled'}>↺ 恢复默认</button>
+      <span class="spacer"></span>
+      <button class="btn" id="eb-cancel">关闭</button>
+    </div>`, true);
+
+  const $ = id => document.getElementById(id);
+  $('eb-cancel').onclick = closeDlg;
+  $('eb-save').onclick = () => {
+    const nm = ($('eb-name').value || '').trim();
+    if(!nm){ toast('名称不能为空', 'bad'); return; }
+    const clash = ALL.find(x => x.c !== code && x.n === nm);
+    if(clash && !confirm('已有同名序列「' + nm + '」，仍然改？')) return;
+    setBover(code, { n: nm, u: ($('eb-unit').value || '').trim(), col: $('eb-col').value });
+    afterCustomChange();
+    closeDlg();
+    toast('✓ 已更新「' + nm + '」（名称 / 单位 / 颜色存于本机）', 'ok');
+  };
+  /* ★「直接改价格数据」：内置数据改不动，于是另存一条 ov_<code> 覆盖记录（同步云端）。
+       已有覆盖记录就直接续编，反复点击不会越点越多条。 */
+  $('eb-data').onclick = () => {
+    let r = overlayOf(code);
+    if(!r){
+      const base0 = s.pts0 || s.pts;
+      r = {
+        c: 'ov_' + code,
+        n: ($('eb-name').value || '').trim() || s.n,
+        m: '编辑内置数据',
+        u: ($('eb-unit').value || '').trim(),
+        col: $('eb-col').value || s.col,
+        pts: base0.map(p => [p[0], p[1]]),               // 从「打包原始数据」起步
+        t0: base0[0][0], t1: base0[base0.length - 1][0],
+        note: '编辑内置序列「' + s.n0 + '」的价格数据',
+        src: 'overlay', base: code, t: Date.now()
+      };
+      CUSTOM.push(r);
+      cloudPush(r);
+    } else {
+      r.n = ($('eb-name').value || '').trim() || r.n;
+      r.u = ($('eb-unit').value || '').trim();
+      r.col = $('eb-col').value || r.col;
+    }
+    ED.code = r.c; ED.page = 0; ED.dirty = false; ED.confirmDel = false; ED.confirmClear = false;
+    ED.pts = r.pts.map(p => [p[0], p[1]]);
+    renderEdit();
+    toast('正在编辑「' + s.n0 + '」的价格数据，改完点保存', '');
+  };
+  $('eb-copy').onclick = () => {
+    const nm = (($('eb-name').value || '').trim() || s.n) + ' · 副本';
+    const rec = {
+      c: 'u_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 4),
+      n: nm,
+      m: '复制自内置',
+      u: ($('eb-unit').value || '').trim() || (s.u || ''),
+      col: $('eb-col').value || freeColor(),
+      pts: (s.pts0 || s.pts).map(p => [p[0], p[1]]),   // 复制原始数据，不带别人的覆盖
+      note: '复制自内置序列「' + s.n0 + '」，可自由增删改数据点',
+      tag: normTag(s.gname),          // 跟着内置分类走（贵金属 / 有色金属…），随时可改
+      src: 'upload', t: Date.now()
+    };
+    CUSTOM.push(rec);
+    state.active.add(rec.c);
+    afterCustomChange();
+    cloudPush(rec);
+    toast('✓ 已复制为「我的商品」：' + nm + '（' + rec.pts.length.toLocaleString('zh-CN') + ' 点，可改数据）', 'ok');
+    openEdit(rec.c);
+  };
+  $('eb-csv').onclick = () => {
+    download('序列-' + (s.n || s.c) + '.csv', csvOf(s), 'text/csv;charset=utf-8');
+    toast('已导出 CSV：' + s.n, 'ok');
+  };
+  $('eb-reset').onclick = () => {
+    clearBover(code);
+    afterCustomChange();
+    closeDlg();
+    toast('已恢复「' + s.n0 + '」的默认名称、单位与颜色', '');
+  };
+}
+
+/* 编辑面板的目标序列：普通自定义在 BYCODE 里；内置覆盖（ov_xxx）不是独立曲线，单独找 */
+function edTarget(){
+  return BYCODE[ED.code] || CUSTOM.find(x => x.c === ED.code) || null;
+}
+
+function renderEdit(){
+  const s = edTarget();
+  if(!s){ closeDlg(); return; }
+  const isOv = s.src === 'overlay';
+  if(!ED.pts.length) ED.pts = s.pts.map(p => [p[0], p[1]]);
+  const n = ED.pts.length;
+  const pages = Math.max(1, Math.ceil(n / ED_PS));
+  if(ED.page > pages - 1) ED.page = pages - 1;
+  if(ED.page < 0) ED.page = 0;
+  const a = ED.page * ED_PS, b = Math.min(n, a + ED_PS);
+
+  let rows = '';
+  for(let i = a; i < b; i++){
+    const p = ED.pts[i];
+    /* 「间隔」列是给「数据不全」看的：超过一周的缺口标橙，一眼就能找到断层 */
+    const gap = i > 0 ? (p[0] - ED.pts[i - 1][0]) : null;
+    const gapTxt = (gap == null) ? '—' : (gap === 1 ? '次日' : gap + ' 天');
+    const gapSty = (gap != null && gap > 7) ? 'text-align:right;color:#ffb454;font-weight:600'
+                                            : 'text-align:right;color:#6b7891';
+    rows += `<tr>
+      <td style="color:#6b7891">${i + 1}</td>
+      <td><input type="date" data-i="${i}" data-f="d" value="${dayToStr(p[0])}"></td>
+      <td><input data-i="${i}" data-f="v" value="${p[1]}"></td>
+      <td style="${gapSty}">${gapTxt}</td>
+      <td style="text-align:right"><button class="btn sm dan" data-del="${i}" title="删除这个数据点">✕</button></td>
+    </tr>`;
+  }
+
+  openDlg(`
+    <h3>✎ 编辑「${esc(s.n)}」 <span class="tag">${isOv ? '内置序列 · 数据已改' : n + ' 个数据点'}</span></h3>
+    <p class="sub2">${isOv
+      ? '这是<b>内置序列</b>，原始数据随页面打包、不可改。你在这里改的价格会另存为一条<b>覆盖记录</b>'
+        + '（同步到云端），图上这条曲线就按改后的数据绘制。想还原就点右下角「恢复内置原始数据」。'
+      : '改完要点<b>保存</b>才生效。日期与价格都能直接改；数据不全就在下面补点，'
+        + '重复日期以后填的为准；不要的点按右侧 ✕ 删掉。'}</p>
+    <h4>① 商品信息</h4>
+    <div class="frow">
+      <div class="fld"><label>商品名称</label><input class="inp" id="ed-name" value="${esc(s.n)}"></div>
+      <div class="fld narrow"><label>单位（可空）</label><input class="inp" id="ed-unit" value="${esc(s.u || '')}" placeholder="元/吨…"></div>
+      <div class="fld narrow"><label>曲线颜色</label><input type="color" class="inp" id="ed-col" value="${s.col}"></div>
+      ${isOv ? '' : `<div class="fld narrow"><label>分组</label>${tagField('ed-tag', s.tag)}</div>`}
+    </div>
+    <div class="hint" id="ed-note" style="margin-top:4px"></div>
+
+    <h4>② 补数据点 <span class="n">缺哪段补哪段</span></h4>
+    <div class="frow">
+      <div class="fld narrow"><label>日期</label><input type="date" class="inp" id="ed-nd"></div>
+      <div class="fld narrow"><label>价格</label><input class="inp" id="ed-nv" placeholder="68000"></div>
+      <div class="fld narrow" style="justify-content:flex-end"><button class="btn" id="ed-add">＋ 添加 / 覆盖</button></div>
+    </div>
+    <div class="frow">
+      <div class="fld"><label>批量粘贴 —— 每行一条「日期,价格」，直接从 Excel 复制两列粘进来即可</label>
+        <textarea class="inp" id="ed-paste" placeholder="2024-01-02,68000&#10;2024-01-03,68137.5"></textarea></div>
+    </div>
+    <div class="frow"><div class="fld"><button class="btn" id="ed-merge" style="align-self:flex-start">⇪ 合并到数据</button></div></div>
+
+    <h4>③ 逐点编辑 <span class="n">共 ${n} 点　${n ? dayToStr(ED.pts[0][0]) + ' → ' + dayToStr(ED.pts[n-1][0]) : ''}</span></h4>
+    <div class="twrap tall"><table class="ftb">
+      <tr><th style="width:46px">#</th><th style="width:158px">日期</th><th style="width:142px">价格</th>
+      <th style="width:84px;text-align:right">间隔</th><th style="width:48px"></th></tr>
+      ${rows || '<tr><td colspan="5" class="empty">还没有数据点</td></tr>'}
+    </table></div>
+    <div class="pager">
+      <button class="btn sm" id="ed-prev"${ED.page <= 0 ? ' disabled' : ''}>‹ 上一页</button>
+      <span>第 ${ED.page + 1} / ${pages} 页　·　第 ${a + 1}–${b} 点</span>
+      <button class="btn sm" id="ed-next"${ED.page >= pages - 1 ? ' disabled' : ''}>下一页 ›</button>
+      <span class="spacer"></span>
+      <button class="btn sm" id="ed-exp">⬇ 导出为 CSV</button>
+      <button class="btn sm dan" id="ed-clear">清空数据点</button>
+    </div>
+
+    <div class="btnrow">
+      <button class="btn pri" id="ed-save">💾 保存</button>
+      <button class="btn" id="ed-cancel">取消</button>
+      <span class="spacer"></span>
+      <button class="btn dan" id="ed-del">${isOv ? '↺ 恢复内置原始数据' : '🗑 删除这条商品'}</button>
+    </div>`, true);
+  wireEdit();
+}
+
+function wireEdit(){
+  const $ = id => document.getElementById(id);
+  const mark = txt => { ED.dirty = true; $('ed-note').className = 'hint warn'; $('ed-note').textContent = txt; };
+
+  /* 逐点改值：只标记脏，不重渲染，免得打断连续输入 */
+  dlg.querySelectorAll('input[data-i]').forEach(inp => {
+    inp.onchange = () => {
+      const i = +inp.dataset.i, f = inp.dataset.f;
+      if(f === 'd'){
+        const d = parseDay(inp.value);
+        if(isNaN(d)){ toast('日期无法识别：' + inp.value, 'bad'); inp.value = dayToStr(ED.pts[i][0]); return; }
+        ED.pts[i][0] = d;
+      } else {
+        const v = parseNum(inp.value);
+        if(isNaN(v)){ toast('价格无法识别：' + inp.value, 'bad'); inp.value = ED.pts[i][1]; return; }
+        ED.pts[i][1] = v;
+      }
+      mark('有未保存的修改');
+    };
+  });
+  dlg.querySelectorAll('button[data-del]').forEach(btn => {
+    btn.onclick = () => { ED.pts.splice(+btn.dataset.del, 1); renderEdit(); mark('已删除 1 个数据点，保存后生效'); };
+  });
+  $('ed-add').onclick = () => {
+    const d = parseDay($('ed-nd').value), v = parseNum($('ed-nv').value);
+    if(isNaN(d) || isNaN(v)){ toast('请填写有效的日期与价格', 'bad'); return; }
+    upsertPoint(d, v);
+    renderEdit();                       // ★ 先重渲染再写提示：renderEdit 会重建 DOM，顺序反了提示就没了
+    mark('已写入 ' + dayToStr(d) + '，保存后生效');
+    toast('已写入 ' + dayToStr(d) + ' → ' + v, 'ok');
+  };
+  $('ed-merge').onclick = () => {
+    const txt = $('ed-paste').value || '';
+    let ok = 0, bad = 0;
+    txt.split(/\r?\n/).forEach(line => {
+      if(!line.trim()) return;
+      const parts = line.split(/[,\t;]+/).map(x => x.trim()).filter(x => x !== '');
+      if(parts.length < 2){ bad++; return; }
+      const d = parseDay(parts[0]), v = parseNum(parts[1]);
+      if(isNaN(d) || isNaN(v)){ bad++; return; }
+      upsertPoint(d, v); ok++;
+    });
+    renderEdit();
+    mark(`已合并 ${ok} 点${bad ? '，' + bad + ' 行无法识别' : ''}，保存后生效`);
+    toast(`合并完成：写入 ${ok} 点${bad ? '，' + bad + ' 行无法识别' : ''}`, bad ? 'warn' : 'ok');
+  };
+  $('ed-prev').onclick = () => { ED.page--; renderEdit(); };
+  $('ed-next').onclick = () => { ED.page++; renderEdit(); };
+  $('ed-exp').onclick = () => {
+    const s = edTarget();
+    if(!s) return;
+    download(safeName(s.n) + '.csv', csvOf({ pts: ED.pts.slice().sort((a, b) => a[0] - b[0]) }), 'text/csv;charset=utf-8');
+    toast('已导出 ' + s.n + '.csv', 'ok');
+  };
+  $('ed-clear').onclick = () => {
+    if(!ED.confirmClear){ ED.confirmClear = true; $('ed-clear').textContent = '⚠ 再点一次清空'; return; }
+    ED.pts = []; ED.confirmClear = false;
+    renderEdit();
+    mark('数据点已清空，保存后生效');
+  };
+  $('ed-cancel').onclick = closeDlg;
+  $('ed-save').onclick = () => {
+    const s = edTarget();
+    if(!s){ closeDlg(); return; }
+    const nm = ($('ed-name').value || '').trim();
+    if(!nm){ toast('商品名称不能为空', 'bad'); return; }
+    const m = new Map();
+    ED.pts.forEach(p => { if(isFinite(p[0]) && isFinite(p[1])) m.set(p[0], p[1]); });
+    const pts = Array.from(m.entries()).sort((a, b) => a[0] - b[0]);
+    if(!pts.length){ toast('至少要保留 1 个数据点，否则请直接删除这条商品', 'bad'); return; }
+    const dupN = ED.pts.length - pts.length;
+    s.n = nm;
+    s.u = ($('ed-unit').value || '').trim();
+    s.col = $('ed-col').value || s.col;
+    /* 分组：改了它，chip 区那一组会立刻跟着搬（空＝归入「我的商品」） */
+    if(s.src !== 'overlay'){
+      s.tag = normTag($('ed-tag') ? $('ed-tag').value : s.tag);
+      if(s.tag) ensureGroup(s.tag);        // 敲出来的分组名顺手登记进注册表
+    }
+    s.pts = pts;
+    s.t = Date.now();            // 更新时间戳：云端合并时据此判断哪份更新
+    if(s.src === 'overlay'){
+      const b = BYCODE[s.base];
+      s.note = '编辑内置序列「' + ((b && b.n0) || s.base) + '」的价格数据';
+    }
+    afterCustomChange();
+    cloudPush(s);
+    closeDlg();
+    toast('✓ 已保存：' + nm + '（' + pts.length + ' 点'
+          + (dupN > 0 ? '，合并了 ' + dupN + ' 个重复日期' : '') + '）', 'ok');
+  };
+  $('ed-del').onclick = () => {
+    const s = edTarget();
+    if(!s){ closeDlg(); return; }
+    const isOv = s.src === 'overlay';
+    if(!ED.confirmDel){
+      ED.confirmDel = true;
+      $('ed-del').textContent = isOv ? '⚠ 再点一次恢复' : '⚠ 再点一次确认删除';
+      $('ed-note').className = 'hint bad';
+      $('ed-note').textContent = isOv
+        ? '将删掉这条覆盖记录，该内置曲线回到随页面打包的原始数据'
+        : '删除后无法恢复（可以先用「⋯ 备份」导出，或先导出 CSV）';
+      return;
+    }
+    const goneName = s.n, base = s.base, id = s.c;
+    CUSTOM = CUSTOM.filter(x => x.c !== id);
+    delete BYCODE[id];
+    state.active.delete(id);
+    ED.confirmDel = false;
+    afterCustomChange();
+    closeDlg();
+    if(isOv){
+      const b = BYCODE[base];
+      toast('✓ 已恢复内置原始数据：' + ((b && b.n0) || base), 'ok');
+    } else {
+      toast('已删除：' + goneName, 'warn');
+    }
+    cloudDel(id);
+  };
+}
+function upsertPoint(d, v){
+  const i = ED.pts.findIndex(p => p[0] === d);
+  if(i >= 0) ED.pts[i][1] = v; else ED.pts.push([d, v]);
+  ED.pts.sort((a, b) => a[0] - b[0]);
+}
+function safeName(s){
+  return String(s || '商品').replace(/[\\/:*?"<>|]+/g, '_').slice(0, 60);
+}
+
+/* ============================================================
+   10.3 管理面板
+   ============================================================ */
+function openMgr(){
+  if(!CUSTOM.length){
+    openDlg(`
+      <h3>☰ 管理「我的商品」</h3>
+      <div class="empty"><span class="ic">🗂</span>还没有自定义商品。<br>
+        上传一份 Excel / CSV，就能把它的价格曲线拉进来和内置序列一起对比。</div>
+      <div class="btnrow"><button class="btn pri" id="mg-up">⬆ 上传 Excel</button>
+      <button class="btn" id="mg-grp">🏷 分组管理</button>
+      <button class="btn" id="mg-bak">⋯ 备份</button><span class="spacer"></span>
+      <button class="btn" id="mg-close">关闭</button></div>`);
+    document.getElementById('mg-up').onclick = openUpload;
+    document.getElementById('mg-grp').onclick = openGrpMgr;
+    document.getElementById('mg-bak').onclick = openBak;
+    document.getElementById('mg-close').onclick = closeDlg;
+    return;
+  }
+  const rows = CUSTOM.map(s => {
+    const isOv = s.src === 'overlay';
+    const on = state.active.has(s.c);
+    const btns = isOv
+      ? `<button class="btn sm" data-ed="${s.c}">改价格</button>
+         <button class="btn sm dan" data-rm="${s.c}">恢复原始</button>`
+      : `<button class="btn sm" data-tg="${s.c}">${on ? '隐藏' : '显示'}</button>
+         <button class="btn sm" data-ed="${s.c}">编辑</button>
+         <button class="btn sm dan" data-rm="${s.c}">删除</button>`;
+    return `<tr>
+      <td><input type="checkbox" class="mg-ck" data-id="${esc(s.c)}" title="勾选后可批量删除 / 批量改标签"></td>
+      <td><span class="dot" style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${s.col}"></span>
+        <b style="color:${s.col}">${esc(s.n)}</b>${isOv ? ' <span class="ovtag">内置覆盖</span>' : ''}
+        <div style="font-size:11px;color:#6b7891">${esc(s.u || '未填单位')}${s.note ? ' · ' + esc(s.note) : ''}</div></td>
+      <td>${isOv ? '<span style="color:#6b7891">—</span>' : `<span class="mgtag">${esc(tagOf(s))}</span>`}</td>
+      <td class="num">${s.pts.length}</td>
+      <td class="num" style="font-size:11.5px;color:#8d9bb3">${dayToStr(s.t0)}<br>${dayToStr(s.t1)}</td>
+      <td style="text-align:right;white-space:nowrap">${btns}</td></tr>`;
+  }).join('');
+  /* 管理面板里出现过的标签（一键把该标签的商品全勾上） */
+  const tagsUsed = [];
+  CUSTOM.forEach(s => { if(s.src === 'overlay') return; const t = tagOf(s); if(tagsUsed.indexOf(t) < 0) tagsUsed.push(t); });
+  openDlg(`
+    <h3>☰ 管理「我的商品」 <span class="tag">${CUSTOM.length} 条</span></h3>
+    <p class="sub2">这里集中管理自定义商品：改价格数据、改名、改标签、删除，或先临时隐藏再对比。
+    勾选左侧方框可以<b>批量删除</b>、<b>批量改标签</b>，也可以点右上「全选」一次全勾上。
+    数据保存在<b>云端数据库</b>（团队成员共享、换设备不丢），本机同时留一份离线缓存。${cloudBadge()}</p>
+    <div class="mgbar">
+      <label class="ckall"><input type="checkbox" id="mg-all"> 全选</label>
+      ${tagsUsed.length > 1 ? '<span class="lbl">按标签选</span>' + tagsUsed.map(t =>
+        `<button class="btn sm" data-picktag="${esc(t)}">${esc(t)}<span style="color:#6b7891"> ${
+          CUSTOM.filter(x => x.src !== 'overlay' && tagOf(x) === t).length}</span></button>`).join('') : ''}
+      <span class="spacer"></span>
+      <span class="mgsel" id="mg-selinfo">未选中</span>
+    </div>
+    <div class="twrap tall"><table class="ftb">
+      <tr><th style="width:34px"></th><th>商品</th><th style="width:104px">标签</th>
+      <th class="num" style="width:66px">点数</th><th class="num" style="width:104px">区间</th><th style="width:200px"></th></tr>
+      ${rows}
+    </table></div>
+    <div class="btnrow">
+      <button class="btn pri" id="mg-up">⬆ 再传一个</button>
+      <button class="btn" id="mg-bak">⋯ 备份 / 导出</button>
+      <button class="btn" id="mg-tagset" disabled>🏷 设置标签</button>
+      <button class="btn" id="mg-grp">🏷 分组管理</button>
+      <button class="btn dan" id="mg-del" disabled>🗑 删除选中</button>
+      <span class="spacer"></span>
+      <button class="btn" id="mg-close">关闭</button>
+    </div>`, true);
+  const $ = id => document.getElementById(id);
+  $('mg-up').onclick = openUpload;
+  $('mg-bak').onclick = openBak;
+  $('mg-grp').onclick = openGrpMgr;
+  $('mg-close').onclick = closeDlg;
+
+  /* ---------- 勾选状态 ---------- */
+  const cks = () => Array.from(dlg.querySelectorAll('input.mg-ck'));
+  const selIds = () => cks().filter(c => c.checked).map(c => c.dataset.id);
+  const syncSel = () => {
+    const ids = selIds(), all = cks();
+    if($('mg-all')) $('mg-all').checked = !!all.length && ids.length === all.length;
+    if($('mg-selinfo')) $('mg-selinfo').textContent = ids.length ? ('已选中 ' + ids.length + ' 条') : '未选中';
+    $('mg-del').disabled = !ids.length;
+    $('mg-tagset').disabled = !ids.length;
+    $('mg-del').textContent = ids.length ? ('🗑 删除选中（' + ids.length + '）') : '🗑 删除选中';
+  };
+  cks().forEach(c => { c.onchange = syncSel; });
+  if($('mg-all')) $('mg-all').onchange = e => { cks().forEach(c => { c.checked = e.target.checked; }); syncSel(); };
+  dlg.querySelectorAll('button[data-picktag]').forEach(b => {
+    b.onclick = () => {
+      const t = b.dataset.picktag;
+      cks().forEach(c => {
+        const s = CUSTOM.find(x => x.c === c.dataset.id);
+        if(s && s.src !== 'overlay') c.checked = (tagOf(s) === t);
+      });
+      syncSel();
+    };
+  });
+  /* 批量删除：普通商品直接删；内置覆盖记录＝恢复内置原始数据 */
+  $('mg-del').onclick = () => {
+    const ids = selIds();
+    if(!ids.length) return;
+    const ovIds = ids.filter(id => { const s = CUSTOM.find(x => x.c === id); return s && s.src === 'overlay'; });
+    const nUp = ids.length - ovIds.length;
+    const msg = '确认删除选中的 ' + ids.length + ' 条？'
+      + (nUp ? '\n· ' + nUp + ' 条自定义商品将被删除（可先用「备份 / 导出」留档）' : '')
+      + (ovIds.length ? '\n· ' + ovIds.length + ' 条内置数据覆盖将恢复成随页面打包的原始价格' : '')
+      + '\n\n删除会同步到云端，其他设备也会跟着消失。';
+    if(!confirm(msg)) return;
+    ids.forEach(id => {
+      CUSTOM = CUSTOM.filter(x => x.c !== id);
+      delete BYCODE[id];
+      state.active.delete(id);
+    });
+    afterCustomChange();
+    cloudDelMany(ids, false);
+    openMgr();
+    toast('✓ 已删除 ' + ids.length + ' 条'
+          + (ovIds.length ? '（其中 ' + ovIds.length + ' 条恢复内置原始数据）' : '') + cloudNote(), 'warn');
+  };
+  /* 批量改标签：一次把选中的商品搬到另一个分组 */
+  $('mg-tagset').onclick = () => {
+    const list = selIds().map(id => CUSTOM.find(x => x.c === id)).filter(s => s && s.src !== 'overlay');
+    if(!list.length){ toast('选中的都是内置覆盖记录，没有可改标签的商品', 'warn'); return; }
+    const cur = list.length === 1 ? tagOf(list[0]) : '';
+    const t = prompt('把选中的 ' + list.length + ' 条商品放到哪个分组？\n\n已有分组：'
+                     + allTags().join(' / ') + '\n（直接敲新名字＝新建一个分组；留空＝归入「' + TAG_DEFAULT + '」）', cur);
+    if(t === null) return;
+    const tag = normTag(t);
+    list.forEach(s => { s.tag = tag; s.t = Date.now(); });
+    if(tag) ensureGroup(tag);              // 敲出来的新名字顺手登记进分组注册表
+    afterCustomChange();
+    cloudPushMany(list, false);
+    openMgr();
+    toast('✓ 已把 ' + list.length + ' 条放到分组「' + (tag || TAG_DEFAULT) + '」' + cloudNote(), 'ok');
+  };
+  syncSel();
+  dlg.querySelectorAll('button[data-tg]').forEach(b => {
+    b.onclick = () => { toggleSeries(b.dataset.tg, null); openMgr(); };
+  });
+  dlg.querySelectorAll('button[data-ed]').forEach(b => { b.onclick = () => openEdit(b.dataset.ed); });
+  dlg.querySelectorAll('button[data-rm]').forEach(b => {
+    b.onclick = () => {
+      const id = b.dataset.rm;
+      const s = CUSTOM.find(x => x.c === id);
+      if(!s) return;
+      const isOv = s.src === 'overlay';
+      const baseName = (BYCODE[s.base] && BYCODE[s.base].n0) || s.base;
+      const msg = isOv
+        ? '确认把「' + baseName + '」恢复成内置原始数据？这条价格覆盖会被删除。'
+        : '确认删除「' + s.n + '」？删除后无法恢复（可先用「备份」导出）。';
+      if(!confirm(msg)) return;
+      CUSTOM = CUSTOM.filter(x => x.c !== id);
+      delete BYCODE[id];
+      state.active.delete(id);
+      afterCustomChange();
+      openMgr();
+      toast(isOv ? '✓ 已恢复内置原始数据：' + baseName : '已删除：' + s.n, isOv ? 'ok' : 'warn');
+      cloudDel(id);
+    };
+  });
+}
+
+/* ============================================================
+   10.3b 分组管理（查 / 增 / 改 / 删）
+   ============================================================ */
+function openGrpMgr(){
+  const rows = groupStats();
+  const nEmpty = rows.filter(g => !g.n).length;
+  const body = rows.map(g => {
+    const rng = g.n ? (dayToStr(g.t0) + ' → ' + dayToStr(g.t1))
+                    : '<span class="emptyg">暂无商品</span>';
+    const name = g.fix
+      ? '<b style="color:var(--gold)">' + esc(g.name) + '</b>' +
+        '<span class="emptyg">　默认分组</span>'
+      : '<input class="inp" data-gn="' + esc(g.name) + '" value="' + esc(g.name) + '" maxlength="12">' +
+        (g.reg ? '' : '<span class="emptyg">　自动</span>');
+    const ops = g.fix
+      ? '<span class="hint">不可改名 / 删除</span>'
+      : '<button class="btn sm pri" data-gsave="' + esc(g.name) + '" disabled>✓ 保存</button> ' +
+        '<button class="btn sm dan" data-gdel="' + esc(g.name) + '">🗑 删除</button>';
+    return '<tr><td>' + name + '</td>' +
+      '<td class="num">' + g.n + '</td>' +
+      '<td class="num">' + g.pts.toLocaleString('zh-CN') + '</td>' +
+      '<td class="num" style="font-size:11.5px;color:#8d9bb3">' + rng + '</td>' +
+      '<td style="text-align:right;white-space:nowrap">' + ops + '</td></tr>';
+  }).join('');
+
+  openDlg(`
+    <h3>🏷 分组管理 <span class="tag">${rows.length} 组</span></h3>
+    <p class="sub2">分组就是商品的<b>标签</b>：商品属于哪个组，是记在商品自己身上的；这里管理分组本身。
+    <b>新建</b>一个暂时还没放商品的分组（之后导入时就能直接选它）、<b>改名</b>（该组商品会一起搬过去，
+    撞上同名分组就是合并）、<b>删除</b>（组内商品会被退回「我的商品」，<b>不会丢数据</b>）。
+    分组信息同样存在<b>云端</b>，团队成员共享。${cloudBadge()}</p>
+    <div class="frow">
+      <div class="fld narrow"><label>新建分组</label>
+        <input class="inp" id="gm-new" placeholder="例如：钼系" maxlength="12"></div>
+      <div class="fld" style="justify-content:flex-end;flex:0 0 auto">
+        <button class="btn pri" id="gm-add">＋ 新建分组</button></div>
+      <div class="fld"><label>说明</label><span class="idnote">空分组不会出现在图表上方的 chip 区（没有商品可画），
+        等它有商品了会自动出现；但「⬆ 上传 Excel」的分组下拉里一直能选到它。</span></div>
+    </div>
+    <h4>现有分组 <span class="n">${rows.length - nEmpty} 组有商品　·　${nEmpty} 组为空</span></h4>
+    <div class="twrap tall"><table class="ftb">
+      <tr><th>分组</th><th class="num" style="width:60px">商品</th><th class="num" style="width:82px">数据点</th>
+      <th class="num" style="width:200px">区间</th><th style="width:196px"></th></tr>
+      ${body}
+    </table></div>
+    <div class="btnrow">
+      <button class="btn" id="gm-back">← 返回「我的商品」管理</button>
+      <span class="spacer"></span>
+      <button class="btn" id="gm-close">关闭</button>
+    </div>`, true);
+
+  const $ = id => document.getElementById(id);
+  $('gm-close').onclick = closeDlg;
+  $('gm-back').onclick = openMgr;
+
+  /* ---------- 增：新建一个分组 ---------- */
+  const addOne = () => {
+    const el = $('gm-new');
+    const n = normTag(el ? el.value : '');
+    if(!n){ toast('请先输入分组名', 'warn'); if(el) el.focus(); return; }
+    if(n === TAG_DEFAULT){ toast('「' + TAG_DEFAULT + '」是默认分组，本来就在', 'warn'); return; }
+    if(grpFind(n)){ toast('已经有「' + n + '」这个分组了', 'warn'); return; }
+    newGroup(n);
+    if(el) el.value = '';
+    openGrpMgr();
+    toast('✓ 已新建分组「' + n + '」' + (WBGrp.off() ? '（仅存本机）' : '，已同步云端'), 'ok');
+  };
+  $('gm-add').onclick = addOne;
+  if($('gm-new')) $('gm-new').onkeydown = e => { if(e.key === 'Enter'){ e.preventDefault(); addOne(); } };
+
+  /* ---------- 改：行内改名（Enter 或「保存」） ---------- */
+  dlg.querySelectorAll('input[data-gn]').forEach(inp => {
+    const old = inp.dataset.gn;
+    const save = inp.closest('tr').querySelector('button[data-gsave]');
+    inp.oninput = () => { if(save){ const v = normTag(inp.value); save.disabled = (!v || v === old); } };
+    inp.onkeydown = e => { if(e.key === 'Enter'){ e.preventDefault(); if(save && !save.disabled) save.click(); } };
+  });
+  dlg.querySelectorAll('button[data-gsave]').forEach(b => {
+    b.onclick = () => {
+      const old = b.dataset.gsave;
+      const inp = b.closest('tr').querySelector('input[data-gn]');
+      const n = normTag(inp ? inp.value : '');
+      if(!n){ toast('分组名不能为空', 'bad'); return; }
+      if(n === TAG_DEFAULT){
+        if(!confirm('把「' + old + '」并入默认分组「' + TAG_DEFAULT + '」？\n\n组内商品会退回「' + TAG_DEFAULT
+                    + '」，分组本身消失（数据不会丢）。')) return;
+      } else if(grpFind(n)){
+        if(!confirm('已经有「' + n + '」这个分组了。\n\n把「' + old + '」的商品全部并进「' + n
+                    + '」？合并后「' + old + '」这个名字就不存在了。')) return;
+      }
+      const r = renameGroup(old, n);
+      if(!r.ok){ toast(r.msg, 'bad'); return; }
+      afterCustomChange();
+      if(r.list && r.list.length) cloudPushMany(r.list, false);
+      openGrpMgr();
+      toast('✓ 分组「' + old + '」→「' + n + '」' + (r.moved ? '，连同 ' + r.moved + ' 条商品一起' : '')
+            + (r.merged ? '（已合并）' : '') + cloudNote(), 'ok');
+    };
+  });
+
+  /* ---------- 删：删除分组（商品退回默认组） ---------- */
+  dlg.querySelectorAll('button[data-gdel]').forEach(b => {
+    b.onclick = () => {
+      const name = b.dataset.gdel;
+      const g = rows.find(x => x.name === name);
+      const n = g ? g.n : 0;
+      const msg = '删除分组「' + name + '」？\n\n'
+        + (n ? '· 组内 ' + n + ' 条商品会被退回「' + TAG_DEFAULT + '」，数据不会丢\n'
+             + '· 想把商品一起删掉，请回上一页「我的商品」勾选删除\n'
+             : '· 这是个空分组，没有任何商品受影响\n')
+        + '\n删除会同步到云端。';
+      if(!confirm(msg)) return;
+      const r = deleteGroup(name);
+      if(!r.ok){ toast(r.msg, 'bad'); return; }
+      afterCustomChange();
+      if(r.list && r.list.length) cloudPushMany(r.list, false);
+      openGrpMgr();
+      toast('✓ 已删除分组「' + name + '」'
+            + (r.moved ? '，' + r.moved + ' 条商品已退回「' + TAG_DEFAULT + '」' : '') + cloudNote(), 'warn');
+    };
+  });
+}
+
+/* ============================================================
+   10.4 备份 / 迁移
+   ============================================================ */
+function openBak(){
+  const list = CUSTOM.length
+    ? CUSTOM.map(s => `· <b style="color:${s.col}">${esc(s.n)}</b>　${s.pts.length} 点　${dayToStr(s.t0)} → ${dayToStr(s.t1)}`).join('<br>')
+    : '<span style="color:#6b7891">暂无自定义商品</span>';
+  const nSer = CUSTOM.filter(s => s.src !== 'overlay').length;
+  openDlg(`
+    <h3>⋯ 备份与迁移 <span class="tag">我的商品</span></h3>
+    <p class="sub2">「我的商品」主存<b>云端数据库</b>（团队成员共享、换设备不丢），本机另留一份离线缓存。${cloudBadge()}<br>
+    <b>Excel / CSV</b> 导出的是<b>宽表</b>（一列日期 + 一列一个品种，第一行品种名、第二行单位）——
+    可以直接再拖回「⬆ 上传 Excel」，一次全部识别；<b>.json</b> 是完整备份（含分组、标签、配色、覆盖记录），给别人导入或迁移用。</p>
+    <h4>当前内容 <span class="n">${nSer} 条序列 · ${GRP.length} 个登记分组 · ${CUSTOM.reduce((a,s)=>a+s.pts.length,0).toLocaleString('zh-CN')} 个数据点</span></h4>
+    <div style="font-size:12.5px;line-height:2;color:var(--tx2)">${list}</div>
+    <div class="btnrow">
+      <button class="btn pri" id="bk-xlsx">⬇ 导出 Excel（.xlsx）</button>
+      <button class="btn pri" id="bk-csv">⬇ 导出 CSV</button>
+      <button class="btn" id="bk-out">⬇ 导出备份（.json）</button>
+      <button class="btn" id="bk-in">⬆ 导入备份</button>
+      <span class="spacer"></span>
+      <button class="btn dan" id="bk-clear">清空全部自定义商品</button>
+    </div>
+    <input type="file" id="bk-file" accept=".json,.txt" style="display:none">`, true);
+  const $ = id => document.getElementById(id);
+  /* Excel / CSV：只导出真正的商品序列（内置覆盖记录不单独成列） */
+  $('bk-xlsx').onclick = () => exportWide(CUSTOM.filter(s => s.src !== 'overlay'), 'xlsx');
+  $('bk-csv').onclick  = () => exportWide(CUSTOM.filter(s => s.src !== 'overlay'), 'csv');
+  $('bk-out').onclick = () => {
+    if(!CUSTOM.length && !GRP.length){ toast('还没有可导出的内容', 'warn'); return; }
+    download('我的商品-备份-' + dayToStr(Math.round(Date.now() / DAY)) + '.json',
+             JSON.stringify({ v: 2, t: new Date().toISOString(),
+                              groups: GRP.map(g => ({ c: g.c, n: g.n, sort: g.sort, color: g.color, t: g.t })),
+                              series: CUSTOM }, null, 1),
+             'application/json;charset=utf-8');
+    toast('已导出 ' + CUSTOM.length + ' 条商品'
+          + (GRP.length ? ' + ' + GRP.length + ' 个分组' : ''), 'ok');
+  };
+  $('bk-in').onclick = () => $('bk-file').click();
+  $('bk-file').onchange = () => {
+    const f = $('bk-file').files[0]; if(!f) return;
+    f.text().then(t => {
+      let o;
+      try{ o = JSON.parse(t); }catch(e){ toast('不是有效的 JSON 备份文件', 'bad'); return; }
+      const arr = Array.isArray(o) ? o : (o && o.series);
+      if(!Array.isArray(arr) || !arr.length){ toast('备份里没有可导入的序列', 'bad'); return; }
+      let add = 0, ov = 0;
+      const pushed = [];
+      arr.forEach(x => {
+        if(!x || !Array.isArray(x.pts) || !x.pts.length) return;
+        const pts = x.pts.map(p => [Math.round(+p[0]), +p[1]])
+                         .filter(p => isFinite(p[0]) && isFinite(p[1]))
+                         .sort((a, b) => a[0] - b[0]);
+        if(!pts.length) return;
+        /* 先按 id 找，再退化为按名字找 —— 覆盖记录的 id 形如 ov_xxx，必须原样保留 */
+        const cur = CUSTOM.find(s => s.c === x.c) || CUSTOM.find(s => s.n === x.n);
+        const rec = { c: cur ? cur.c : (x.c || ('u_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5))),
+                      n: String(x.n || '未命名'), m: x.m || '自定义上传', u: x.u || '',
+                      col: x.col || freeColor(), pts: pts, note: x.note || '从备份导入',
+                      tag: normTag(x.tag),
+                      src: (x.src === 'overlay') ? 'overlay' : 'upload', base: x.base || '',
+                      t: Date.now() };
+        if(cur){ Object.assign(cur, rec); ov++; pushed.push(cur); }
+        else { CUSTOM.push(rec); add++; pushed.push(rec); }
+      });
+      /* 分组注册表：备份里带了就一并恢复（同名不重复建） */
+      let gAdd = 0;
+      if(o && Array.isArray(o.groups)){
+        o.groups.forEach(x => {
+          const n = normTag(x && x.n);
+          if(!n || n === TAG_DEFAULT || grpFind(n)) return;
+          let cid = String((x && x.c) || '');
+          if(!cid || GRP.some(g => g.c === cid))
+            cid = 'g_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 4);
+          const g = { c: cid, n: n, sort: (x.sort == null ? 99 : +x.sort), color: x.color || '',
+                      note: '', owner: whoAmI() || '', t: Date.now() };
+          GRP.push(g);
+          gAdd++;
+          WBGrp.upsertMany([grpToRow(g)]);
+        });
+        if(gAdd) saveGrp();
+      }
+      afterCustomChange();
+      cloudPushMany(pushed, false);
+      closeDlg();
+      toast(`✓ 导入完成：新增 ${add} 条，覆盖 ${ov} 条`
+            + (gAdd ? `，新建 ${gAdd} 个分组` : '') + cloudNote(), 'ok');
+    }, e => toast('读取失败：' + (e.message || e), 'bad'));
+  };
+  $('bk-clear').onclick = () => {
+    if(!CUSTOM.length){ toast('当前没有自定义商品', 'warn'); return; }
+    if(!confirm('确认清空全部 ' + CUSTOM.length + ' 条自定义商品？此操作无法撤销。')) return;
+    const ids = CUSTOM.map(s => s.c);
+    CUSTOM = [];
+    Object.keys(BYCODE).forEach(c => { if(c.startsWith('u_')) delete BYCODE[c]; });
+    Array.from(state.active).forEach(c => { if(c.startsWith('u_')) state.active.delete(c); });
+    afterCustomChange();                       // 内含 applyOverlay()：内置覆盖也一并撤销
+    closeDlg();
+    ids.forEach(id => cloudDel(id, true));     // 云端逐条软删
+    toast('已清空全部自定义商品' + (WBCloud.off() ? '' : '（云端同步中）'), 'warn');
+  };
+}
+
+/* 工具栏上的云端状态徽标 */
+function renderCloudBar(){
+  const el = document.getElementById('cst');
+  if(el) el.innerHTML = cloudBadge();
+}
+
+/* ============================================================
+   11. 启动
+   ============================================================ */
+/* 工具栏「我的商品」三个按钮 —— 必须在这里显式接线（曾经漏掉，点了没反应） */
+(function wireMineBar(){
+  const bind = (id, fn, label) => {
+    const el = document.getElementById(id);
+    if(!el){ console.warn('[mine] 按钮缺失:', id); return; }
+    el.onclick = e => { e.preventDefault(); fn(); };
+  };
+  bind('btn-up',  openUpload, '上传');
+  bind('btn-my',  openMgr,    '管理');
+  bind('btn-bak', openBak,    '备份');
+})();
+
+loadCustom();
+loadGrp();                   // 分组注册表：先读本机缓存，云端结果到了再合并
+loadBover();
+applyBover();
+mergeCustom();
+autoPickIfNeeded();          // 无内置数据时：把本机缓存的商品全部勾上（否则首屏是空图）
+recomputeBounds();
+renderHead();
+buildChips();
+renderCover();
+document.getElementById('mode-desc').innerHTML =
+  '每条序列以<b>当前视窗左端</b>的收盘价为 100 换算相对涨幅。缩放时基期自动跟随，因此可以直接比出不同单位、不同货币的品种<b>谁涨得更凶</b>。';
+setRangeDays(1825, '5y');
+dtNote('可直接输入起止日期定位任意区间　·　缩放或平移时输入框会自动同步', '');
+if(CUSTOM.length) toast('已载入本机缓存的 ' + CUSTOM.length + ' 条自定义商品', '');
+renderCloudBar();
+
+/* ---------- 云端同步（异步，不阻塞首屏；失败自动降级为本机存储） ----------
+   本机缓存先渲染出来，云端结果到了再合并一次 —— 打开页面不会有等待感。 */
+syncFromCloud().then(changed => {
+  renderCloudBar();
+  if(WBCloud.off()){
+    if(CUSTOM.length) toast('本机模式：此页面未配置云端，数据只存在这台设备', 'warn');
+    return;
+  }
+  if(CLOUD_STATE !== 'on'){
+    toast('⚠ 云端暂不可达，已降级为本机存储：' + WBCloud.lastErr(), 'warn');
+    return;
+  }
+  if(changed){
+    const nOv = CUSTOM.filter(s => s.src === 'overlay').length;
+    const nUp = CUSTOM.length - nOv;
+    toast('☁ 已从云端同步「我的商品」：' + nUp + ' 条商品' + (nOv ? ' + ' + nOv + ' 条内置覆盖' : ''), 'ok');
+  }
+}).catch(e => {
+  renderCloudBar();
+  toast('云端同步异常（已用本机数据）：' + (e && e.message ? e.message : e), 'warn');
+});
+
+/* 分组注册表单独同步（失败静默降级本机，不打扰首屏） */
+syncGroups().catch(() => {});
+
+let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(redraw, 180); });
+</script>
+</body>
+</html>

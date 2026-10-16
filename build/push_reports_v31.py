@@ -81,6 +81,7 @@ def push_one(code, dry=False):
     row = {'id': rid, 'code': rep['code'], 'name': rep['name'], 'kicker': rep['kicker'],
            'title': rep['title'], 'subtitle': rep['subtitle'], 'badges': rep['badges'],
            'verdict_title': rep['verdict_title'], 'verdict_html': rep['verdict_html'],
+           'notice_html': rep.get('notice_html', ''),
            'kpis': rep['kpis'], 'kpi_note': rep['kpi_note'], 'toc': rep['toc'],
            'essence_html': rep['essence_html'], 'footer_html': rep.get('footer_html', ''),
            'theme': rep.get('theme', 'red'), 'sort': 1, 'up': now}
@@ -135,9 +136,54 @@ def all_codes():
                    and not f.endswith('_v23.json')})
 
 
+def stale_check(code, seed):
+    """★ 2026-10-16：push 前体检 —— 判断 seed 是否**落后于线上库**。
+
+    背景：`apply_eps_to_11` / `mkmod3_std` / `mkchain_std` / `mkmod11_ring` / `_norm_bold`
+    这类脚本**只写库、从不写 seed**。跑完若不 `sync_seed_full`，seed 就停在改造之前；
+    此后**任何一次 push 都会拿这份旧 seed 把线上的成果整份盖掉**（不报错、终端全 ✓）。
+    2026-10-16 实测：13 份里 9 份都处于这个状态，其中 000731 一度只差一次 push 就退化成 12 图。
+
+    判据（命中任一即判落后；三条都是「库里有新东西、seed 里没有」的确定性特征）：
+      ① seed 的 `**` 字面量 > 0 而库为 0   → 库跑过 _norm_bold，seed 没跑
+      ② 库里某模块有 sh3-top / iflow，seed 全都没有 → seed 停在 m3 / m22 改造前
+      ③ 库里有 chart_eps 图表行而 seed 没有        → seed 停在 m29 改造前
+
+    返回 (是否落后, 原因列表)
+    """
+    st, lmods = req('wb_report_mods?report_id=eq.%s&select=no,html' % code)
+    st2, lcharts = req('wb_report_charts?report_id=eq.%s&select=id' % code)
+    if not isinstance(lmods, list) or not lmods:
+        return False, []                      # 库里还没有 → 首次推送，无退化风险
+    sm = {int(m['no']): (m['html'] or '') for m in seed['mods']}
+    lm = {int(m['no']): (m['html'] or '') for m in lmods}
+    why = []
+    # ★ 只把「库里有、seed 里完全没有」的**结构改造特征**当阻断依据。
+    #   这两项在正常链路（build → m3 → chain → push）里**不会误报**，
+    #   因为 mkmod3 / mkchain 都跑在 push 之前，seed 里自然带着它们。
+    for key, name in [('sh3-top', 'm3 股东结构树'), ('iflow', 'm22 产业链流程图')]:
+        if any(key in v for v in lm.values()) and not any(key in v for v in sm.values()):
+            why.append('库里有 %s，seed 里完全没有' % name)
+    # ⚠️ 下面两条**不作阻断依据**（只报事实，交给调用方判断）：
+    #   `**` —— 「重跑 build 后推送」时必然出现：build 产出的是 `**`，而库里已被
+    #          _norm_bold 转成 <b>，于是「seed 有、库为 0」是**正常状态**；
+    #   chart_eps —— 链路里 apply_eps_to_11 本就跑在 push **之后**。
+    #   当作提示保留，避免「狼来了」把真正的拦截信号淹没。
+    s_star = sum(v.count('**') for v in sm.values())
+    l_star = sum(v.count('**') for v in lm.values())
+    if l_star == 0 and s_star > 0:
+        why.append('（提示）seed 有 `**` %d 处、库为 0 —— 推送后记得跑 _norm_bold' % s_star)
+    lids = {c['id'] for c in lcharts} if isinstance(lcharts, list) else set()
+    sids = {'%s_%s' % (code, c['id']) for c in seed['charts']}
+    if ('%s_chart_eps' % code) in lids and ('%s_chart_eps' % code) not in sids:
+        why.append('（提示）库有 chart_eps 而 seed 没有 —— 推送后记得重跑 apply_eps_to_11')
+    return (any(not w.startswith('（提示）') for w in why)), why
+
+
 def main():
     args = sys.argv[1:]
     dry = '--dry' in args
+    force = '--force' in args
     ts = time.strftime('%Y%m%d-%H%M%S')
     if '--all' in args:
         codes = all_codes()
@@ -151,6 +197,33 @@ def main():
     print('=== 待推送 %d 份：%s ... %s ===' % (len(codes), codes[0], codes[-1]))
     print('=== 1) 备份线上现状 ===')
     backup(codes, ts)
+
+    # ★ 1.5) seed 落后体检 —— 拦住「拿旧 seed 覆盖线上新成果」这一类事故
+    print('\n=== 1.5) seed 落后体检 ===')
+    stale = []
+    for code in codes:
+        sp = os.path.join(SEED, 'report_%s.json' % code)
+        try:
+            sd = json.load(io.open(sp, encoding='utf-8'))
+        except Exception as e:                                        # noqa: BLE001
+            print('  !! %s seed 读不出：%s' % (code, e))
+            continue
+        bad, why = stale_check(code, sd)
+        if bad:
+            stale.append(code)
+            print('  ⚠️ %s 的 seed **落后于线上库**：' % code)
+            for w in why:
+                print('       - %s' % w)
+    if stale and not force:
+        print('\n  ⛔ 以上 %d 份的 seed 落后，现在 push 会把线上刷回旧版（且不报错）。' % len(stale))
+        print('     先跑： python3 sync_seed_full.py %s --go' % ' '.join(stale))
+        print('     确认 seed 确为最新后，加 --force 可强行推送。')
+        return
+    if stale:
+        print('\n  （--force 已指定，仍继续推送 %d 份落后的）' % len(stale))
+    else:
+        print('  全部 seed 与线上一致 ✅')
+
     print('\n=== 2) 推送 31 模块版%s ===' % ('（dry-run）' if dry else ''))
     allok = True
     for code in codes:

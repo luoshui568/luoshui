@@ -277,18 +277,112 @@
     nav.toc a::after,nav.toc:hover a::after{content:none;}
     nav.toc a:hover{transform:none;}
   }
+  /* ================================================================
+     核心结论（2026-10-14 版式重做）
+     用户口径：「核心结论看起来很乱，所有的文字一定要注意排版，
+     要一眼看上去就很舒服」。旧版是**横向 flex**：标题挤在左边、
+     正文一大坨贴在右侧，行高 1.6 都没有，785 字连成一片，②③ 序号
+     内嵌在长句里 —— 一眼看过去只觉得密。
+     ★ 新结构三层：
+       ① 标题条 .vt（横向、上沿红金彩线、右侧英文小标）
+       ② 导语 .vlead（浅金底 + 左金条，放「一句话本质」）
+       ③ 正文块 —— .vlist 分点 / .vrisk 风险 / .vtrack 跟踪条
+     ★ 兜底：verdict_html 在网页端可编辑，可能被写回任意 HTML，
+       所以裸 <p> / <strong> / <ul> 也一并给了样式 —— 就算退化成
+       纯文本段落，排版也不会塌。
+     ================================================================ */
   .verdict{
     position:relative;overflow:hidden;
-    display:flex;gap:14px;align-items:flex-start;
-    background:linear-gradient(135deg,#fdf8ec,#faf2dd 55%,#fbf6e8);
-    border:1px solid #e8d5a2;border-radius:14px;padding:18px 20px;margin-bottom:20px;
-    box-shadow:0 4px 18px rgba(156,122,20,.10), inset 0 0 40px rgba(201,162,39,.06);
-    transition:box-shadow .3s ease,transform .3s ease;
+    display:block;                 /* ★ 原 display:flex 横排 ⇒ 长文极局促 */
+    background:#fffdf8;
+    border:1px solid #eadfbf;border-radius:16px;
+    padding:0 0 18px;margin-bottom:22px;
+    box-shadow:0 6px 24px rgba(156,122,20,.10);
+    transition:box-shadow .3s ease;
   }
-  .verdict:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(156,122,20,.16), inset 0 0 40px rgba(201,162,39,.08);}
-  .verdict .vt{font-weight:800;color:#8a6a0e;font-size:16px;white-space:nowrap;
-    background:linear-gradient(135deg,#a8861a,#d4a830);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
-  .verdict .vc{font-size:14px;color:#3d3a33;}
+  .verdict::before{content:'';position:absolute;left:0;right:0;top:0;height:3px;z-index:2;
+    background:linear-gradient(90deg,#c8102e,#d4541f 32%,#c9a227 68%,#e8d5a2);}
+  .verdict:hover{box-shadow:0 12px 34px rgba(156,122,20,.16);}
+  .verdict .vt{
+    display:flex;align-items:center;gap:9px;
+    font-weight:800;font-size:15px;letter-spacing:.1em;white-space:nowrap;
+    color:#8a6a0e;padding:16px 22px 13px;border-bottom:1px solid #f1e8d2;
+  }
+  .verdict .vt::before{content:'';flex:0 0 auto;width:5px;height:15px;border-radius:2px;
+    background:linear-gradient(180deg,#c8102e,#c9a227);}
+  .verdict .vt::after{content:'KEY TAKEAWAYS';margin-left:auto;
+    font-size:9.5px;font-weight:700;letter-spacing:.2em;color:#cdbf9a;}
+  .verdict .vc{padding:16px 22px 0;font-size:14.2px;line-height:1.95;color:#3a382f;}
+  .verdict .vc>*:first-child{margin-top:0;}
+  .verdict .vc>*:last-child{margin-bottom:0;}
+  .verdict .vc p{margin:0 0 11px;}
+  .verdict .vc strong,.verdict .vc b{color:#a5232f;font-weight:800;}
+  .verdict .vc u{text-decoration-color:#d9b45c;text-underline-offset:3px;}
+  .verdict .vc ul,.verdict .vc ol{margin:0 0 12px;padding-left:20px;}
+  .verdict .vc li{margin:0 0 6px;}
+  /* ① 导语：一句话本质 */
+  .verdict .vlead{
+    font-size:15.2px;line-height:2.02;font-weight:600;color:#26251f;
+    background:linear-gradient(120deg,rgba(201,162,39,.12),rgba(201,162,39,.035));
+    border-left:3px solid #c9a227;border-radius:0 10px 10px 0;
+    padding:13px 18px 14px;margin:0 0 14px;
+  }
+  .verdict .vlead strong,.verdict .vlead b{color:#a5232f;}
+  /* ② 分点：每个要点独立成行（旧版 ①②③ 挤在长句里，是最难读的地方） */
+  .verdict .vlist{list-style:none;margin:0 0 13px;padding:0;display:grid;gap:9px;
+    counter-reset:vn;}
+  .verdict .vlist>li{
+    position:relative;counter-increment:vn;
+    padding:11px 15px 11px 44px;
+    background:#fcfaf5;border:1px solid #f0ead9;border-radius:10px;
+    font-size:13.8px;line-height:1.88;
+  }
+  .verdict .vlist>li::before{
+    content:counter(vn);position:absolute;left:13px;top:11px;
+    width:21px;height:21px;border-radius:50%;
+    background:linear-gradient(135deg,#c8102e,#d8353f);color:#fff;
+    font-size:11.5px;font-weight:800;line-height:21px;text-align:center;
+    font-variant-numeric:tabular-nums;
+  }
+  .verdict .vk{font-weight:800;color:#8a5a12;}
+  /* ②b 中性强调块：核心矛盾 / 关键变量 / 本报告的判读 —— 比导语轻、比正文重 */
+  .verdict .vkey{
+    background:#fdfaf0;border-left:3px solid #e0cb96;border-radius:0 10px 10px 0;
+    padding:11px 15px 12px;margin:0 0 13px;font-size:13.8px;line-height:1.9;
+  }
+  .verdict .vkey .vh{font-weight:800;color:#8a6a0e;margin-bottom:4px;}
+  /* ③ 风险块 */
+  .verdict .vrisk{
+    border:1px solid #f2d7da;border-left:3px solid #c8102e;border-radius:0 10px 10px 0;
+    background:#fef8f8;padding:12px 16px 13px;margin:0 0 13px;
+    font-size:13.8px;line-height:1.88;
+  }
+  .verdict .vrisk .vh{display:flex;align-items:center;gap:7px;
+    font-size:12.5px;font-weight:800;letter-spacing:.08em;color:#b0242f;margin-bottom:8px;}
+  .verdict .vrisk .vh::before{content:'';width:0;height:0;flex:0 0 auto;
+    border-left:5px solid transparent;border-right:5px solid transparent;
+    border-bottom:9px solid #c8102e;}
+  .verdict .vrisk ol,.verdict .vrisk ul{margin:0;padding-left:19px;}
+  .verdict .vrisk li{margin:0 0 5px;}
+  .verdict .vrisk li::marker{color:#c8102e;font-weight:800;}
+  .verdict .vrisk p{margin:0;}
+  /* ④ 跟踪条 */
+  .verdict .vtrack{
+    display:flex;gap:10px;align-items:flex-start;
+    border:1px dashed #e0cb96;border-radius:10px;background:#fdfaf0;
+    padding:11px 15px;margin:0;font-size:13.2px;line-height:1.85;color:#6a5a2e;
+  }
+  .verdict .vtrack .vk{flex:0 0 auto;}
+  @media print{
+    .verdict{box-shadow:none;break-inside:avoid;}
+    .verdict .vlist>li,.verdict .vrisk,.verdict .vtrack{break-inside:avoid;}
+  }
+  @media(max-width:520px){
+    .verdict .vt{padding:13px 15px 11px;}
+    .verdict .vt::after{display:none;}
+    .verdict .vc{padding:13px 15px 0;}
+    .verdict .vlist>li{padding:10px 12px 10px 40px;}
+  }
   footer{color:var(--sub);font-size:12.5px;text-align:center;margin-top:30px;line-height:2;}
   .disclaimer{background:#fff8ec;border:1px solid #f3e2bd;border-radius:10px;padding:14px 18px;font-size:13px;color:#7a5a20;margin-top:20px;text-align:left;}
   .timeline{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0;}
@@ -300,9 +394,76 @@
   .chain .node .t1{font-weight:700;color:var(--accent);font-size:14px;margin-bottom:4px;}
   .chain .node .t2{font-size:12px;color:#46464b;line-height:1.5;}
   .chain .arrow{display:none;}  /* grid 布局不需要显式箭头，节点顺序自然体现流向 */
-  .logic{border-left:4px solid var(--gold);background:linear-gradient(90deg,#fbf7ec,#fdfdfd);border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;}
-  .logic .lt{font-weight:700;color:#8f0f22;margin-bottom:6px;font-size:15px;}
-  .logic .lv{font-size:13.5px;}
+  /* ----------------------------------------------------------------
+     解读块（.logic = .lt 标题 + .lv 正文）：默认折起，点标题**就地**展开 / 收起
+     （2026-10-14 用户令：「不要弹窗，改成点击展开和隐藏，默认全部隐藏」）
+     ★ 纯 CSS + 模板里的一支事件委托 ⇒ 全站 389 个解读块、11 份研报的 HTML
+       一个字都不用改（也不写库），以后新建的研报自动生效。
+     ★ 为什么要用 **grid 而不是 flex**：展开后正文必须在标题**下方**占满整行。
+       flex 行布局里 .lv 会挤到标题右边；`flex-wrap` 也不行 —— 伪元素 ::after
+       在 DOM 顺序里排在 .lv 之后，一旦换行会被顶到第三行去。
+       grid 显式定位（`.lt` = 1/1、`::after` = 1/2、`.lv` = 2/1/3/3）就没有这个歧义，
+       而且 ::after 作为 grid item**不用往 DOM 塞节点**。
+     ★ 开关只切一个类：`.logic.on` ⇒ `.lv{display:block}` + 胶囊换成「收起 ▴」。
+       `.lv` 全程留在 DOM 里（只是 display:none）⇒「隐藏」不等于「丢内容」。
+     ★ 标题不做行数夹断：折叠条高一行/两行都行，夹断反而会把长标题（最长 47 字）吃掉。
+     ⚠️ 打印必须全量展开：PDF 点不动，只藏不还 = 把正文印丢了（与时间轴 .h-txt 同一口径）。
+     ---------------------------------------------------------------- */
+  .logic{
+    display:grid;grid-template-columns:minmax(0,1fr) auto;
+    align-items:center;column-gap:10px;
+    cursor:pointer;border-left:4px solid var(--gold);
+    background:linear-gradient(90deg,#fbf7ec,#fdfdfd);
+    border-radius:0 10px 10px 0;padding:11px 16px;margin:12px 0;
+    transition:box-shadow .2s ease;
+  }
+  .logic:hover{box-shadow:0 4px 14px rgba(156,122,20,.15);}
+  .logic .lt{grid-area:1/1;min-width:0;margin:0;
+    font-weight:700;color:#8f0f22;font-size:14.6px;line-height:1.6;}
+  .logic .lv{grid-area:2/1/3/3;display:none;}
+  .logic::after{
+    grid-area:1/2;content:"展开 ▾";white-space:nowrap;
+    font-size:11.5px;font-weight:600;color:#96702a;letter-spacing:.02em;
+    border:1px solid #ecd9a8;background:#fffdf5;border-radius:999px;padding:3px 10px;
+    transition:color .18s ease,border-color .18s ease,background .18s ease;
+  }
+  .logic:hover::after{color:#a3122a;border-color:#f0cfd5;background:#fff5f5;}
+  /* 展开态 */
+  /* ⚠️ 这里**故意不写 color** —— 正文色统一由 report.html 里那支独立的
+     「文本色样式块（id=rpt-txtstyle）」的 `.logic .lv{color:…}` 定（当前 #5e5b52）。
+     本段写死过 #3d3a33，特异度 `.logic.on .lv`(3 类) > `.logic .lv`(2 类)，
+     展开后正文比同页其他卡片正文明显更黑，且对面每调一轮色都会被这行盖掉。
+     ★★ 2026-10-15 修一个把自己腰斩的 bug：本行原来写的是带尖括号的标签名，
+        注释一旦原样注入样式表块，浏览器在 RAWTEXT 状态下遇到尖括号标签名
+        就会认为样式表到此结束 ⇒ 该注释里的那段 CSS 文本被当成「块外文本」，
+        紧随其后的 **`.logic.on .lv{display:block}` 整条规则被解析器丢弃**
+        （解析器在该规则的选择器前遇到未配对的注释结束符，判定选择器非法，
+          连同声明块一起丢掉；下一条规则起恢复正常）。
+        —— ⚠️ 真实伤害就是**这一条**（折叠块点标题展不开），
+           不是「后面几千行全失效」。2026-10-15 我一度按「行数占比」估成
+           386 条 / 73%，是**错的**：被截断的那段 CSS 会另起一张样式表重新解析，
+           规则并没有真丢。**教训：受损条数必须用 CSSOM 实测（
+           `build/probe_cssom_diff.py`），不能按行数占比推断。**
+        所以这个文件里**绝不允许出现裸的 style / script 标签名**，
+        要提就写成「样式表块 / 文本色样式块 / 脚本标签」这种不带尖括号的说法。 */
+  .logic.on .lv{
+    display:block;margin-top:10px;padding-top:10px;
+    border-top:1px dashed #e8d9b0;
+    font-size:13.5px;line-height:1.9;
+    animation:rptIn .22s ease both;
+  }
+  .logic.on .lv b{color:#d0202f;}
+  .logic.on::after{content:"收起 ▴";}
+  @media(max-width:560px){ .logic::after{content:"展开 ▾";padding:3px 8px;} }
+  /* 打印 / 存 PDF：走回原来的「标题 + 全文」形态 */
+  @media print{
+    .logic{display:block;cursor:auto;box-shadow:none;
+      padding:14px 18px;break-inside:avoid;}
+    .logic::after{display:none;}
+    .logic .lt{display:block;font-size:15px;margin-bottom:6px;}
+    .logic .lv{display:block;font-size:13.5px;
+      border-top:0;margin-top:0;padding-top:0;animation:none;}
+  }
   .essence{
     position:relative;overflow:hidden;
     background:linear-gradient(135deg,#4a0a15 0%,#c81a33 55%,#d0202f 100%);
@@ -335,7 +496,7 @@
       radial-gradient(circle at 90% 84%, rgba(92,92,96,.05), transparent 42%),
       linear-gradient(180deg,#fefefe,#f8f8f8);
     border:1px solid #e7e7e7;}
-  .hist .h-head{text-align:center;margin-bottom:8px;}
+  .hist .h-head{text-align:center;margin-bottom:12px;}
   .hist .h-en{font-size:11px;letter-spacing:5px;color:var(--gold);font-weight:700;}
   .hist .h-title{font-size:24px;font-weight:800;color:#332a32;letter-spacing:3px;margin-top:4px;}
   .hist .h-title i{font-style:normal;color:#d0202f;}
@@ -365,21 +526,180 @@
     padding:5px 14px;border-radius:999px;box-shadow:0 4px 12px rgba(142,47,59,.3);white-space:nowrap;}
   .hist .h-card::before{content:"";position:absolute;top:10px;bottom:10px;left:0;width:3px;border-radius:3px;
     background:linear-gradient(180deg,#dd5560,#d0202f);}
-  .hist .h-card .h-txt{font-size:12px;line-height:1.62;color:#4a4048;}
+  /* ★ 2026-10-14 截断 + 「展开全文」弹窗（用户口径：「文字多的帮我隐藏部分文字，
+     增加一个点击弹窗查看全部」）。为什么必须截断、不能继续靠高度自适应：
+     10 个节点时每列只有 ~130px，卡片宽 116px、正文盒只有 90px ——
+     603599 的 2026 节点文案 130 字，渲染出来是 **447px 高的竖条**；
+     同一排卡片高度从 175px 到 428px 参差，整块看着就是锯齿（用户截图的原话：
+     「跟上下结构不一致」）。截断到 7 行后卡片高度差 ≤ 1 行。
+     为什么用 -webkit-line-clamp：实测（含 <b> 内联标签）能出**真省略号**、文本正常回流、
+     不会把每个 <b> 块化到独立一行；检测截断用 scrollHeight > clientHeight，实测准确。
+     不支持该属性的老浏览器 = 不截断（退回旧行为），不会把页面改瞎。 */
+  .hist .h-card .h-txt{font-size:12px;line-height:1.62;color:#4a4048;
+    display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:7;overflow:hidden;}
   .hist .h-card .h-txt b{color:#d0202f;font-weight:700;}
+  /* 被截断的卡片由 JS 补这一条（见 report.template.html 的 histEnhance()） */
+  .hist .h-card.has-more{cursor:pointer;}
+  .hist .h-more{display:flex;align-items:center;justify-content:center;gap:3px;
+    margin-top:auto;padding-top:5px;border-top:1px dashed #eedbde;
+    font-size:10.5px;font-weight:800;color:#c2909a;letter-spacing:.3px;transition:color .18s;}
+  .hist .h-more i{font-style:normal;font-size:12px;line-height:1;}
+  .hist .h-card.has-more:hover .h-more{color:#d0202f;}
   .hist .h-foot{text-align:center;margin-top:2px;font-size:11px;color:#c4b5b1;letter-spacing:4px;}
+  /* 「左右滑动」提示：只有真滑得动（节点数 × 列宽 > 容器宽）时由 tlFit() 给 .hist 加 .tl-scroll */
+  .hist .tl-hint{display:none;text-align:center;font-size:11px;color:#a99ba0;letter-spacing:.4px;
+    margin-top:2px;padding:0 12px;}
+  .hist .tl-hint b{color:#b8323f;font-weight:700;}
+  .hist.tl-scroll .tl-hint{display:block;}
+  /* ★ 2026-10-14 第三轮（用户截图「1/2 位置加左右箭头，半透明，隐约可见就行」）：
+     轨道两端各一枚圆形箭头，**垂直对齐 dot 行**（那一带正好是卡片之间的空隙，
+     只有一条 2px 中线，所以箭头盖上去不遮任何文字）；纵向位置由 tlFit() 实测后
+     写进 --tl-mid，这里 240px 只是没脚本时的兜底。
+     刻意做得很淡（opacity:.3）—— 用户口径「隐约可以看见就行」，hover 才亮起来。
+     只有真滚得动（.tl-scroll）时才显示：没得滚还摆两个箭头＝骗人。
+     滚到头的那一侧压到 .1 并 disabled（还能看见，但明显是"没路了"而不是消失）。 */
+  .hist .tl-nav{display:none;position:absolute;z-index:6;
+    top:var(--tl-mid,240px);transform:translateY(-50%);
+    width:40px;height:40px;padding:0;border-radius:50%;cursor:pointer;
+    align-items:center;justify-content:center;
+    background:rgba(255,255,255,.62);border:1px solid rgba(208,32,47,.16);
+    box-shadow:0 2px 8px rgba(80,40,45,.09);
+    color:#c0394a;opacity:.34;transition:opacity .18s,background .18s,box-shadow .18s;
+    -webkit-tap-highlight-color:transparent;}
+  .hist.tl-scroll .tl-nav{display:flex;}
+  .hist .tl-nav:hover{opacity:.92;background:#fff;box-shadow:0 4px 14px rgba(80,40,45,.16);}
+  /* 到头的那侧压到 .18：比静止态还淡一档，但**不能压到看不见** —— 用户要的是
+     「隐约可以看见」，箭头整个消失会让人以为没这个功能。 */
+  .hist .tl-nav:disabled{opacity:.18;cursor:default;background:rgba(255,255,255,.45);box-shadow:none;}
+  .hist .tl-nav.prev{left:4px;}
+  .hist .tl-nav.next{right:4px;}
+  /* 箭头本体＝一个 L 形边框转 45°，绕的是盒中心，所以旋转后要往右下挪半个斜边才视觉居中 */
+  .hist .tl-nav i{display:block;width:11px;height:11px;
+    border-left:2.4px solid currentColor;border-bottom:2.4px solid currentColor;}
+  .hist .tl-nav.prev i{transform:rotate(45deg) translate(1.6px,-1.6px);}
+  .hist .tl-nav.next i{transform:rotate(-135deg) translate(1.6px,-1.6px);}
+
+  /* 打印：纸面上滚不动、也没有「点开看全文」，所以还原成竖排并取消 7 行截断，
+     保证导出的 PDF 里每个年份都是完整正文（屏幕上的交互态不该影响交付物）。 */
+  @media print{
+    .hist .h-track{overflow:visible !important;height:auto !important;padding-bottom:0 !important;}
+    /* ⚠️ 上内边距不能是 0：年份胶囊是 `.h-year{top:-14px}` 骑在卡片顶边上的，
+       打印时节点改成纵向排列、第一张卡片顶上再没有轨道留白，
+       0 上边距会让它的胶囊直接压到 .h-head 上（实测「压标题=1」）。
+       给 14px 就够胶囊完整露头。 */
+    .hist .h-nodes{display:block !important;width:auto !important;min-width:0 !important;
+      padding:14px 14px 0 !important;}
+    .hist .h-node{display:block !important;width:auto !important;height:auto !important;
+      margin:0 0 13px !important;}
+    .hist .h-node::after{display:none !important;}
+    .hist .h-dot{position:absolute !important;left:20px !important;top:9px !important;
+      transform:translate(-50%,-50%) !important;grid-row:auto !important;grid-column:auto !important;}
+    .hist .h-card{position:relative !important;left:auto !important;top:auto !important;
+      width:auto !important;margin:0 0 0 34px !important;align-self:auto !important;
+      grid-row:auto !important;grid-column:auto !important;box-shadow:none !important;}
+    .hist .h-year{left:34px !important;top:-14px !important;}
+    .hist .h-card .h-txt{-webkit-line-clamp:unset !important;display:block !important;overflow:visible !important;}
+    .hist .h-more,.hist .tl-hint,.hist .tl-nav{display:none !important;}
+  }
+
+  /* ★ 2026-10-14 时间轴「自适应高度」重做 —— 修「卡片溢出 + 遮挡标题」（用户截图：盛和资源 m2）
+     旧实现的病根：.h-track 是**写死高度**（inline height，由 TimelineKit 按节点数算），
+     而 .h-card 是 position:absolute 向中线上下两侧生长的 —— 「卡片实际要多高」只有浏览器渲染完
+     才知道，height:auto 对绝对定位的卡片毫无约束力。于是：
+       · 上排卡片顶穿轨道 → 盖住 .h-head（"COMPANY HISTORY / 公司发展历程" 只剩字缝里露头）；
+       · 下排卡片戳穿轨道底部 → 被 .hist 的 overflow:hidden 当装饰裁掉，正文断在半句。
+     节点 9 个、文案 80~100 字时必须的卡片高约 210px，而轨道 300px 只给得起 114px —— 差 100px。
+     新做法：高度交给 grid 按内容自适应；每个 .h-node 用 subgrid **继承同一组行轨道**，
+     所以「上排最大高 / dot 行 / 下排最大高」对全部节点共享 ⇒ 卡片底边自动齐平、圆点自动共线，
+     而且不依赖任何写死的高度。已入库的研报 HTML 一个字都不用改（inline height 被 !important 让位）。
+     ⚠️ 旧规则全部保留在 @supports 之外 —— 不支持 subgrid 的浏览器退回原行为（会溢出但能用），
+        不能因为一次改版把老环境直接改瞎。 */
+  @supports (grid-template-rows:subgrid){
+    /* ★ 2026-10-14 第二轮（用户截图2「整个完全溢出和遮挡」）：列宽从 1fr 改成**固定 --tl-w**，
+       放不下就横向滑动。1fr 均分时 10 个节点每列只剩 ~100px，卡片被挤成一根竖条
+       （实测卡片宽 76px、正文盒 52px，7 行夹断后可见约 42 字，而原文最长 165 字）——
+       夹断 + 「展开全文」只解决了「整齐」，没解决「页面上根本读不了」。
+       现在每列固定宽度（JS 实测后写进 --tl-w，见 report.template.html 的 tlFit()），
+       .h-nodes 用 width:max-content 撑开、.h-track 负责滚 ⇒ 卡片始终是可读宽度。 */
+    .hist .h-track{height:auto !important;overflow-x:auto;overflow-y:hidden;padding-bottom:0;
+      -webkit-overflow-scrolling:touch;
+      /* ★ 2026-10-14 第四轮（用户「滚动条不要显示」）：第三轮那条 12px 可见滚动条撤掉，
+         横向浏览改由**左右箭头 + 双指横滑**承担（箭头见 .tl-nav，提示见 .tl-hint）。
+         padding-bottom 也一并归零 —— 原来那 10px 就是给滚动条腾的走道。
+         ⚠️ 两条声明**必须同时给**，各管一半浏览器：
+            scrollbar-width/-ms-overflow-style → Firefox / 旧 Edge；
+            ::-webkit-scrollbar{display:none}  → Chromium / Safari。
+            （当年踩的坑是「一边 thin、一边自定义彩条」才互相打架 —— 两边同为「隐藏」不冲突。） */
+      scrollbar-width:none;-ms-overflow-style:none;}
+    .hist .h-track::-webkit-scrollbar{display:none;width:0;height:0;}
+    .hist .h-line{display:none;}          /* 中线改由 .h-node::after 逐列画，才能真正落在 dot 行上 */
+    .hist .h-nodes{
+      display:grid;grid-auto-flow:column;grid-auto-columns:var(--tl-w,152px);
+      width:max-content;min-width:100%;box-sizing:border-box;
+      /* 上内边距必须 ≥17px：年份胶囊骑在卡顶（top:-17px），不留走道它就会顶穿 .h-head
+         —— 这正是用户截图里「遮挡」的那一处（实测 odd 卡片全部压住副标题）。 */
+      grid-template-rows:auto auto auto;align-items:stretch;height:auto;padding:20px 8px 0;}
+    .hist .h-node{display:grid;grid-template-rows:subgrid;grid-row:1 / -1;
+      position:relative;max-width:none;height:auto;}
+    .hist .h-node::after{content:"";grid-row:2;grid-column:1;align-self:center;justify-self:stretch;
+      height:2px;background:rgba(208,32,47,.36);z-index:0;}
+    .hist .h-node:first-child::after{background:linear-gradient(90deg,rgba(208,32,47,0),rgba(208,32,47,.36));}
+    .hist .h-node:last-child::after{background:linear-gradient(90deg,rgba(208,32,47,.36),rgba(208,32,47,0));}
+    .hist .h-dot{position:relative;left:auto;top:auto;transform:none;margin:0;
+      grid-row:2;grid-column:1;justify-self:center;align-self:center;z-index:3;}
+    /* align-self:stretch（而不是 end/start）—— 2026-10-14 用户口径「跟上下结构不一致」：
+       底边对齐只解决了「贴不贴中线」，卡片之间**高度还差一截**（未截断的 156px vs
+       截断+带「展开全文」条的 206px，年份胶囊就跟着上下错位）。
+       stretch 让同一排所有卡片撑满该行高度 ⇒ 上排是一个齐整的矩形带、年份胶囊也共线。
+       行高本身仍由内容里最高的那张决定，所以**没有引入任何写死高度**。 */
+    /* ⚠️ width 必须显式写死：固定列宽下 `width:auto + justify-self:center` 会退化成
+       fit-content（实测卡片只剩 76px 宽），填不满该列，白留一半可读空间。 */
+    .hist .h-card{position:relative;left:auto;right:auto;top:auto;bottom:auto;transform:none;
+      grid-row:1;grid-column:1;justify-self:center;align-self:stretch;
+      /* flex 列：同一排卡片被 align-self:stretch 拉成等高后，短文本的卡片底部会留白，
+         而「展开全文」条是文档流里的下一项 —— 不用 flex 就会悬在正文下面（看着像一条
+         莫名的分隔线）。margin-top:auto 把它压到卡底，一排卡片的这条线才能对齐。 */
+      display:flex;flex-direction:column;
+      width:calc(var(--tl-w,152px) - 12px) !important;max-width:none;margin:0 6px 30px;}
+    .hist .h-node:nth-child(even) .h-card{grid-row:3;align-self:stretch;margin:30px 6px 0;}
+    /* ⚠️ 这两条**必须**留：上面「基础规则」里的 .h-node:nth-child(odd/even) .h-card{top|bottom:calc(50%±36px)}
+       是 (0,4,0) 特异性，比本块里任何 .h-card 规则都高 —— 不显式复位，卡片改成 position:relative 后
+       「bottom:calc(50%+36px)」会变成**相对位移**把整张卡片顶飞（实测偏移 236px，卡片穿到轨道外面去）。 */
+    .hist .h-node:nth-child(odd) .h-card,
+    .hist .h-node:nth-child(even) .h-card{top:auto;bottom:auto;}
+    .hist .h-node:hover .h-card{transform:translateY(-3px);
+      box-shadow:0 6px 14px rgba(80,40,45,.09),0 18px 34px rgba(80,40,45,.14);border-color:#d6d6d6;}
+    /* ★ 2026-10-14 第二轮：原来「节点 ≥8 就把整块向两侧探出 160px」的硬挤列宽方案**停用**。
+       它只在 ≥1360px 生效（窄屏完全救不了），而且探出后 .hist 比卡片还宽、在窄屏会撑出
+       页面级横向滚动条。现在列宽固定 + .h-track 自己滚，探出已无意义。 */
+  }
+
   @media(max-width:860px){
-    .hist .h-track{height:auto;}
-    .hist .h-line{left:17px;top:1%;bottom:1%;width:2px;height:auto;
+    /* ⚠️ overflow 必须整个 reset（不能只写 overflow-x:visible —— 另一轴非 visible 时
+       CSS 会把 visible 折算成 auto，等于没改）。竖排不需要任何横向滚动。 */
+    .hist .h-track{height:auto !important;overflow:visible !important;padding-bottom:0 !important;}
+    /* 窄屏把 subgrid 网格拆回普通流（竖排），下面保留的旧规则继续负责竖线与圆点的定位。
+       ⚠️ 必须同时把 width/min-width reset 掉：@supports 块里的 .h-nodes{width:max-content}
+         是给桌面「横向滚动」用的；竖排版式下它会让节点宽度由内容 max-content 决定
+         （实测 10 节点时 nodes 宽 1685px、卡片宽 594px），**撑出新的横向溢出**。 */
+    .hist .h-nodes{display:block;width:auto !important;min-width:0 !important;padding:0;}
+    .hist .h-node{display:block;max-width:none;height:auto;margin-bottom:26px;}
+    .hist .h-node:last-child{margin-bottom:0;}
+    .hist .h-node::after{display:none;}
+    .hist .h-line{display:block;left:17px;top:1%;bottom:1%;width:2px;height:auto;
       background:linear-gradient(180deg,rgba(92,92,96,0),rgba(208,32,47,.4) 6%,rgba(208,32,47,.4) 94%,rgba(92,92,96,0));}
     .hist .h-line::after{right:auto;top:auto;left:50%;bottom:-9px;transform:translate(-50%,0) rotate(90deg);}
-    .hist .h-nodes{flex-direction:column;align-items:stretch;padding:0;gap:26px;}
-    .hist .h-node{max-width:none;height:auto;}
-    .hist .h-dot{left:17px;top:6px;transform:translate(-50%,-50%);}
-    .hist .h-card{position:relative;left:auto;top:auto;bottom:auto;transform:none;width:auto;margin-left:42px;}
-    .hist .h-node:nth-child(odd) .h-card,.hist .h-node:nth-child(even) .h-card{top:auto;bottom:auto;}
+    .hist .h-dot{position:absolute;left:17px;top:6px;transform:translate(-50%,-50%);}
+    /* ⚠️ margin 必须带 !important：桌面 @supports 里 :nth-child(even) 的简写 margin 特异性更高，
+       不带 !important 会把 margin-left:42px 冲掉，偶数节点整体左移贴到竖线上。 */
+    .hist .h-card{position:relative;left:auto;top:auto;bottom:auto;transform:none;
+      width:auto !important;max-width:none;margin:0 0 0 42px !important;}
     .hist .h-node:hover .h-card{transform:translateY(-3px);}
     .hist .h-year{left:42px;top:-15px;}
+    /* 竖排是「上下滚」，横向滚动的提示在这一档必然是假的
+       （tlFit() 按「列宽 × 节点数」判定，竖排时恒为真）—— 藏掉，别骗用户去横滑。
+       箭头同理：竖排时 .h-track 是 overflow:visible，箭头一点用没有。 */
+    .hist .tl-hint,.hist .tl-nav{display:none !important;}
   }
   .score-hero{display:grid;grid-template-columns:330px 1fr;gap:22px;align-items:center;margin-top:8px;}
   .gauge-wrap{
@@ -912,4 +1232,301 @@
   @media(max-width:860px){
     .dcards{grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:8px;}
     .dcards .dv{font-size:20px;}
+  }
+
+/* ===== 产业链全景图（上中下游泳道 + 比例尺） ===== */
+  /* 容器 */
+  .iflow{margin:12px 0 8px;border:1px solid #f7eaec;border-radius:14px;
+    padding:12px 12px 8px;background:linear-gradient(180deg,#fffbfc,#fff);}
+  .if-legend{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px;}
+  .if-lg{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:#5b3a40;
+    border:1px solid #f2dfe2;border-radius:999px;padding:4px 10px;background:#fffafb;line-height:1.4;}
+  .if-lg b{font-weight:800;color:#a3122a;}
+  .if-lg-up{border-color:#f0ccd2;background:#fdf3f4;}
+  .if-lg-mid{border-color:#e8c6cc;background:#fbeef0;}
+  .if-lg-down{border-color:#dfc0c6;background:#f9e9ec;}
+  .if-lg-hint{margin-left:auto;color:#9c9ca1;border-style:dashed;}
+  .if-scroll{overflow-x:auto;overflow-y:hidden;}
+  .if-svg{display:block;width:100%;min-width:740px;height:auto;}
+
+  /* 悬停聚焦：进入图内先把所有环节压暗，指向谁谁亮起 */
+  .iflow .nd,.iflow .cp,.iflow .ln{transition:opacity .18s ease,filter .18s ease;}
+  .iflow:hover .nd,.iflow:hover .cp{opacity:.55;}
+  .iflow .nd:hover,.iflow .cp:hover{opacity:1;
+    filter:drop-shadow(0 5px 12px rgba(200,16,46,.30));}
+  .iflow .nd,.iflow .cp{cursor:help;}
+
+  /* 三段比例尺 */
+  .ifbars{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:12px 0 6px;}
+  .ifb{border:1px solid #f2dfe2;border-radius:12px;padding:11px 13px 12px;
+    background:linear-gradient(160deg,#fff,#fffafb);min-width:0;}
+  .ifb-h{font-size:12.5px;font-weight:800;color:#a3122a;margin-bottom:9px;
+    padding-bottom:7px;border-bottom:1px dashed #f2dfe2;line-height:1.4;}
+  /* 轨道给到 84px：占比小的项（如宝钛 16%）才不会缩成一个小圆点，还看得出是「条」 */
+  .ifb-r{display:grid;grid-template-columns:minmax(0,1fr) 84px 54px;gap:9px;
+    align-items:center;margin-bottom:8px;}
+  .ifb-r:last-child{margin-bottom:0;}
+  .ifb-l{font-size:11.5px;color:#5b3a40;line-height:1.35;min-width:0;}
+  /* 圆角用 3px 不用 4px：短条（16%）在小圆角下仍然读作「条」，读不成「点」 */
+  .ifb-t{display:block;height:8px;border-radius:3px;background:#f6e7ea;overflow:hidden;}
+  .ifb-t i{display:block;height:100%;min-width:3px;border-radius:3px;
+    background:linear-gradient(90deg,#e2495c,#c8102e);}
+  .ifb-v{font-size:12px;font-weight:800;color:#8c0a20;text-align:right;letter-spacing:.2px;}
+  .ifb-down .ifb-t i{background:linear-gradient(90deg,#d98a97,#a3122a);}
+  .if-note{margin:8px 0 4px;font-size:12px;line-height:1.85;color:#6b6b70;
+    border-left:3px solid #f0dfe2;padding-left:10px;}
+  .if-note b{color:#a3122a;}
+
+  @media(max-width:860px){
+    .ifbars{grid-template-columns:1fr;}
+    .if-lg-hint{display:none;}
+  }
+  @media print{
+    .if-scroll{overflow:visible;}
+    .if-svg{min-width:0;}
+    .iflow,.ifb{break-inside:avoid;}
+  }
+
+  /* ================================================================
+     模块「堆叠文本」分块 + 表格色块区分（2026-10-14 用户令·第三轮）
+     用户口径（两张截图均取自 002408）：
+       「这种文字居多堆在一起的继续修改样式，可以分成几小块；
+         这种表格做点背景色块区分」
+     ★ 病根（先量再改，数据来自全库 341 个模块的结构扫描）：
+       ① 模块**顶层** `<ul>` 全站 **28 处**（集中在 m1 公司简介 4 / m4 实控人 4 /
+          m24 行业介绍 10 / m31 投资结论 8），每条都是一两百字的长句，
+          逐条排下来就是一大坨 —— 行与行之间只靠 18px 缩进 + 一个圆点区分。
+          （另有 `.grid2 > div` 内 10 处、`m3 .sh3-ul` 11 处、`600456 m17 .mi-notes`
+            1 处，各有各的卡片语言，**本轮一律不碰**。）
+       ② 表格虽然本来就有斑马纹，但底色是 `#fbfbfb` vs `#fff` —— 在**高行**
+          表格上（第三列塞整段正文的「技术壁垒」表、口径表）完全看不出行界。
+     ★ 做法（纯 CSS：零改库、零改模板 DOM）：
+       ① `.card > ul > li` → 每条一张小卡片（金色左条 + 暖白渐变底 + 轻投影），
+          `ul` 改 grid + 10px 行距 ⇒「一大坨」变「几小块」。
+       ② `.card > ul + p` → 紧跟在列表后的总括段给一层「小结」底色（暗红左条），
+          与上面的卡片串成一组，最后那段不再糊进前面的条目里。
+       ③ 表格：**2026-10-15 重做为现代「细线 + 留白」风**（去掉斑马纹与红色表头，
+          表头改浅灰小字、只留横线、内边距放大、hover 改纯浅灰；见下方 ③ 详解）。
+     ★ 配套的渲染层脚本块 `rpt-blockscript`（同一份定点注入产物里，标签形态见注入脚本）：
+       · 把正文里**未渲染的 Markdown 粗体 `**…**` 转成 `<b>`** —— 全库 1,693 处
+         （000762 占 1,449、600392 占 244，分布在 56 个模块），页面直接显示星号，
+         是「土」的最大来源。**只改 DOM 不写库**，所以 11 份研报的数据一个字不动。
+       · 给纯数字单元格打 `is-num` 标 → 右对齐 + 等宽数字（与 ③ 的 CSS 配套）。
+     ⚠️ 选择器边界：
+        · 列表一律 `.card > ul`（**直接子代**）—— 刚好命中那 28 处顶层列表。
+        · 表格用 `.card table`（后代）—— 表格会藏在 `.grid2 > div` /
+          `.mi-sum-box` 里，带 `>` 会漏掉一大半。
+        · `#verdict`（核心结论）、各弹窗、`.hist` 时间轴、`.iflow` 产业链都在
+          `.card` 之外，天然隔离。
+     ⚠️ 为什么必须写 !important：
+        · 本文件由 build.py 注入到模板的 REPORTCSS 占位符（在**模板自带样式之前**）
+          ⇒ 同特异的 `tr:nth-child(even) td` / `td:first-child` 排在后面会盖掉；
+        · `<ul style="margin-left:18px;font-size:13.5px">` 是**内联**样式（38 处），
+          内联只能被「样式表里的 !important」压过去。
+     ⚠️ 本块必须排在下面「模块正文可读性版式」**之前**：
+        `_patch_txtstyle.py` 是「从它的 MARK 抽到文件尾」，
+        排在它后面会被连带打进 rpt-txtstyle 块（并发会话的地盘）。
+     ================================================================ */
+  /* ① 顶层列表 → 分块卡片 */
+  .card > ul{
+    list-style:none !important;padding:0 !important;margin:0 0 16px !important;
+    display:grid;gap:10px;
+  }
+  .card > ul > li{
+    position:relative;margin:0 !important;
+    padding:11px 15px 12px 17px !important;
+    font-size:13.6px !important;line-height:1.95;
+    background:linear-gradient(168deg,#fffdfa 0%,#fbf7f1 100%);
+    border:1px solid #efe9e1;border-left:3px solid var(--gold);
+    border-radius:0 12px 12px 0;
+    box-shadow:0 3px 12px rgba(40,38,42,.045);
+  }
+  /* ② 列表后的总括段 → 「小结」块 */
+  .card > ul + p:not(.src):not(.muted){
+    margin:0 0 16px !important;
+    background:linear-gradient(120deg,#f8f5f1,#fdfcfa);
+    border:1px solid #ece7e0;border-left:3px solid #8c0a20;
+    border-radius:0 12px 12px 0;padding:12px 16px 13px;
+  }
+  /* ③ 表格：现代「细线 + 留白」风（2026-10-15 用户令：「这个样式太土了，
+        帮我修改的好看一点，用主流的好看样式」）
+     ★ 病根（用户截图 = 000762 m18「壁垒维度 | 强度 | 依据」那张长文本表）：
+       老式表格是 **大红渐变表头 + 米黄首列 + 暖黄斑马 + 带边框的卡片容器**，
+       三种颜色互相打架、正文贴边 ⇒ 一眼就是十年前的 Excel / 后台管理页。
+     ★ 主流做法（Notion / Linear / Stripe / Apple 那一套）：
+       ① **去掉斑马纹** —— 现代表格靠留白 + 细线分层，不靠隔行刷色；
+       ② 表头不铺色块：浅灰底 + 小字号 + 字距 + 灰字，只留一条下边框；
+       ③ **只留横线、去掉竖线和厚外框**，圆角留在容器上；
+       ④ 内边距放大（9px 12px → 12px 16px）、`line-height` 提到 1.72（原默认 ~1.5）；
+       ⑤ hover 改纯浅灰 —— 原来的金色渐变 + inset 阴影太重；
+       ⑥ 首列保留「标签列」的层次，但用**中性近白**而不是暖黄（不再显脏）；
+       ⑦ 品牌红不再靠表头大色块撑，交给模块标题条与结论块 —— **数据要退后**。
+     ⚠️ 每条都要 `background-image:none`：老规则用的是 `background:linear-gradient(...)`
+        简写，只写 `background` 颜色的话旧渐变图会留着（渐变优先级高于底色）。
+     ⚠️ 圆角容器靠 `overflow:hidden` 裁 `border-radius`，而 `<table>` 上 `overflow:hidden`
+        会连带裁掉 sticky 表头（本站没有 sticky 表头，安全）。 */
+  .card table{
+    border-collapse:separate !important;border-spacing:0;
+    border:1px solid #ecedf1 !important;
+    border-radius:14px !important;overflow:hidden;
+    background:#fff !important;background-image:none !important;
+    box-shadow:0 1px 2px rgba(16,16,20,.03),0 10px 28px rgba(16,16,20,.045) !important;
+    font-size:13.6px !important;
+  }
+  .card table th{
+    background:#fafafb !important;background-image:none !important;
+    color:#71717a !important;
+    font-weight:600 !important;font-size:12.4px !important;letter-spacing:.06em;
+    padding:11px 16px !important;text-align:left;
+    border:none !important;border-bottom:1px solid #e8e9ee !important;
+    text-shadow:none !important;white-space:nowrap;
+  }
+  .card table td{
+    padding:12px 16px !important;
+    border:none !important;border-bottom:1px solid #f1f1f5 !important;
+    vertical-align:top !important;line-height:1.72;
+    background:transparent !important;background-image:none !important;
+  }
+  .card table tbody tr:last-child > td{border-bottom:none !important;}
+  /* 首列＝行标签列：中性近白 + 半粗，靠层次不靠颜色 */
+  .card table tbody td:first-child{
+    background:#fbfbfc !important;background-image:none !important;
+    font-weight:600 !important;color:#23232a !important;
+  }
+  .card table tbody tr{transition:background .16s ease;}
+  .card table tbody tr:hover{box-shadow:none !important;}
+  .card table tbody tr:hover > td{background:#f7f8fa !important;background-image:none !important;}
+  .card table tbody tr:hover > td:first-child{background:#f1f3f6 !important;background-image:none !important;}
+  /* 数字列右对齐 + 等宽数字（`is-num` 由渲染层脚本按「整格都是数字/百分比/单位」打标，
+     见渲染层脚本块 `rpt-blockscript` 的 NUM 正则；打标失败也不影响可读性） */
+  .card table td.is-num{
+    text-align:right !important;
+    font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
+    white-space:nowrap;
+  }
+  /* ⚠️⚠️ 「长文本单元格居中（is-txt）」与「区间按钮组视觉分隔」两条规则
+     **不在本文件** —— 它们归 `build/block_style.css`（表格样式那块）管。
+     2026-10-15 踩过：本文件 `_patch_txtstyle.py` 只从「模块正文可读性版式」
+     那个 MARK 抽到**文件末尾**，而这里的 1400 行**排在 MARK 之前**
+     ⇒ 写在这里的规则永远不会被注入线上（本地 build.py 产物里有、线上没有，
+     表现为「探针量到 is-txt 打标成功但 align 还是 start」）。
+     ★ 判定口诀：改动要上线，就问「这段在不在取材范围内」。 */
+  /* ④ 窄屏：卡片内边距收一收 */
+  @media(max-width:560px){
+    .card > ul > li{padding:10px 12px 11px 14px !important;}
+    .card > ul + p{padding:11px 13px 12px;}
+    .card table th{padding:10px 12px !important;}
+    .card table td{padding:10px 12px !important;}
+  }
+  /* ⑤ 打印 / 存 PDF：底色要打出来，否则首列只剩一条竖线 */
+  @media print{
+    .card > ul > li,.card > ul + p,
+    .card table th,.card table tbody tr > td,.card table tbody tr > td:first-child{
+      print-color-adjust:exact;-webkit-print-color-adjust:exact;
+    }
+  }
+
+  /* ================================================================
+     模块正文「可读性」版式（2026-10-14 用户令）
+     用户口径：「把研报里所有这种纯文字的样式改一下，改成（核心结论块）
+     这种……很舒服的结构，只做样式修改，不修改内容」。
+     ★ 病根：模块正文 = h3/h4 + 密集 <p>，其中 <b> 几乎包住了每一个短句
+       （29 个模块的粗体占比 >45%，最高 65%）⇒ 整段渲染成「粗体墙」；
+       行高 1.7、段距 10px、标题与正文同色同重，全篇一个调子、没有层级。
+     ★ 做法：把核心结论块（.verdict）那套语法搬到模块正文上 ——
+       ① 开篇第一段 → 导语块（金底 + 左金条，= .verdict .vlead）
+       ② h3 / h4 → 分节标题条（金 / 红左条 + 浅底，= .vkey / .vrisk）
+       ③ 正文段落 → 行高 1.95、段距 12px、正文色 #5e5b52
+          ★ 正文色经过两轮下调：首版用结论块同色 #3a382f（lum 56），
+            用户看后仍嫌「很黑」，2026-10-14 再降一档到 **#5e5b52（lum 91）**。
+            实测（`_preview_bodycolor.py` 五档对照）：#46443c / #524f46 / #5e5b52
+            都在白底可读线以上，#5e5b52 与白底对比度 7.6:1、与导语块金底 4.9:1，
+            均 ≥4.5 ⇒ 可以再灰但不能更灰。
+          ⚠️ `.verdict .vc`（核心结论块正文）**故意留在 #3a382f 不动**：
+            那是用户认可的参照版式；且结论块 li 字重是 400、模块 li 的 <b> 是 700,
+            同样颜色下结论块本来就看着更轻。两处不联动，改一边不会碰另一边。
+       ④ 密集 <b> 降档到 Medium(500)：粗体墙安静下来，强调还在
+     ★ 纯 CSS、纯渲染层：模块 HTML 一个字不动，也不往库里写 ⇒
+       11 份研报 + 以后新做的全部自动生效。
+     ⚠️ 该写 !important 的地方必须写：本文件由 build.py 注入到模板里
+       REPORTCSS 占位符的位置（在模板自带样式**之前**），同特异的
+       `.card h3` / `.card p` 排在后面 ⇒ 不加 !important 会被它们盖掉
+       （实测 h3 的颜色、字号会丢）。另外 h3/h4/p 上带**内联**
+       style="margin:…;font-size:…"（46 处 h4、107 处 p），也只能靠
+       !important 压过去。
+     ⚠️ 导语块只能用 `.rpt-ops + p`：卡片里 `<h2>`、`.rpt-ops` 永远排在模块
+       正文之前，`p:first-child` 永远匹配不上（踩过一次）。
+     ⚠️ 一律走 `>` 子选择器：表格单元格里的 <p>、以及 .grid2 / .chain /
+       .iflow / .hist / .verdict 内部的段落一概不碰，免得把表格、
+       产业链全景图、时间轴、结论块改坏。
+     ================================================================ */
+  /* ① 开篇导语：模块第一个元素就是 <p> 时，它整段变导语块。
+     ⚠️ 排除 .muted / .src：600456 的 m15、m16 开头是
+     `<p class="muted" style="font-size:13px">注：……</p>` 这种小字脚注，
+     把它升格成导语块等于把脚注放大加粗（实测行高被 .muted 拉成 1.85）。 */
+  .card > .rpt-ops + p:not(.muted):not(.src){
+    font-size:14.8px !important;line-height:2.02;font-weight:600;color:#26251f !important;
+    background:linear-gradient(120deg,rgba(201,162,39,.13),rgba(201,162,39,.03));
+    border-left:3px solid var(--gold);border-radius:0 10px 10px 0;
+    padding:12px 16px 13px;margin:0 0 16px !important;
+  }
+  /* ② 分节标题条：h3 = 金（长章节）、h4 = 红（小标题） */
+  .card > h3{
+    font-size:14.6px !important;font-weight:800;color:#8a5a12 !important;letter-spacing:.02em;
+    border-left:3px solid var(--gold);
+    background:linear-gradient(120deg,rgba(201,162,39,.11),rgba(201,162,39,.02));
+    border-radius:0 10px 10px 0;padding:8px 14px;margin:20px 0 12px !important;
+  }
+  .card > h4{
+    font-size:13.6px !important;font-weight:800;color:#a5232f !important;letter-spacing:.02em;
+    border-left:3px solid var(--accent);
+    background:linear-gradient(120deg,rgba(208,32,47,.075),rgba(208,32,47,.015));
+    border-radius:0 9px 9px 0;padding:7px 12px;margin:17px 0 11px !important;
+  }
+  /* ③ 正文节奏
+     ⚠️ 颜色不能直接写在 `.card > p` 上：它的特异度 (0,0,1,1) 高过 `.src` /
+     `.muted` 的 (0,0,1,0)，会把「来源」小字的灰色一起刷成正文色（踩过）。
+     所以正文色只给「不是 .src / .muted」的段落。 */
+  .card > p{line-height:1.95;margin:0 0 12px !important;}
+  .card > p:not(.src):not(.muted){color:#5e5b52;}
+  .card > p.src{margin:8px 0 0 !important;line-height:1.8;}
+  .card > p.muted{line-height:1.85;}
+  /* ④ 粗体降档：Medium(500)，不是 400 —— 让「墙」安静下来，但强调还在 */
+  .card p b,.card p strong{font-weight:500;}
+  /* ⑥ 列表 / 解读块正文：与段落用同一个前景色
+     病根：页面的基础前景色是 `body{color:var(--text)}` = **#211f22（近黑）**，
+     上面 ③ 只把 `.card > p` 调成了暖灰（首版 #3a382f）⇒ 同一张卡里出现**两套色**：
+     段落是灰的、列表（和折叠的「解读块」正文）还是黑的，并排读起来发花。
+     用户 2026-10-14 贴的 `002408` m1 截图指的就是这个（列表黑、下方段落灰）。
+     ⇒ 把模块内的**正文级**文字一并拉到与段落相同的 #5e5b52：
+        · `ul` / `ol` —— 覆盖 `.card > ul`、`m3 .sh3-ul`、
+          `.grid2 .gr-txt > ul`、600456 m17 `.mi-notes` 这四类（全站共 20 个列表）
+        · `.logic .lv` —— 折叠「解读块」的正文（`.lt` 标题不动）
+     其中 `<b> / <strong>` 靠**继承**一起变灰（列表里 40 处、解读块里 356 处），
+     不用单独写选择器；字重仍是 700（段落里那批已降到 500），列表条目短、
+     要的正是「身份一 / 身份二」这种小标题感，所以**故意不降**。
+     ⚠️ 字重**不要再往下调**：实测 600 与 700 在这套字体下几乎无差
+        （`_preview_bodycolor.py` 变体 4 对照），想让它更轻只能改颜色。
+     ⚠️ 这里**不需要 !important**：现有值是 `body` 继承下来的，继承值永远输给
+       任何一条直接命中元素自身的规则。（区别于上面 ①②③ 要写 !important ——
+       那些是被模板里**同特异的 `.card h3` / `.card p`** 盖掉。）
+     ⚠️ 只碰「正文级」。下面这些**故意保持深色**，调浅会散架：
+       `h2` 模块标题 31 处、`td` 表格单元格 695 处、SVG 图内文字
+       （.iflow / .sh3-tree / .sh3-donut）、大号数字
+       （.gauge-num / .kv .v / .dv / .sh3-stats .v / .sh3-leg .big）。
+     ⚠️ 别写成 `.verdict` 也管的通用选择器 —— 结论块走 `.verdict .vlist` 那套，
+       它是 `#verdict` 里的、不在 `.card` 内，天然隔离。 */
+  .card ul,.card ol{color:#5e5b52;}
+  .logic .lv{color:#5e5b52;}
+  /* ⑦ 窄屏收一收内边距，别让标题条占掉半屏 */
+  @media(max-width:560px){
+    .card > .rpt-ops + p{padding:10px 12px;}
+    .card > h3{padding:7px 11px;}
+    .card > h4{padding:6px 10px;}
+  }
+  /* ⑧ 打印 / 存 PDF：把底色的打印开关打开，否则标题条只剩下左边一条竖线 */
+  @media print{
+    .card > h3,.card > h4,.card > .rpt-ops + p{
+      print-color-adjust:exact;-webkit-print-color-adjust:exact;
+    }
   }

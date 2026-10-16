@@ -94,7 +94,7 @@ body::after{
 .nav button .cnt{margin-left:auto;font-size:12.5px;color:#fff;background:rgba(0,0,0,.22);border-radius:20px;padding:1px 9px;font-variant-numeric:tabular-nums}
 .nav button.on .cnt{background:rgba(208,32,47,.14);color:#c81a33}
 .sideFoot{margin-top:20px;padding:14px;border-radius:15px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.2);font-size:13.5px;color:#f1f1f1;line-height:1.8;position:relative;z-index:1}
-/* 普通管理员（团队成员）视图提示：只开放「投资标的」「研究报告」「数据与设置」 */
+/* 普通管理员（团队成员）视图提示：只开放「投资标的」「研究报告」「数据文库」「数据与设置」 */
 .opsHint{margin-top:12px;padding:11px 13px;border-radius:13px;font-size:13px;line-height:1.65;
   background:rgba(0,0,0,.18);border:1px dashed rgba(255,255,255,.42);color:#f1f1f1;position:relative;z-index:1}
 .opsHint b{color:#ffe08a}
@@ -294,13 +294,19 @@ label{display:block;font-size:13.5px;color:var(--tx2);margin-bottom:6px;letter-s
 .log .lc h5{font-size:16.5px;font-weight:700;margin-bottom:5px;color:var(--tx)}
 .log .lc p{font-size:15px;color:var(--tx2);white-space:pre-wrap;line-height:1.85}
 
-/* ---------- 图表 ---------- */
-.bars{display:flex;align-items:flex-end;gap:6px;height:158px;padding-top:26px}
-.bars .b{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;height:100%;position:relative}
+/* ---------- 图表 ----------
+   ⚠️ .bars .b 必须 min-width:0。flex 项默认 min-width:auto，会被「10/14」这种日期标签
+      顶到 ~30px 宽，14 列就是 512px —— 而这张卡在 3 列布局下内容宽只有 171~365px。
+      后果：列被撑宽后 .card{overflow:hidden} 把最右边 3~9 根柱子整根裁掉
+      （实测横向溢出 149px @1592 宽，341px @1016 宽）。
+      设 min-width:0 之后列宽由 flex 均分，标签改由 renderBars() 按列宽抽稀，
+      任何视口宽度都不会再溢出。改这里的 gap 时，记得同步 JS 里的 BAR_GAP。 */
+.bars{display:flex;align-items:flex-end;gap:4px;height:158px;padding-top:26px}
+.bars .b{flex:1 1 0;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;height:100%;position:relative}
 .bars .b i{width:100%;max-width:30px;background:linear-gradient(180deg,#e43644,#dedddb);border-radius:7px 7px 3px 3px;transition:height .5s cubic-bezier(.2,.9,.3,1);min-height:3px}
 .bars .b.today i{background:linear-gradient(180deg,#c9a227,#f4e0a4);box-shadow:0 0 16px -1px rgba(201,162,39,.8)}
-.bars .b span{font-size:12px;color:var(--tx3);font-variant-numeric:tabular-nums}
-.bars .b em{position:absolute;bottom:100%;font-size:11.5px;color:var(--tx2);font-style:normal;margin-bottom:3px;font-weight:700}
+.bars .b span{font-size:11.5px;color:var(--tx3);font-variant-numeric:tabular-nums;white-space:nowrap;letter-spacing:-.2px}
+.bars .b em{position:absolute;bottom:100%;font-size:11px;color:var(--tx2);font-style:normal;margin-bottom:3px;font-weight:700;white-space:nowrap}
 .hbar{display:flex;flex-direction:column;gap:12px}
 .hbar .r{display:grid;grid-template-columns:108px 1fr 74px;gap:12px;align-items:center;font-size:13.5px;color:var(--tx2)}
 .hbar .r .track{height:10px;border-radius:10px;background:#f0efed;overflow:hidden}
@@ -888,7 +894,7 @@ html.localfile .localBar{display:block}
       <!-- 版本戳：构建时注入。用户看不到「哪一版」是历史上反复扯皮的点，
            留着这一行，遇到「我这儿没生效」时先对一眼时间戳即可。 -->
       <div id="buildTag" title="构建时间 · 用于确认浏览器拿到的是哪一版"
-           style="margin-top:10px;padding-top:8px;border-top:1px dashed rgba(255,255,255,.16);font-size:11px;opacity:.62;letter-spacing:.3px">构建 09-22 22:37</div>
+           style="margin-top:10px;padding-top:8px;border-top:1px dashed rgba(255,255,255,.16);font-size:11px;opacity:.62;letter-spacing:.3px">构建 10-16 14:02</div>
     </div>
   </aside>
 
@@ -1143,7 +1149,9 @@ html.localfile .localBar{display:block}
             9. 「申请清单」覆盖境内主体、金融牌照、矿权、境外投资（ODI）、税务外汇、进出口、知产、人才八类<br>
             10. 想退出登录：本页右上角「🚪 退出登录」，或「管理员与安全」卡片内的同名按钮<br>
             11. 数据看板每 30 秒自动刷新一次统计<br>
-            12. <b>「📚 研究报告」是独立页面</b>（侧栏点进去，不占工作台的体量）：列出云端全部研报，点卡片打开完整研报；<b>超级管理员与团队成员都能看</b>，也仍可从「投资标的」列表点 📄 图标直接进
+            12. <b>「📚 研究报告」是独立页面</b>（侧栏点进去，不占工作台的体量）：列出云端全部研报，点卡片打开完整研报；<b>超级管理员与团队成员都能看</b>，也仍可从「投资标的」列表点 📄 图标直接进<br>
+            13. <b>「🗄 数据文库」也是独立页面</b>：收着已上线的数据页面（点卡片直接跳转，如「大宗商品日线对比图」），
+            并支持<b>上传 Excel / CSV 商品数据</b>入库共享；<b>以后新增一个模块页面，只要在数据文库加一行</b>（模块清单存库 <code>wb_data_mods</code>），不用改工作台代码、不用重新部署
           </div>
         </div>
         <!-- ★ 普通管理员（团队成员）专用说明：与上面的超管说明互斥显示 -->
@@ -1151,13 +1159,15 @@ html.localfile .localBar{display:block}
           <b style="font-size:17px">📖 使用说明（团队成员）</b>
           <div class="hr"></div>
           <div class="sm muted" style="line-height:2">
-            1. 你的菜单有三项：<b>投资标的</b>（维护股票池与行情）、<b>研究报告</b>（研报库，独立页面）和<b>数据与设置</b>（本页）<br>
+            1. 你的菜单有四项：<b>投资标的</b>（维护股票池与行情）、<b>研究报告</b>（研报库，独立页面）、<b>数据文库</b>（数据页面入口 + Excel 商品数据上传，独立页面）和<b>数据与设置</b>（本页）<br>
             2. <b>修改自己的密码</b>：下方「🔐 管理员与安全」卡片里点「🔑 修改我的密码」<br>
             3. <b>退出登录</b>：本页右上角「🚪 退出登录」，或「管理员与安全」卡片内的同名按钮<br>
             4. 「☁️ 云端连接」可以查看连通状态；数据写入失败时这里会给出原因，点「↻ 立即同步」可重试<br>
             5. 超级管理员的私人工作区（总览 / 工作计划 / 365 天课表 / 申请与资质 / 标的与人脉 / 复盘日志）以及账号审批不对外开放，不会出现在你的菜单里<br>
             6. 任何会改动数据的操作都要输入<b>你自己的管理员密码</b>，由数据库函数校验，前端绕不过去<br>
-            7. <b>研究报告</b>：侧栏点「📚 研究报告」进研报库（独立页面），列出全部研报，点卡片打开完整研报；也可以直接在「投资标的」列表里点标的的 📄 图标
+            7. <b>研究报告</b>：侧栏点「📚 研究报告」进研报库（独立页面），列出全部研报，点卡片打开完整研报；也可以直接在「投资标的」列表里点标的的 📄 图标<br>
+            8. <b>数据文库</b>：侧栏点「🗄 数据文库」（独立页面）。里面收着<b>已经上线的数据页面</b>（如「大宗商品日线对比图」，点卡片直接跳过去），
+            还能<b>上传 Excel / CSV 商品数据</b>——文件在你自己的浏览器里解析（不上传第三方），确认后写进云端数据库，团队成员都能看到
           </div>
         </div>
       </div>
@@ -1734,6 +1744,11 @@ var PAGES = [
      研报库**不塞进 index**（那是一份 20 多 KB 的独立页面，且要能被两个角色共用），
      App.go('research') 也会走同一条跳转路径，所以不依赖侧栏点击。 */
   {id:'research', ic:'📚', name:'研究报告', en:'RESEARCH', ext:'research.html'},
+  /* ★ ext = 独立页面：点它不切页内版块，直接跳到 datalib.html。
+     数据文库 = 数据与页面资产的统一入口：把已经上线的数据页面登记成模块卡片（点开即跳转），
+     并允许团队成员上传 Excel 商品数据。**模块清单存库（wb_data_mods）**，
+     以后再加一个模块页面只是往库里插一行，不用改这份工作台代码。 */
+  {id:'datalib', ic:'🗄', name:'数据文库', en:'DATA LIBRARY', ext:'datalib.html'},
   {id:'res', ic:'🗂', name:'标的与人脉', en:'RESOURCES'},
   {id:'log', ic:'📝', name:'复盘日志', en:'LOG'},
   /* ★ ext = 独立页面：点它不切页内版块，直接跳到 shixiang.html（思想体系总目）。
@@ -1741,6 +1756,10 @@ var PAGES = [
      门户页，内含 5 部典籍的入口，与工作台数据无任何耦合。
      仅超管可见（不在 OPS_PAGES 里）：属私人工作区的阅读入口。 */
   {id:'atlas', ic:'🏛', name:'思想体系', en:'ATLAS', ext:'shixiang.html'},
+  /* ★ ext = 独立页面：点它不切页内版块，直接跳到 memoir.html（回忆录）。
+     私人笔记写作台：三栏布局 + 富文本编辑器，笔记存进 wb_memoirs / wb_memoir_books，
+     换设备也在。同样**不进 OPS_PAGES** —— 属私人写作区，团队视图里不显示。 */
+  {id:'memoir', ic:'📔', name:'回忆录', en:'MEMOIR', ext:'memoir.html'},
   {id:'set', ic:'⚙️', name:'数据与设置', en:'SETTINGS'}
 ];
 
@@ -1759,7 +1778,7 @@ var PAGES = [
      · 本机文件（file://）不限制 —— 那是主人自己电脑上的离线模式
    注意：这是「界面层」收窄，不是数据权限。见 SKILL §7.5。
    ============================================================================ */
-var OPS_PAGES = ['stock', 'research', 'set'];
+var OPS_PAGES = ['stock', 'research', 'datalib', 'set'];
 function pageAllowed(id){
   if(isLocalFile()) return true;              /* 本机离线模式 = 主人自己用 */
   if(Auth.role !== 'ops') return true;        /* super / 未登录：不限制 */
@@ -1787,7 +1806,7 @@ function buildNav(){
   if(oh){
     if(!isLocalFile() && Auth.role === 'ops'){
       oh.style.display = '';
-      oh.innerHTML = '🔒 <b>团队成员视图</b>　开放「投资标的」「研究报告」「数据与设置」<br>'+
+      oh.innerHTML = '🔒 <b>团队成员视图</b>　开放「投资标的」「研究报告」「数据文库」「数据与设置」<br>'+
         '<span style="opacity:.86">改密码 / 退出登录 →「数据与设置」右上角</span>';
     } else { oh.style.display = 'none'; oh.innerHTML = ''; }
   }
@@ -1824,6 +1843,48 @@ function todaysTasks(){
   if(future.length) return [future[0]];
   return S.tasks.length? [S.tasks[S.tasks.length-1]] : [];
 }
+/* 近 14 天任务投入 · 柱状图 --------------------------------------------------
+   为什么要抽稀标签：这张卡在 3 列布局里内容宽只有 171~365px，14 个「10/14」
+   （每个约 30px）横着排不下。列宽现在由 flex 均分（CSS 给 .bars .b 设了
+   min-width:0），标签与柱顶数值再按 step 隔几列显示一个，保证相邻两个至少隔
+   BAR_LABEL_W 不打架。
+   步长以「今天」那一列为基准取整，所以今天永远有标签、且所有标签间距均匀。
+   ⚠️ 改 CSS 里 .bars 的 gap 时，同步这里的 BAR_GAP。 */
+var BAR_GAP = 4, BAR_LABEL_W = 34;
+function barStep(n){
+  var box = $('barsBox');
+  var w = box ? box.clientWidth : 0;
+  if(!w) return 1;                       /* 页面隐藏时量不到宽度 → 全显示；下次渲染自动矫正 */
+  var pitch = (w - (n - 1) * BAR_GAP) / n;
+  return pitch > 0 ? Math.max(1, Math.ceil(BAR_LABEL_W / pitch)) : 1;
+}
+function renderBars(){
+  var box = $('barsBox'); if(!box) return;
+  var t = S.tasks;
+  var base = new Date(today()+'T00:00:00');
+  var arr=[], focus=0;
+  for(var i=-4;i<10;i++){
+    var dd = new Date(base.getTime()+i*86400000);
+    var key = dd.toISOString().slice(0,10);
+    var mm = t.filter(function(x){return x.task_date===key;}).reduce(function(a,b){return a+(+b.minutes||0);},0);
+    if(i===0) focus = arr.length;        /* 今天在数组里的下标，用来对齐抽稀相位 */
+    arr.push({d:key, v:mm, t:i===0, lab:(dd.getMonth()+1)+'/'+dd.getDate()});
+  }
+  var mx = Math.max.apply(null, arr.map(function(x){return x.v;}).concat([60]));
+  var step = barStep(arr.length);
+  box.innerHTML = arr.map(function(x,i){
+    var show = ((((i - focus) % step) + step) % step) === 0;   /* 以今天为基准、间距均匀 */
+    return '<div class="b'+(x.t?' today':'')+'"><em>'+(show && x.v ? x.v : '')+'</em>'+
+           '<i style="height:'+(x.v/mx*100)+'%"></i><span>'+(show ? x.lab : '')+'</span></div>';
+  }).join('');
+}
+/* 窗口缩放会改变列宽 → 重算抽稀步长。只重画这一小块，不重跑整个 renderDash。 */
+var _barsRzT = null;
+window.addEventListener('resize', function(){
+  clearTimeout(_barsRzT);
+  _barsRzT = setTimeout(function(){ if($('barsBox')) renderBars(); }, 160);
+});
+
 function renderDash(){
   sortState();
   var t = S.tasks, done = t.filter(function(x){return x.status==='done';}).length;
@@ -1907,19 +1968,8 @@ function renderDash(){
       '<span class="val">'+w+'%</span></div>';
   }).join('') + '<div class="tiny muted" style="margin-top:6px">当前阶段：'+ esc(cur.name) +'</div>';
 
-  /* 近 14 天 */
-  var base = new Date(today()+'T00:00:00');
-  var arr=[];
-  for(var i=-4;i<10;i++){
-    var dd = new Date(base.getTime()+i*86400000);
-    var key = dd.toISOString().slice(0,10);
-    var mm = t.filter(function(x){return x.task_date===key;}).reduce(function(a,b){return a+(+b.minutes||0);},0);
-    arr.push({d:key, v:mm, t:i===0, lab:(dd.getMonth()+1)+'/'+dd.getDate()});
-  }
-  var mx = Math.max.apply(null, arr.map(function(x){return x.v;}).concat([60]));
-  $('barsBox').innerHTML = arr.map(function(x){
-    return '<div class="b'+(x.t?' today':'')+'"><em>'+(x.v||'')+'</em><i style="height:'+(x.v/mx*100)+'%"></i><span>'+x.lab+'</span></div>';
-  }).join('');
+  /* 近 14 天（抽稀标签的实现在 renderBars() 里，见本函数上方） */
+  renderBars();
 
   /* 类别分布 */
   var cs = {};

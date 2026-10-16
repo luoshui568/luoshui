@@ -20,7 +20,12 @@ ECharts 官方 world 地图（Natural Earth 1:110m）在**中国领土画法上�
 输出 `build/lib/world-cn.js`：一行 `echarts.registerMap('worldcn', {...})`，
 由 build.py 注入 report.template.html 的 /*__WORLDMAP__*/ 占位符。
 
-⚠️ 数据源不可随意更换：换掉 DataV 那份就等于放弃合规性。
+⚠️ 判定标准是**画法**而不是"哪一家"：台湾 / 藏南 / 港澳 / 九段线必须画对。
+   这里用的是 DataV `100000_full`（**上游＝高德开放平台**）。
+   但 DataV 的官方授权口径是「仅供学习交流使用，**不得用于商业目的**」，且版本停在 2021.5
+   ⇒ 内部研究 / 示意用途可用；**商用或正式对外发布前**，应改用
+   **高德开放平台授权数据 / 天地图 / 自然资源部标准地图（带审图号）**。
+   换源时只要保证画法仍是国标，下游（registerMap + 覆盖层）接口不变。
 ⚠️ 九段线必须画 —— 它在这个 feature 里叫 adchar='JD' / adcode='100000_JD'。
 
 用法： python build/make_worldmap.py

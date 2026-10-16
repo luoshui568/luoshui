@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>巴菲特股东信 · 六十年维度全解（1957–2026）</title>
+<style>
+  :root{
+    --bg:#0a0d14;
+    --bg2:#101521;
+    --panel:#141a28;
+    --panel2:#181f30;
+    --line:rgba(212,175,55,.18);
+    --line2:rgba(255,255,255,.07);
+    --gold:#d4af37;
+    --gold2:#f2cf6b;
+    --gold-dim:#8a7434;
+    --ink:#e8ecf4;
+    --ink2:#a8b0c2;
+    --ink3:#6f7891;
+    --red:#e0523f;
+    --teal:#4fb6a6;
+    --serif:"Songti SC","STSong","Noto Serif SC",Georgia,"Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(212,175,55,.10), transparent 60%),
+      radial-gradient(900px 500px at 100% 10%, rgba(79,182,166,.07), transparent 55%),
+      linear-gradient(180deg,#080b11 0%, var(--bg) 30%, var(--bg2) 100%);
+    background-attachment:fixed;
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.75;
+    -webkit-font-smoothing:antialiased;
+    letter-spacing:.2px;
+  }
+  ::selection{background:rgba(212,175,55,.3);color:#fff}
+
+  /* ---------- 顶栏 ---------- */
+  .nav{
+    position:sticky;top:0;z-index:50;
+    backdrop-filter:blur(14px);
+    background:rgba(8,11,17,.78);
+    border-bottom:1px solid var(--line);
+  }
+  .nav-in{max-width:1180px;margin:0 auto;padding:10px 22px;display:flex;align-items:center;gap:18px}
+  .brand{font-family:var(--serif);font-size:15px;color:var(--gold2);letter-spacing:3px;white-space:nowrap}
+  .brand small{color:var(--ink3);letter-spacing:1px;font-family:var(--sans);font-size:11px;margin-left:8px}
+  a.brand{text-decoration:none;transition:opacity .2s}
+  a.brand::before{content:"← ";color:var(--gold-dim);font-size:13px;letter-spacing:0}
+  a.brand:hover{opacity:.8}
+  .nav-links{display:flex;gap:2px;overflow-x:auto;flex:1;scrollbar-width:none}
+  .nav-links::-webkit-scrollbar{display:none}
+  .nav-links a{
+    color:var(--ink2);text-decoration:none;font-size:12.5px;padding:6px 10px;border-radius:20px;
+    white-space:nowrap;transition:.2s;border:1px solid transparent;
+  }
+  .nav-links a:hover{color:var(--gold2);border-color:var(--line);background:rgba(212,175,55,.06)}
+
+  /* ---------- 通用容器 ---------- */
+  .wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+  section{padding:64px 0 20px;position:relative}
+
+  .sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:26px;flex-wrap:wrap}
+  .sec-num{
+    font-family:var(--serif);font-size:13px;color:var(--gold);letter-spacing:2px;
+    border:1px solid var(--line);border-radius:2px;padding:3px 9px;background:rgba(212,175,55,.05);
+  }
+  .sec-title{font-family:var(--serif);font-size:30px;letter-spacing:4px;color:#fff;font-weight:600}
+  .sec-sub{color:var(--ink3);font-size:13px;letter-spacing:1px;margin-left:auto}
+
+  /* ---------- Hero ---------- */
+  .hero{padding:74px 0 40px;position:relative;overflow:hidden}
+  .hero-tag{
+    display:inline-block;font-size:12px;letter-spacing:4px;color:var(--gold);
+    border:1px solid var(--line);padding:5px 14px;border-radius:20px;margin-bottom:26px;
+    background:rgba(212,175,55,.05);
+  }
+  .hero h1{
+    font-family:var(--serif);font-size:clamp(38px,7vw,74px);line-height:1.12;font-weight:700;
+    letter-spacing:6px;color:#fff;
+  }
+  .hero h1 em{
+    font-style:normal;
+    background:linear-gradient(100deg,var(--gold2),var(--gold) 55%,#b08d2a);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .hero p.lead{margin-top:26px;max-width:760px;color:var(--ink2);font-size:16.5px;line-height:1.95}
+  .hero p.lead b{color:var(--gold2);font-weight:600}
+  .rule{height:1px;background:linear-gradient(90deg,var(--gold),transparent);margin:34px 0 0}
+
+  /* ---------- 数字速览 ---------- */
+  .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:34px}
+  .metric{
+    background:linear-gradient(160deg,var(--panel2),var(--panel));
+    border:1px solid var(--line2);border-radius:12px;padding:20px 18px;position:relative;overflow:hidden;
+  }
+  .metric::after{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:linear-gradient(180deg,var(--gold),transparent)}
+  .metric .big{font-family:var(--serif);font-size:30px;color:var(--gold2);letter-spacing:1px;line-height:1.2}
+  .metric .lbl{color:var(--ink3);font-size:12.5px;margin-top:8px;letter-spacing:.6px}
+  .metric .hint{color:var(--ink2);font-size:11.5px;margin-top:4px;opacity:.75}
+
+  /* ---------- 时间轴 ---------- */
+  .timeline{margin-top:10px;position:relative;padding-left:26px}
+  .timeline::before{content:"";position:absolute;left:6px;top:6px;bottom:6px;width:1px;background:linear-gradient(180deg,var(--gold),rgba(212,175,55,.12))}
+  .tl-item{position:relative;padding:0 0 22px 12px}
+  .tl-item::before{
+    content:"";position:absolute;left:-24px;top:8px;width:9px;height:9px;border-radius:50%;
+    background:var(--bg);border:2px solid var(--gold);
+  }
+  .tl-item.key::before{background:var(--gold);box-shadow:0 0 0 4px rgba(212,175,55,.14)}
+  .tl-year{font-family:var(--serif);color:var(--gold2);font-size:16px;letter-spacing:1px}
+  .tl-txt{color:var(--ink2);font-size:14px;margin-top:2px}
+  .tl-txt b{color:var(--ink);font-weight:600}
+
+  /* ---------- 维度卡片 ---------- */
+  .card{
+    background:linear-gradient(165deg,var(--panel2) 0%,var(--panel) 100%);
+    border:1px solid var(--line2);border-radius:16px;padding:30px 30px 26px;margin-bottom:22px;
+    position:relative;overflow:hidden;
+  }
+  .card::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent)}
+  .card-head{display:flex;align-items:center;gap:14px;margin-bottom:6px;flex-wrap:wrap}
+  .card-ico{
+    width:44px;height:44px;border-radius:11px;flex:0 0 44px;display:grid;place-items:center;
+    background:rgba(212,175,55,.09);border:1px solid var(--line);font-size:20px;
+  }
+  .card-t{font-family:var(--serif);font-size:23px;color:#fff;letter-spacing:2px}
+  .card-en{color:var(--ink3);font-size:11px;letter-spacing:2px;text-transform:uppercase}
+  .thesis{
+    margin:16px 0 6px;padding:14px 18px;border-left:2px solid var(--gold);
+    background:rgba(212,175,55,.05);border-radius:0 10px 10px 0;
+    font-size:15px;color:var(--ink);line-height:1.85;
+  }
+  .thesis b{color:var(--gold2)}
+  .card p{color:var(--ink2);font-size:14.5px;margin-top:11px}
+  .card p b,.card li b{color:var(--ink);font-weight:600}
+  .card ul{margin:12px 0 0 4px;list-style:none}
+  .card li{color:var(--ink2);font-size:14.3px;padding-left:18px;position:relative;margin-top:7px}
+  .card li::before{content:"◆";position:absolute;left:0;color:var(--gold-dim);font-size:9px;top:6px}
+
+  .quote{
+    margin:16px 0 4px;padding:16px 20px;border-radius:12px;
+    background:rgba(79,182,166,.055);border:1px solid rgba(79,182,166,.18);
+    font-family:var(--serif);font-size:15.5px;color:#d7f0ea;line-height:1.85;
+  }
+  .quote span{display:block;margin-top:8px;font-family:var(--sans);font-size:11.5px;color:var(--teal);letter-spacing:1px;opacity:.85}
+
+  /* ---------- 表格 ---------- */
+  table{width:100%;border-collapse:collapse;margin-top:16px;font-size:13.6px}
+  th,td{padding:11px 13px;text-align:left;border-bottom:1px solid var(--line2);vertical-align:top}
+  th{color:var(--gold);font-weight:600;font-size:12.5px;letter-spacing:1px;background:rgba(212,175,55,.05);white-space:nowrap}
+  td{color:var(--ink2)}
+  td b{color:var(--ink)}
+  tr:last-child td{border-bottom:none}
+  .tbl-scroll{overflow-x:auto;border-radius:12px;border:1px solid var(--line2);background:rgba(0,0,0,.15)}
+  .tbl-scroll table{margin-top:0}
+  .pill{display:inline-block;font-size:11px;padding:2px 9px;border-radius:20px;border:1px solid var(--line);color:var(--gold2);background:rgba(212,175,55,.06);white-space:nowrap}
+  .pill.g{color:var(--teal);border-color:rgba(79,182,166,.25);background:rgba(79,182,166,.06)}
+  .pill.r{color:var(--red);border-color:rgba(224,82,63,.25);background:rgba(224,82,63,.06)}
+
+  /* ---------- 金句墙 ---------- */
+  .quotes-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  .qcard{
+    background:linear-gradient(160deg,rgba(212,175,55,.07),rgba(20,26,40,.6));
+    border:1px solid var(--line);border-radius:14px;padding:22px 24px;
+  }
+  .qcard .mark{font-family:var(--serif);font-size:40px;color:var(--gold-dim);line-height:.6;opacity:.5}
+  .qcard .q{font-family:var(--serif);font-size:16px;color:var(--ink);line-height:1.85;margin-top:8px}
+  .qcard .s{color:var(--ink3);font-size:11.5px;letter-spacing:1px;margin-top:12px}
+
+  /* ---------- 一页明白 ---------- */
+  .summary{
+    background:
+      radial-gradient(600px 300px at 50% 0%, rgba(212,175,55,.10), transparent 70%),
+      linear-gradient(165deg,var(--panel2),#0e1420);
+    border:1px solid var(--line);border-radius:18px;padding:36px 34px;
+  }
+  .summary h3{font-family:var(--serif);font-size:24px;color:var(--gold2);letter-spacing:3px;margin-bottom:18px}
+  .summary ol{margin-left:20px}
+  .summary li{color:var(--ink2);font-size:15px;margin-top:12px;line-height:1.85}
+  .summary li b{color:var(--ink)}
+
+  footer{margin-top:70px;padding:34px 0 60px;border-top:1px solid var(--line2);color:var(--ink3);font-size:12.5px}
+  footer a{color:var(--gold-dim);text-decoration:none}
+  .disc{margin-top:12px;font-size:11.5px;color:var(--ink3);opacity:.8;line-height:1.8}
+
+  .reveal{opacity:0;transform:translateY(16px);transition:opacity .7s ease,transform .7s ease}
+  .reveal.in{opacity:1;transform:none}
+
+  @media(max-width:900px){
+    .metrics{grid-template-columns:repeat(2,1fr)}
+    .quotes-grid{grid-template-columns:1fr}
+    .sec-sub{display:none}
+    .sec-title{font-size:24px}
+    .card{padding:24px 20px}
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= 顶栏 ================= -->
+<nav class="nav">
+  <div class="nav-in">
+    <a class="brand" id="brand" href="shixiang.html" title="返回总目">巴菲特股东信<small>1957 — 2026</small></a>
+    <div class="nav-links">
+      <a href="#metrics">数字速览</a>
+      <a href="#timeline">六十年时间轴</a>
+      <a href="#d1">人生</a>
+      <a href="#d2">生活</a>
+      <a href="#d3">家庭</a>
+      <a href="#d4">爱好</a>
+      <a href="#d5">财富慈善</a>
+      <a href="#d6">友谊</a>
+      <a href="#d7">投资</a>
+      <a href="#d8">错误</a>
+      <a href="#d9">健康时间</a>
+      <a href="#d10">幽默</a>
+      <a href="#d11">传承告别</a>
+      <a href="#quotes">金句墙</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ================= Hero ================= -->
+<header class="hero wrap">
+  <div class="hero-tag">致股东的信 · 一份写了六十年的自传</div>
+  <h1>他写给股东的，<br>其实是写给你我的<em>一生</em>。</h1>
+  <p class="lead">
+    从 1957 年奥马哈那间小办公室里的合伙信，到 2025 年 11 月那封「我要安静下来了」的感恩节告别信，
+    巴菲特用六十年、上百封致股东信，写下的从来不只是收益率。<b>他同时在写：怎么活、怎么花钱、怎么养孩子、怎么交朋友、怎么面对错误、怎么老去。</b>
+    这份梳理按你给的维度，把散落在六十年信件里的这些线索收拢成一张图。
+  </p>
+  <div class="rule"></div>
+
+  <!-- 数字速览 -->
+  <div class="metrics" id="metrics">
+    <div class="metric"><div class="big">1957</div><div class="lbl">第一封合伙信</div><div class="hint">Buffett Partnership 起步</div></div>
+    <div class="metric"><div class="big">60 年</div><div class="lbl">执掌伯克希尔</div><div class="hint">1965 – 2025</div></div>
+    <div class="metric"><div class="big">6,099,294%</div><div class="lbl">累计总回报</div><div class="hint">同期标普约 46,000%</div></div>
+    <div class="metric"><div class="big">19.9%</div><div class="lbl">年化复合（1965–2024）</div><div class="hint">标普同期 10.4%</div></div>
+    <div class="metric"><div class="big">1 次</div><div class="lbl">六十年里的唯一分红</div><div class="hint">1967.1.3 · 共 10.1755 万美元</div></div>
+    <div class="metric"><div class="big">$268 亿</div><div class="lbl">2024 年缴纳联邦所得税</div><div class="hint">约占全美企业 5%</div></div>
+    <div class="metric"><div class="big">$3733 亿</div><div class="lbl">2025 年末现金及国债</div><div class="hint">历史新高</div></div>
+    <div class="metric"><div class="big">99.5%</div><div class="lbl">捐入慈善的遗产比例</div><div class="hint">子女个人仅得 0.5%</div></div>
+  </div>
+</header>
+
+<!-- ================= 时间轴 ================= -->
+<section class="wrap" id="timeline">
+  <div class="sec-head reveal">
+    <span class="sec-num">TIMELINE</span>
+    <h2 class="sec-title">六十年时间轴</h2>
+    <span class="sec-sub">一个人与一家公司的平行史</span>
+  </div>
+  <div class="timeline">
+    <div class="tl-item key reveal"><div class="tl-year">1957</div><div class="tl-txt"><b>创立巴菲特合伙基金</b>，第一封致合伙人信。起点其实是一个「小作坊」。</div></div>
+    <div class="tl-item reveal"><div class="tl-year">1952</div><div class="tl-txt">与 <b>苏珊·汤普森</b> 结婚（后于 1977 年分居，2004 年她去世）。家庭线从此开始。</div></div>
+    <div class="tl-item reveal"><div class="tl-year">1958</div><div class="tl-txt">以 <b>3.15 万美元</b> 买下奥马哈的房子——他一住就是一辈子。</div></div>
+    <div class="tl-item key reveal"><div class="tl-year">1965</div><div class="tl-txt"><b>接管伯克希尔·哈撒韦</b>（一家北方纺织厂）。他后来反复说：这是他「最大的错误」。</div></div>
+    <div class="tl-item reveal"><div class="tl-year">1967</div><div class="tl-txt">支付公司史上 <b>唯一一次现金分红</b>：每股 10 美分，合计 101,755 美元。他后来说「现在看像一场噩梦」。</div></div>
+    <div class="tl-item reveal"><div class="tl-year">1969</div><div class="tl-txt">解散合伙基金——因为「市场已经找不到便宜货」。</div></div>
+    <div class="tl-item reveal"><div class="tl-year">1984</div><div class="tl-txt">哥伦比亚大学演讲《格雷厄姆-多德村的超级投资者》，为价值投资「正名」。</div></div>
+    <div class="tl-item reveal"><div class="tl-year">1988–89</div><div class="tl-txt">买入<b>可口可乐</b>；1989 年信中专章写下《头 25 年的错误》。</div></div>
+    <div class="tl-item reveal"><div class="tl-year">1991</div><div class="tl-txt"><b>所罗门兄弟</b>危机，他临危出任董事长，写下那句「赔上声誉就赔上一切」。</div></div>
+    <div class="tl-item reveal"><div class="tl-year">2006</div><div class="tl-txt">宣布捐出 <b>85% 以上（后表述为 99%）</b> 的伯克希尔股票，投向 5 家基金会——史上最大单笔慈善承诺。</div></div>
+    <div class="tl-item reveal"><div class="tl-year">2010</div><div class="tl-txt">与盖茨夫妇发起 <b>「捐赠誓言」（Giving Pledge）</b>，号召富豪捐出至少一半财富。</div></div>
+    <div class="tl-item reveal"><div class="tl-year">2011</div><div class="tl-txt">获<b>总统自由勋章</b>；宣布长子霍华德将出任伯克希尔非执行董事长。</div></div>
+    <div class="tl-item reveal"><div class="tl-year">2012</div><div class="tl-txt">确诊<b>前列腺癌</b>，写信告知股东并完成治疗。</div></div>
+    <div class="tl-item reveal"><div class="tl-year">2018</div><div class="tl-txt">十年赌局收官：标普指数基金完胜一篮子对冲基金。</div></div>
+    <div class="tl-item reveal"><div class="tl-year">2021</div><div class="tl-txt">正式点明 <b>格雷格·阿贝尔</b> 为接班人选。</div></div>
+    <div class="tl-item key reveal"><div class="tl-year">2023</div><div class="tl-txt"><b>查理·芒格去世（11 月 28 日，享年 99 岁）</b>。此后每封信都在谈「告别」。</div></div>
+    <div class="tl-item reveal"><div class="tl-year">2024.6–11</div><div class="tl-txt">公布遗产新安排：去世后财富转入三子女共管的慈善信托；11 月感恩节捐出约 <b>11.4 亿美元</b> 股票。</div></div>
+    <div class="tl-item key reveal"><div class="tl-year">2025.2.22</div><div class="tl-txt">以 CEO 身份写下 <b>最后一封年度致股东信</b>（覆盖 2024 年）。</div></div>
+    <div class="tl-item reveal"><div class="tl-year">2025.5.4</div><div class="tl-txt">董事会投票：自 2026 年起由阿贝尔任 CEO，巴菲特留任董事长。</div></div>
+    <div class="tl-item key reveal"><div class="tl-year">2025.11.10</div><div class="tl-txt"><b>最后一封 CEO 身份公开信</b>（感恩节信）：「我要『安静下来』了。」加速向子女基金会捐赠。</div></div>
+    <div class="tl-item key reveal"><div class="tl-year">2025.12.31</div><div class="tl-txt"><b>正式卸任 CEO</b>，结束 60 年掌舵；仍任董事长，每周五天到办公室。</div></div>
+    <div class="tl-item reveal"><div class="tl-year">2026.1.1</div><div class="tl-txt">阿贝尔正式接任 CEO，伯克希尔进入<b>「后巴菲特时代」</b>。</div></div>
+    <div class="tl-item reveal"><div class="tl-year">2026.2.28</div><div class="tl-txt">发布 <b>首封由阿贝尔执笔的股东信</b>：现金超 3700 亿美元，坚持不分红，拒绝做「提款机」。</div></div>
+  </div>
+</section>
+
+<!-- ================= 1 人生 ================= -->
+<section class="wrap" id="d1">
+  <div class="sec-head reveal">
+    <span class="sec-num">01</span>
+    <h2 class="sec-title">人生</h2>
+    <span class="sec-sub">长期主义 + 运气 + 英雄</span>
+  </div>
+  <div class="card reveal">
+    <div class="card-head">
+      <div class="card-ico">🕰️</div>
+      <div><div class="card-t">把自己活成一只「复利资产」</div><div class="card-en">A Life Compounded</div></div>
+    </div>
+    <div class="thesis">信里的人生观只有一句话：<b>把时间和信誉当成本金，让它们复利。</b>钱、名声、能力，都是慢慢滚出来的，不是抢出来的。</div>
+    <p>早年线索：1930 年生于奥马哈，童年是大萧条；<b>11 岁买下人生第一只股票</b>；13 岁送报纸、自己报税；1950 年进哥伦比亚大学师从<b>本·格雷厄姆</b>，1951 年获经济学硕士。1957 年，27 岁的他办起合伙基金，写下第一封致合伙人信——那时他就已经在信里讲「复利」了。</p>
+    <ul>
+      <li><b>「卵巢彩票」</b>：他反复讲自己 1930 年以「白人、男性、在美国」出生，是抽中了彩票。2024 年信里写：「我的两个姐妹智力与我相当、性格比我更好，境遇却大不相同。」</li>
+      <li><b>选择英雄</b>：2025 年最后一封信的结尾——「<b>选好你的英雄，然后效仿他们。你永远不会完美，但总能变得更好。</b>」</li>
+      <li><b>信誉复利</b>：「建立声誉要 20 年，毁掉它只要 5 分钟。想清楚这点，你做事就会不一样。」</li>
+      <li><b>不与自己为敌</b>：「人生只要做对少数几件重要的事，同时别做太多错事就够了。」</li>
+    </ul>
+    <div class="quote">「复利的真正威力，往往体现在生命的最后二十年。」<span>—— 2024 年感恩节信</span></div>
+  </div>
+</section>
+
+<!-- ================= 2 生活 ================= -->
+<section class="wrap" id="d2">
+  <div class="sec-head reveal">
+    <span class="sec-num">02</span>
+    <h2 class="sec-title">生活</h2>
+    <span class="sec-sub">身家千亿，过得像个邻居老头</span>
+  </div>
+  <div class="card reveal">
+    <div class="card-head">
+      <div class="card-ico">🏠</div>
+      <div><div class="card-t">他的「必需品」清单极短</div><div class="card-en">The Simplicity Doctrine</div></div>
+    </div>
+    <div class="thesis">信里几乎从不出现豪宅、名画、游艇——<b>不是买不起，是「买 10 套房子也不会让我更开心」。</b>他把「消费」和「快乐」彻底解耦了。</div>
+    <div class="tbl-scroll">
+      <table>
+        <tr><th>项目</th><th>他的选择</th><th>细节 / 出处</th></tr>
+        <tr><td><b>住</b></td><td>1958 年那套房</td><td>3.15 万美元买下，住了 60 多年，明确表示不卖</td></tr>
+        <tr><td><b>行</b></td><td>修过的打折车</td><td>女儿说他总买翻新车，直到车「老得让人尴尬」才换</td></tr>
+        <tr><td><b>早餐</b></td><td>麦当劳三档</td><td>看行情点单：$3.17 烟肉蛋堡 / $2.95 猪柳蛋 / $2.61 两片猪柳+可乐</td></tr>
+        <tr><td><b>喝</b></td><td>每天约 5 罐可乐</td><td>Cherry Coke 是心头好；还常吃冰淇淋、薯片、炸鸡块</td></tr>
+        <tr><td><b>格言</b></td><td>「我吃六岁的饭」</td><td>他调侃盖茨：「我看过数据，六岁的人死亡率最低，所以我照着六岁吃。」</td></tr>
+        <tr><td><b>唯一「破例」</b></td><td>私人飞机</td><td>1989 年信里自嘲这架飞机是「<b>不可原谅的（The Indefensible）</b>」，2006 年才承认它让生活更方便</td></tr>
+      </table>
+    </div>
+    <p style="margin-top:14px">他在信里谈消费观时，落点不在「省钱」，而在<b>「机会成本」</b>：每一块钱今天的挥霍，都是未来复利的本金。这套逻辑，他自己真信了六十年。</p>
+  </div>
+</section>
+
+<!-- ================= 3 家庭 ================= -->
+<section class="wrap" id="d3">
+  <div class="sec-head reveal">
+    <span class="sec-num">03</span>
+    <h2 class="sec-title">家庭</h2>
+    <span class="sec-sub">给孩子「够做事」，不给「够躺平」</span>
+  </div>
+  <div class="card reveal">
+    <div class="card-head">
+      <div class="card-ico">👨‍👩‍👧‍👦</div>
+      <div><div class="card-t">一个不搞世袭的家族</div><div class="card-en">Life Is What You Make It</div></div>
+    </div>
+    <div class="thesis">家庭线在这套信里最动人的一点：<b>三个孩子都没接他的班，他也从没打算让他们接。</b>他给的是价值观和启动资金，不是职位和帝国。</div>
+    <div class="tbl-scroll">
+      <table>
+        <tr><th>成员</th><th>身份</th><th>与信里的关系</th></tr>
+        <tr><td><b>霍华德·巴菲特</b>（父）</td><td>股票经纪人、共和党众议员</td><td>他的「内部记分卡」与道德底线来源；1964 年父亲去世，他在信中写下沉痛悼念</td></tr>
+        <tr><td><b>苏珊·汤普森·巴菲特</b>（第一任妻子）</td><td>1952 结婚 / 1977 分居 / 2004 去世</td><td>家族慈善的真正启蒙者。她去世时约 30 亿美元遗产，<b>约 96% 捐入基金会</b>；并以她命名苏珊·汤普森·巴菲特基金会</td></tr>
+        <tr><td><b>阿斯特丽德·门克斯</b>（第二任妻子）</td><td>2006 年结婚（他 76 岁生日当天）</td><td>由苏珊介绍相识；他写「两任妻子都不相信世袭财富」</td></tr>
+        <tr><td><b>苏茜（Susie）</b>1953</td><td>谢伍德基金会主席</td><td>聚焦幼儿教育、社会公正；伯克希尔董事</td></tr>
+        <tr><td><b>霍华德（Howie）</b>1954</td><td>农民 + 摄影师</td><td>霍华德·G·巴菲特基金会，粮食安全、冲突缓解、反人口贩卖；伯克希尔董事</td></tr>
+        <tr><td><b>彼得（Peter）</b>1958</td><td>音乐家、作曲家、作家</td><td>与妻子詹妮弗主持 NoVo 基金会，与原住民社区合作；著有《父亲巴菲特教我的事》</td></tr>
+      </table>
+    </div>
+    <ul>
+      <li><b>教育观</b>：「极其富有的父母，应该给孩子留下<b>足够的钱让他们能有所作为，但不要多到让他们无所事事</b>。」</li>
+      <li><b>遗产安排</b>（2024 年公布）：99.5% 的财富进慈善信托，由三名子女<b>全体一致同意</b>才能分配；个人仅留 0.5%。已秘密指定三名更年轻的候补受托人。</li>
+      <li><b>终止盖茨基金会</b>：2006–2023 年间已向盖茨基金会捐约 390–470 亿美元，但他明确——<b>他去世后不再有资金流向盖茨基金会</b>。</li>
+      <li><b>2025 年加速捐赠的理由</b>：他在感恩节信里说，三个孩子「都已超过正常退休年龄（72、70、67 岁）」，<b>不能赌他们也能像自己一样「延迟衰老」</b>。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 4 爱好 ================= -->
+<section class="wrap" id="d4">
+  <div class="sec-head reveal">
+    <span class="sec-num">04</span>
+    <h2 class="sec-title">兴趣爱好</h2>
+    <span class="sec-sub">桥牌、尤克里里、和「读」</span>
+  </div>
+  <div class="card reveal">
+    <div class="card-head">
+      <div class="card-ico">🃏</div>
+      <div><div class="card-t">他的爱好全都很「便宜」，但都极费脑</div><div class="card-en">Cheap Hobbies, Deep Play</div></div>
+    </div>
+    <div class="thesis">从信里和访谈里能拼出一个清晰画像：<b>他不爱好「拥有」，只爱好「玩」。</b>桥牌、尤克里里、阅读、教学——共性是需要长时间专注、能一直玩到老。</div>
+    <div class="tbl-scroll">
+      <table>
+        <tr><th>爱好</th><th>细节</th><th>他自己的说法</th></tr>
+        <tr><td><b>桥牌</b></td><td>每周约打 12 小时；常与比尔·盖茨搭档；微软创始人是他的牌友</td><td>「这是<b>最好的智力锻炼</b>，每十分钟就有新的局面。」</td></tr>
+        <tr><td><b>尤克里里</b></td><td>弹唱，还写过自己的歌；曾与 Jon Bon Jovi 同台为慈善献唱</td><td>——他常在公开场合随手弹两下</td></tr>
+        <tr><td><b>阅读</b></td><td>每天约 5–6 小时，读报、读 10-K、读书</td><td>他说自己的「工作」很大部分就是读</td></tr>
+        <tr><td><b>教学</b></td><td>2009 年起连续多年邀请学生到奥马哈交流，共接待多个学生团体</td><td>他享受「把知道的东西讲出去」</td></tr>
+        <tr><td><b>饮食</b>（半爱好）</td><td>可乐、汉堡、冰淇淋、See's 糖果、乳品皇后</td><td>把吃当乐趣，不把吃当养生</td></tr>
+      </table>
+    </div>
+    <div class="quote">「打桥牌的时候，就算有裸女走过，我眼睛也不会离开牌。」<span>—— 一个把专注写成日常的人</span></div>
+  </div>
+</section>
+
+<!-- ================= 5 财富与慈善 ================= -->
+<section class="wrap" id="d5">
+  <div class="sec-head reveal">
+    <span class="sec-num">05</span>
+    <h2 class="sec-title">财富与慈善</h2>
+    <span class="sec-sub">财富是「社会的支票」，他只是保管人</span>
+  </div>
+  <div class="card reveal">
+    <div class="card-head">
+      <div class="card-ico">🤲</div>
+      <div><div class="card-t">从「赚钱」到「还钱」的后半生</div><div class="card-en">The Great Giveaway</div></div>
+    </div>
+    <div class="thesis">这套信最锋利的转折发生在他 76 岁：前半生证明「我能赚」，后半生证明<b>「这些钱不属于我」</b>。他称之为「延迟消费的单位」，转交给「出生时抽到短签的人」。</div>
+    <ul>
+      <li><b>2006</b>：宣布将绝大部分伯克希尔股票（后表述为 99%）捐给 5 家基金会——盖茨基金会 + 4 家家族基金会。</li>
+      <li><b>2010</b>：与盖茨夫妇共同发起<b>「捐赠誓言」</b>，邀全球富豪承诺捐出至少一半财富。</li>
+      <li><b>2011–2023</b>：累计捐赠超 520 亿美元，其中向盖茨基金会约 390 亿美元。</li>
+      <li><b>2024</b>：遗嘱落定——99.5% 进慈善信托，三子女共管；<b>去世后停止向盖茨基金会捐赠</b>。</li>
+      <li><b>2025</b>：加速生前捐赠，11 月 10 日一次性转捐 270 万股 B 类股（由 1800 股 A 类股转换）。</li>
+    </ul>
+    <div class="quote">「善良无需成本，却也价值连城。请记住，<b>清洁女工和董事长一样，都是人</b>。」<span>—— 2025 年感恩节告别信</span></div>
+  </div>
+</section>
+
+<!-- ================= 6 友谊 ================= -->
+<section class="wrap" id="d6">
+  <div class="sec-head reveal">
+    <span class="sec-num">06</span>
+    <h2 class="sec-title">友谊与伙伴</h2>
+    <span class="sec-sub">他的「合伙人」决定了他是谁</span>
+  </div>
+  <div class="card reveal">
+    <div class="card-head">
+      <div class="card-ico">🤝</div>
+      <div><div class="card-t">一生中最重要的几次「遇见」</div><div class="card-en">The Company You Keep</div></div>
+    </div>
+    <div class="thesis">他反复说，伯克希尔是「<b>建筑师的功劳</b>」——那个建筑师是芒格。这份信里对朋友的感激，比对业绩的炫耀多得多。</div>
+    <div class="tbl-scroll">
+      <table>
+        <tr><th>人物</th><th>关系</th><th>信中分量</th></tr>
+        <tr><td><b>查理·芒格</b></td><td>1959 相识，64 年挚友、副董事长</td><td>「<b>伯克希尔今天的建筑师</b>」；2023 年去世（99 岁），此后每封信都是悼念与致敬</td></tr>
+        <tr><td><b>比尔·盖茨</b></td><td>1991 相识，桥牌搭档、慈善同盟</td><td>共同发起「捐赠誓言」；巴菲特说「他是我见过最聪明的人之一」</td></tr>
+        <tr><td><b>本·格雷厄姆</b></td><td>哥伦比亚大学老师</td><td>「价值投资之父」；给了他「安全边际」这把尺子</td></tr>
+        <tr><td><b>菲利普·费雪</b></td><td>精神导师之一</td><td>「成长股」视角，与格雷厄姆合流，塑造了他「以合理价买好公司」</td></tr>
+        <tr><td><b>汤姆·墨菲</b></td><td>大都会/ABC 掌门人</td><td>给了他一条信条：「<b>点名表扬，归类批评</b>」——他每年都用</td></tr>
+        <tr><td><b>阿吉特·贾因 / 格雷格·阿贝尔</b></td><td>保险与实业的两根柱子</td><td>他称之为「管理决策上的奇迹」</td></tr>
+      </table>
+    </div>
+    <p style="margin-top:14px">他在最后一封 CEO 信里点破经营哲学：「一个正确的决策，随时间会产生惊人的差异。错误会逐渐淡去，<b>赢家可以永远绽放</b>。」</p>
+  </div>
+</section>
+
+<!-- ================= 7 投资 ================= -->
+<section class="wrap" id="d7">
+  <div class="sec-head reveal">
+    <span class="sec-num">07</span>
+    <h2 class="sec-title">投资哲学</h2>
+    <span class="sec-sub">从「捡烟蒂」到「买伟大公司」</span>
+  </div>
+  <div class="card reveal">
+    <div class="card-head">
+      <div class="card-ico">📈</div>
+      <div><div class="card-t">六十年只做对了几件事，但一直没做错</div><div class="card-en">Value, Compounded</div></div>
+    </div>
+    <div class="thesis">这套哲学的底层不是「聪明」，而是<b>「不亏钱」+「等得起」</b>。前半生靠格雷厄姆的「便宜」，后半生靠芒格推着他「以合理价格买伟大公司」。</div>
+    <div class="tbl-scroll">
+      <table>
+        <tr><th>原则</th><th>信中原话</th><th>落地例子</th></tr>
+        <tr><td><b>不要亏钱</b></td><td>「第一条：不要亏钱；第二条：别忘了第一条。」</td><td>三次股价腰斩都扛住，六十年不割肉</td></tr>
+        <tr><td><b>能力圈</b></td><td>「重要的不是圈子多大，而是你清楚它的边界。」</td><td>长期不碰看不懂的科技股，直到看懂苹果的消费属性</td></tr>
+        <tr><td><b>安全边际</b></td><td>「价格是你付出的，价值是你得到的。」</td><td>1988 年买可口可乐、危机时买美国资产</td></tr>
+        <tr><td><b>市场先生</b></td><td>「别人贪婪时恐惧，别人恐惧时贪婪。」</td><td>2008 年金融危机公开喊「买入美国」</td></tr>
+        <tr><td><b>长期持有</b></td><td>「我们最喜欢的持有期，是永远。」</td><td>可口可乐、美国运通一拿就是几十年</td></tr>
+        <tr><td><b>逆向自律</b></td><td>「潮水退去，才知道谁在裸泳。」</td><td>拒绝复杂衍生品、拒绝高杠杆</td></tr>
+        <tr><td><b>不做的事</b></td><td>「华尔街的钱，是通过劝你交易赚的。」</td><td>指数基金赌局（2018 收官）完胜对冲基金组合</td></tr>
+      </table>
+    </div>
+    <div class="quote">「时间是好公司的朋友，是平庸公司的敌人。」<span>—— 贯穿六十年的判断标准</span></div>
+  </div>
+</section>
+
+<!-- ================= 8 错误 ================= -->
+<section class="wrap" id="d8">
+  <div class="sec-head reveal">
+    <span class="sec-num">08</span>
+    <h2 class="sec-title">错误与自省</h2>
+    <span class="sec-sub">他可能是最爱认错的 CEO</span>
+  </div>
+  <div class="card reveal">
+    <div class="card-head">
+      <div class="card-ico">🪞</div>
+      <div><div class="card-t">「拖延纠错，是最大的罪过」</div><div class="card-en">Owning the Mistakes</div></div>
+    </div>
+    <div class="thesis">1989 年他专门写了一章《头 25 年的错误》。到 2019–23 年，他在信里用了 <b>16 次</b>「错误 / 失误」——他说：很多大公司一次都不用这两个词，而那种「管理层完美无缺」的禁忌，总让他不安。</div>
+    <div class="tbl-scroll">
+      <table>
+        <tr><th>错误</th><th>年份</th><th>他的原话 / 定性</th></tr>
+        <tr><td><b>买下伯克希尔本身</b></td><td>1965</td><td>「一个错误——我的错误——困扰了我们二十年」</td></tr>
+        <tr><td><b>德克斯特鞋业（Dexter Shoe）</b></td><td>1993</td><td>用伯克希尔股票收购，被广泛视为他最贵的一次失误</td></tr>
+        <tr><td><b>所罗门兄弟</b></td><td>1991</td><td>临危救火，但让他写下「亏掉股东的钱可以原谅，亏掉声誉不行」</td></tr>
+        <tr><td><b>通用再保险（Gen Re）</b></td><td>1998</td><td>承保纪律失控，多年后才收拾干净</td></tr>
+        <tr><td><b>看错人 / 看错行业</b></td><td>多次</td><td>「在评估管理人员的能力或忠诚度时犯过错误……忠诚的失望，痛得接近一场失败的婚姻」</td></tr>
+      </table>
+    </div>
+    <div class="quote">「问题不能靠幻想解决，需要行动——无论那有多不舒服。」<span>—— 他在信里转述芒格的话</span></div>
+  </div>
+</section>
+
+<!-- ================= 9 健康与时间 ================= -->
+<section class="wrap" id="d9">
+  <div class="sec-head reveal">
+    <span class="sec-num">09</span>
+    <h2 class="sec-title">健康与时间</h2>
+    <span class="sec-sub">他一直在信的角落里，谈「老」</span>
+  </div>
+  <div class="card reveal">
+    <div class="card-head">
+      <div class="card-ico">⏳</div>
+      <div><div class="card-t">时间最终会赢，但他选择站着走完</div><div class="card-en">Time Waits for No One</div></div>
+    </div>
+    <div class="thesis">很少有大企业家会像他这样，把<b>衰老、疾病、寿命</b>直接写进致股东信。他谈时间，既不悲情，也不否认，而是当成一个必须做的资本配置决策。</div>
+    <ul>
+      <li><b>1938 年，10 岁</b>：一场腹膜炎/阑尾炎几乎要了他的命。2025 年最后一封信几乎用了三分之一篇幅回忆这段经历——「我这一生运气好得令人惊讶。」</li>
+      <li><b>2012 年</b>：确诊前列腺癌，写短信告知股东，随后治疗，恢复良好。</li>
+      <li><b>2025 年</b>：「我行动缓慢，阅读越来越困难，但我每周五天都在办公室。」——他没有掩饰衰退，只是继续来上班。</li>
+      <li><b>时间观</b>：「时间终会取胜。但它很善变，有时甚至残酷。」（2024 年感恩节信）</li>
+      <li><b>与接班人赛跑</b>：他加速捐赠，正是因为「我孩子的预期寿命已经明显缩短」。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 10 幽默与语言 ================= -->
+<section class="wrap" id="d10">
+  <div class="sec-head reveal">
+    <span class="sec-num">10</span>
+    <h2 class="sec-title">幽默与语言</h2>
+    <span class="sec-sub">股东大会是「资本家的伍德斯托克」</span>
+  </div>
+  <div class="card reveal">
+    <div class="card-head">
+      <div class="card-ico">😄</div>
+      <div><div class="card-t">用比喻讲枯燥的财报</div><div class="card-en">The Storyteller</div></div>
+    </div>
+    <div class="thesis">他的信之所以六十年不过时，一半靠内容，一半靠<b>会讲人话</b>。他把自己摊开的财报，讲成了故事。</div>
+    <ul>
+      <li><b>自嘲</b>：皮特·利格尔只要 10 万年薪时，他写「从我『从地上爬起来』之后……」；提到 1967 年那次分红，他说「现在看像一场噩梦」。</li>
+      <li><b>画面感比喻</b>：把「长期投资兑现」写成「收银机像教堂钟声一样响」；把缴税写成「每 20 分钟递一张百万支票，一年下来还欠政府一大笔」。</li>
+      <li><b>金句制造机</b>：「潮水退去才知道谁在裸泳」、「在别人贪婪时恐惧」——都出自信里，成了全球投资圈的通用语。</li>
+      <li><b>「点名表扬，归类批评」</b>：汤姆·墨菲给他的建议，他用了一辈子——错事只说类别，不点名羞辱下属。</li>
+      <li><b>会场即节日</b>：每年 5 月奥马哈股东大会，被称为「资本家的伍德斯托克音乐节」。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 11 传承与告别 ================= -->
+<section class="wrap" id="d11">
+  <div class="sec-head reveal">
+    <span class="sec-num">11</span>
+    <h2 class="sec-title">传承与告别</h2>
+    <span class="sec-sub">「用英国人的话说，我要安静下来了。」</span>
+  </div>
+  <div class="card reveal">
+    <div class="card-head">
+      <div class="card-ico">🕊️</div>
+      <div><div class="card-t">他把交接也做成了一堂公开课</div><div class="card-en">The Art of Letting Go</div></div>
+    </div>
+    <div class="thesis">没有宫斗、没有悬念——<b>他提前十年选人、提前五年铺路、最后亲手把话筒递过去。</b>这在巨型企业史上是罕见的干净。</div>
+    <ul>
+      <li><b>2011</b>：让长子霍华德任非执行董事长，保护文化不被外来者稀释。</li>
+      <li><b>2021</b>：官方点名阿贝尔为接班人。</li>
+      <li><b>2025.5</b>：董事会正式投票；<b>2025.12.31 卸任 CEO</b>，留任董事长。</li>
+      <li><b>保留 A 类股</b>：他说要留住足够股份，「直到股东建立起对阿贝尔的信任」——这是给继任者的一份定心丸。</li>
+      <li><b>2026.1.1</b>：阿贝尔接任；<b>2026.2.28</b> 首封非巴菲特股东信：现金 3700 亿美元、坚持不分红、拒绝给公用事业当「提款机」、押注 AI 电力需求。</li>
+      <li><b>变数</b>：长期掌管投资组合的托德·库姆斯 2025 年 12 月离职赴摩根大通，投资组合接班安排仍有悬念。</li>
+    </ul>
+    <div class="quote">「选择你的英雄，然后效仿他们。你永远不会完美，但总能变得更好。」<span>—— 他作为 CEO 留给股东的最后一句建议</span></div>
+  </div>
+</section>
+
+<!-- ================= 金句墙 ================= -->
+<section class="wrap" id="quotes">
+  <div class="sec-head reveal">
+    <span class="sec-num">WALL</span>
+    <h2 class="sec-title">金句墙</h2>
+    <span class="sec-sub">六十年里，这些话被反复引用</span>
+  </div>
+  <div class="quotes-grid">
+    <div class="qcard reveal"><div class="mark">“</div><div class="q">价格是你付出的，价值是你得到的。</div><div class="s">安全边际 · 核心信条</div></div>
+    <div class="qcard reveal"><div class="mark">“</div><div class="q">别人贪婪时我恐惧，别人恐惧时我贪婪。</div><div class="s">逆向 · 市场先生</div></div>
+    <div class="qcard reveal"><div class="mark">“</div><div class="q">建立声誉要 20 年，毁掉它只要 5 分钟。</div><div class="s">所罗门危机后的教训</div></div>
+    <div class="qcard reveal"><div class="mark">“</div><div class="q">我们最喜欢的持有期，是永远。</div><div class="s">长期主义 · 1988 年信</div></div>
+    <div class="qcard reveal"><div class="mark">“</div><div class="q">在寻找要雇的人时，看三点：正直、聪明、精力。缺了第一点，后两点会杀了你。</div><div class="s">识人 · 用人</div></div>
+    <div class="qcard reveal"><div class="mark">“</div><div class="q">习惯的锁链太轻，轻到你感觉不到；等到你感觉到时，已经重得挣不开。</div><div class="s">习惯 · 复利</div></div>
+    <div class="qcard reveal"><div class="mark">“</div><div class="q">给别人留下足够的钱，让他能做任何事；但不要多到让他什么都不用做。</div><div class="s">育儿 · 遗产观</div></div>
+    <div class="qcard reveal"><div class="mark">“</div><div class="q">潮水退去，才知道谁在裸泳。</div><div class="s">风险 · 2001 年信</div></div>
+    <div class="qcard reveal"><div class="mark">“</div><div class="q">善良无需成本，却也价值连城。</div><div class="s">2025 · 告别信</div></div>
+    <div class="qcard reveal"><div class="mark">“</div><div class="q">选好你的英雄，然后效仿他们。你永远不会完美，但总能变得更好。</div><div class="s">2025 · 最后一课</div></div>
+  </div>
+</section>
+
+<!-- ================= 一页明白 ================= -->
+<section class="wrap">
+  <div class="summary reveal">
+    <h3>一 页 明 白</h3>
+    <ol>
+      <li><b>人生</b>：把时间与信誉当本金，让它们复利——「复利的威力，在最后二十年」。</li>
+      <li><b>生活</b>：财富和快乐解耦。必需品清单极短，唯一的奢侈是那架「不可原谅」的飞机。</li>
+      <li><b>家庭</b>：给孩子「够做事、不够躺平」；99.5% 捐出，仅 0.5% 留给子女。</li>
+      <li><b>爱好</b>：桥牌、尤克里里、阅读、教学——四个都能玩到老，且全都要长时间专注。</li>
+      <li><b>财富慈善</b>：钱是「社会开的支票」，他只是保管人；他要把它还给「出生时抽到短签的人」。</li>
+      <li><b>友谊</b>：他把自己交给芒格、盖茨、格雷厄姆——「你身边是谁，你就是谁」。</li>
+      <li><b>投资</b>：不亏钱 + 等得起；从捡烟蒂到买伟大公司，六十年只做对少数几件事。</li>
+      <li><b>错误</b>：最爱的 CEO 认错人。他信条是——「拖延纠错是最大的罪过」。</li>
+      <li><b>时间与健康</b>：衰老照写不误。「我行动缓慢，阅读越来越难，但每周五天到办公室。」</li>
+      <li><b>传承与告别</b>：提前十年选人，亲手递话筒，最后说一句——「我要安静下来了。Sort of.」</li>
+    </ol>
+  </div>
+</section>
+
+<footer class="wrap">
+  <div>巴菲特股东信 · 六十年维度全解 &nbsp;|&nbsp; 1957 – 2026</div>
+  <div class="disc">
+    资料来源：伯克希尔·哈撒韦官方股东信与新闻稿（1957–2026）、2010–2025 年致股东信正文、2024/2025 年感恩节信全文、2026 年 2 月首封阿贝尔股东信，以及公开媒体报道。部分人物生平细节来自公开传记与访谈。
+    本页为信息梳理与学习用途，不构成任何投资建议。引文为译文，与英文原文可能有措辞差异，以伯克希尔官网原文为准。
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var els = document.querySelectorAll('.reveal');
+    function revealAll(){ for (var i=0;i<els.length;i++) els[i].classList.add('in'); }
+    if(!('IntersectionObserver' in window)){ revealAll(); return; }
+    var ioFired = false;
+    var io = new IntersectionObserver(function(entries){
+      ioFired = true;
+      entries.forEach(function(en){
+        if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); }
+      });
+    },{threshold:0.08, rootMargin:'0px 0px -40px 0px'});
+    els.forEach(function(e){ io.observe(e); });
+    // 兜底：少数内嵌 WebView / 无头环境不派发交叉回调，正文会一直留白。
+    // 只要 1.5 秒内一次回调都没收到，就判定 IO 不可用，直接全部点亮。
+    setTimeout(function(){ if(!ioFired) revealAll(); }, 1500);
+  })();
+</script>
+</body>
+</html>
