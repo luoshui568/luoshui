@@ -358,8 +358,8 @@ python3 build.py            # 或 build.py::build_report() 单独构建
 
 # ③ ★★★ 确认报告页那两块「**不经模板生成**」的东西在（2026-10-16 固化）
 #    线上 report.html = 模板渲染结果 **+** _patch_blockstyle.py 注入的：
-#      <style  id="rpt-blockstyle">   模块堆叠文本分块 + 表格「红表头 + 浅蓝身」
-#      <script id="rpt-blockscript">  配套渲染层（Markdown 粗体 / 数字列标注）
+#      <style  id="rpt-blockstyle">   模块堆叠文本分块 + 表格「宣纸 · 墨金」+ 宣纸背景层
+#      <script id="rpt-blockscript">  配套渲染层（Markdown 粗体 / 数字列标注 / essence 分块 / 背景层注入）
 #    ⚠️ 这两块**不在模板里**。直发未补的 build 产物 ⇒ 产物少 39 753 字符，
 #       **12 份研报的表格样式与粗体渲染同时失效，而且页面不报错**（只是全体「没样式」）。
 #    ★ 好消息：build.py 末尾已自动补（patch_blockstyle()），会打印

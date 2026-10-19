@@ -47,57 +47,55 @@
        · 正文里未渲染的 Markdown 粗体标记转成 <b>（全库 1,693 处）；
        · 纯数字单元格打 is-num 类 ⇒ 右对齐 + tabular-nums 等宽数字。
      ================================================================ */
-  /* ⑥ 整站金色 → 浅蓝（2026-10-15 用户令：「不要金色系了，全部改成浅蓝色系」）
-     ★ 为什么用「覆盖 :root 变量」而不是去改模板自带样式：
-       `--gold:#c9a227` 定义在模板自己的 `:root` 里，被 `.logic`（逻辑折叠条）、
-       `.hist .h-en`（时间轴英文标签）、`.dcards .dcard::before`（卡片色柱）等
-       十几处引用，那些 CSS 块是**并发会话的地盘**（线上是 style id=rpt-txtstyle
-       之外的模板样式），去改它们的源文件必然被回退。
-       而 CSS 变量是**运行时求值**的 ⇒ 在自己块里重新声明同名同值即可整体换色，
-       零侵入、不碰对方一个字。⚠️ 本块必须带 `!important`，因为模板的 `:root`
-       在同一特异度下按源码顺序决胜，本块未必排在它后面。 */
+  /* ⑥ 装饰色统一为「宣纸 · 墨金」（2026-10-19 随背景/表格一起换）
+     ----------------------------------------------------------------
+     ★ 为什么还留这一段（而不是删掉）：
+       模板与并发会话的 rpt-txtstyle 块把很多颜色写成**字面量**而不是变量
+       （`.card > h3` 的 `color:#8a5a12`、导语块的 `rgba(201,162,39,.13)`、
+         `.dcards` 的金色渐变），光改变量换不掉它们 ⇒ 仍要逐条压一遍。
+     ★ 特异度要点：对方 `.card > h3` 是 (0,0,1,1)，
+       我这边写 `.card.card > h3`(0,0,2,1) 才压得住（重复一次类名抬高）。
+     ★ 与 2026-10-15 那版相反：那版是「金 → 蓝」，这版是**回到金**，
+       并把冷蓝灰正文改成暖墨灰，否则纸底上配冷灰会发青。 */
   :root{
-    --gold:#337fc1 !important;      /* 原 #c9a227 金 */
-    --gold2:#337fc1 !important;
-    --amber:#2d81be !important;     /* 原 #b98f1f 琥珀 */
+    --gold:#c9a227 !important;      /* 金：恢复原值 */
+    --gold2:#c9a227 !important;
+    --amber:#b98f1f !important;     /* 琥珀：恢复原值 */
   }
-  /* 直写金色字面量的少数几处也一并换蓝。
-     ⚠️ 下面这几条覆盖的是**并发会话的 rpt-txtstyle 块**里硬编码的金色：
-       它把「金」写成了字面量而不是变量（`.card > h3` 的 `color:#8a5a12`、
-        导语块的 `rgba(201,162,39,.13)`、正文色 `#5e5b52`、`.dcards` 的金色渐变），
-       所以光覆盖 `--gold` 变量换不掉它们。
-     ★ 特异度必须比对方**高**，且带 !important：
-       对方是 `.card > h3`（0,0,1,1），我这边写成 `.card > .rpt-ops + p`、
-       `.card > h3.card > h3` 之类只会更低 —— 正确做法是**重复选择器**
-       `.card.card > h3`（0,0,2,1）把它压过去。 */
+  /* 小标题：米金底 + 深金字 + 金色左柱（宣纸批注签） */
   .card > h3{
-    color:#1f5b8a !important;
-    background:linear-gradient(120deg,rgba(51,127,193,.11),rgba(51,127,193,.02)) !important;
+    color:#8a5a12 !important;
+    background:linear-gradient(120deg,rgba(201,162,39,.13),rgba(201,162,39,.025)) !important;
+    border-left:3px solid #a8862c !important;
   }
-  .card.card > h3{color:#1f5b8a !important;}
+  .card.card > h3{color:#8a5a12 !important;}
+  /* 导语块：米金底 + 左金柱 */
   .card > .rpt-ops + p:not(.muted):not(.src){
-    color:#243642 !important;
-    background:linear-gradient(120deg,rgba(51,127,193,.13),rgba(51,127,193,.03)) !important;
+    color:#2a2422 !important;
+    background:linear-gradient(120deg,rgba(201,162,39,.15),rgba(201,162,39,.03)) !important;
   }
-  .card > p:not(.src):not(.muted){color:#4d5f6d !important;}
+  /* 正文：冷蓝灰 → 暖墨灰（纸底上冷灰会发青） */
+  .card > p:not(.src):not(.muted){color:#4a423e !important;}
   .card > ul > li,.card > ul,.logic .lv,.grid2 .gr-txt > ul,.mi-notes{
-    color:#4d5f6d !important;
+    color:#4a423e !important;
   }
-  /* 逻辑折叠条：金色左条 + 金底 → 蓝 */
+  /* 逻辑折叠条：金左条 + 米金底 */
   .logic{
-    background:linear-gradient(90deg,#eef5f9,#fbfdfe) !important;
+    background:linear-gradient(90deg,#f9f4e8,#fdfbf6) !important;
   }
-  .logic{border-left-color:#337fc1 !important;}
-  /* 时间轴英文标签 / 卡片装饰柱 / 小卡渐变 */
-  .hist .h-en{color:#4a8cbd !important;}
-  .hist .h-title{color:#243642 !important;}
+  .logic{border-left-color:#a8862c !important;}
+  /* 时间轴英文标签 */
+  .hist .h-en{color:#a8862c !important;}
+  .hist .h-title{color:#2a2422 !important;}
+  /* 小卡：蓝渐变 → 米白纸面 + 金红柱 */
   .dcards .dcard{
-    background:linear-gradient(180deg,#fbfdfe,#f2f7fa) !important;
+    background:linear-gradient(180deg,#fdfbf6,#f7f2e6) !important;
+    border-color:rgba(196,185,163,.7) !important;
   }
   .dcards .dcard::before{
-    background:linear-gradient(180deg,#559bce,#337fc1) !important;
+    background:linear-gradient(180deg,#c9a227,#8b1a1a) !important;
   }
-  /* ① 顶层列表 → 分块卡片（浅蓝渐变 + 上下渐变色柱） */
+  /* ① 顶层列表 → 分块卡片（宣纸米渐变 + 金→红渐变色柱） */
   .card > ul{
     list-style:none !important;padding:0 !important;margin:0 0 16px !important;
     display:grid;gap:10px;
@@ -106,138 +104,132 @@
     position:relative;margin:0 !important;
     padding:12px 16px 13px 19px !important;
     font-size:13.6px !important;line-height:1.95;
-    background:linear-gradient(104deg,#f6fafc 0%,#edf3f8 52%,#dbe7f0 100%);
-    background-image:linear-gradient(104deg,#f6fafc 0%,#edf3f8 52%,#dbe7f0 100%);
-    border:1px solid #c7d9e6;border-left:0;
+    background:linear-gradient(104deg,#fdfbf6 0%,#f9f4e9 52%,#f2ebdb 100%);
+    background-image:linear-gradient(104deg,#fdfbf6 0%,#f9f4e9 52%,#f2ebdb 100%);
+    border:1px solid #ded4bf;border-left:0;
     border-radius:0 13px 13px 0;
-    box-shadow:0 2px 8px rgba(28,72,110,.06),0 10px 26px rgba(28,72,110,.055);
+    box-shadow:0 2px 8px rgba(20,16,14,.045),0 10px 26px rgba(20,16,14,.04);
   }
   /* 渐变色柱：border-left 做不出渐变，必须用伪元素 */
   .card > ul > li::before{
     content:"";position:absolute;left:0;top:-1px;bottom:-1px;width:4px;
     border-radius:13px 0 0 13px;
-    background:linear-gradient(180deg,#73b1de 0%,#559bce 44%,#337fc1 100%);
+    background:linear-gradient(180deg,#d9b45c 0%,#c9a227 44%,#a82020 100%);
   }
-  /* ② 列表后的总括段 → 「小结」块（浅蓝渐变 + 更深的蓝柱） */
+  /* ② 列表后的总括段 → 「小结」块（更深一档米 + 红柱） */
   .card > ul + p:not(.src):not(.muted){
     position:relative;
     margin:0 0 16px !important;
-    background:linear-gradient(104deg,#eef5f9 0%,#e2edf4 55%,#d8e5ee 100%);
-    background-image:linear-gradient(104deg,#eef5f9 0%,#e2edf4 55%,#d8e5ee 100%);
-    border:1px solid #c4d7e3;border-left:0;
+    background:linear-gradient(104deg,#f9f4e8 0%,#f3ecdc 55%,#ece3d1 100%);
+    background-image:linear-gradient(104deg,#f9f4e8 0%,#f3ecdc 55%,#ece3d1 100%);
+    border:1px solid #ddd2bd;border-left:0;
     border-radius:0 13px 13px 0;padding:12px 16px 13px;
-    box-shadow:0 2px 8px rgba(28,72,110,.06);
+    box-shadow:0 2px 8px rgba(20,16,14,.045);
   }
   .card > ul + p:not(.src):not(.muted)::before{
     content:"";position:absolute;left:0;top:0;bottom:0;width:4px;
     border-radius:13px 0 0 13px;
-    background:linear-gradient(180deg,#337fc1 0%,#2d81be 58%,#559bce 100%);
+    background:linear-gradient(180deg,#a82020 0%,#8b1a1a 58%,#c9a227 100%);
   }
-  /* ③ 表格：现代骨架 + 浅蓝装饰（2026-10-15 第四版）
-     骨架 = Notion / Linear / Stripe 那一套（去竖线、去厚框、只留横线、
-     圆角收在容器、内边距放大）—— 这部分**从 ② 起就没动过**；
-     本版加的是**五层装饰**，都不牺牲可读性：
-       D1 表头行整行浅蓝渐变（亮→暗四段）+ 底部一条 3px 主蓝实线；
-       D2 表格外框浅蓝描边 + 蓝色光环 + 冷调投影 + 15px 圆角；
-       D3 首列浅蓝渐变 + 半粗 + 左侧 3px 主蓝小柱；
-       D4 斑马纹 `#f1f6f9` ↔ `#fff`（明度差 4 个色阶，看得出行界又不吵）；
-       D5 行分隔线 `#e2e9ee`，hover 改浅蓝渐变铺行、首列蓝柱加深。 */
+  /* ③ 表格：「宣纸 · 墨金」风（2026-10-19 用户令：照 capital-table 的样式改）
+     ----------------------------------------------------------------
+     参考稿 `capital-table.html` 的做法，学的是**配色关系**不是照抄数值：
+       表头 = 深酒红渐变（#751111→#a82020→#8b1a1a→#6e1414）+ **金色下边框**
+       表身 = 宣纸米白（不是纯白）+ 暖灰 1px 横线（#d8d0bf 系）
+       首列 = 墨色粗体标签 + hover 时左侧红柱
+       卡片 = 半透明纸面 + 大而软的暖投影（不是冷蓝光环）
+     ★ 与前一版（红表头 + 浅蓝身）的差别只在**色相家族**：
+       蓝系全部换成宣纸/墨/金/酒红，骨架（去竖线、圆角收容器、内边距、斑马）不动。
+     ★ 依然只画在 `tr:first-child` 上、`<th>` 自身透明：
+       表头底必须**连成整行**，若每个 `<th>` 各画一遍渐变，四列表会变成四段深浅不一。
+       （踩过：多层 `background-size:100% 3px,100% 100%` 在 `<tr>` 上第一层
+         会被当 100% 100% 铺满整行 ⇒ `<tr>` 上只画一层背景最稳。）
+     ★ 金线走 `<th>` 的 `border-bottom` 而不是 `tr` 的 box-shadow：
+       border 不参与背景层叠，天然能跨单元格连成一条，且不会被斑马纹规则干扰。 */
   .card table{
     border-collapse:separate !important;border-spacing:0;
-    border:1px solid #d0dde7 !important;
-    border-top:1px solid #d0dde7 !important;
-    border-radius:15px !important;overflow:hidden;
-    background:#fff !important;background-image:none !important;
+    border:1px solid rgba(196,185,163,.7) !important;
+    border-top:1px solid rgba(196,185,163,.7) !important;
+    border-radius:12px !important;overflow:hidden;
+    background:rgba(251,248,242,.94) !important;background-image:none !important;
     box-shadow:
-      0 0 0 1px rgba(51,127,193,.24),
-      0 1px 2px rgba(28,50,70,.045),
-      0 12px 30px rgba(28,72,110,.09),
-      0 0 26px rgba(51,127,193,.07) !important;
+      0 1px 2px rgba(20,16,14,.04),
+      0 22px 56px -30px rgba(20,16,14,.32),
+      0 4px 14px rgba(20,16,14,.04) !important;
     font-size:13.6px !important;
   }
-  /* D1：表头行整行**品牌红渐变**（2026-10-15 12:26 用户令：「表头还是要以前的红色」）
-     ★ 一次「双系」配色：**表头红、其余浅蓝**。
-       原因（用户截图）：红表头在满屏蓝底里是唯一的暖色锚点，一眼定位「这是什么表」；
-       全表都用蓝反而失去表头的功能色地位。红色直接复用第一版的品牌色，不另配色：
-         底 `linear-gradient(135deg,#d0202f,#e43644 60%,#e43644)`（第一版原值）
-         字 `#fff` + `text-shadow:0 1px 1px rgba(0,0,0,.15)`（红底上白字才够清楚）
-         底线 `inset 0 -3px 0 0 #c81a33`（比表头更深一档的暗红，压得住）
-     ★ 依然只画在 `tr:first-child` 上、`<th>` 自身透明：
-       红底必须**连成整行**，若每个 `<th>` 各画一遍 135° 渐变，四列表会变成四段深浅不一。
-       （浅蓝版时代踩过：多层 `background-size:100% 3px,100% 100%` 在 `<tr>` 上第一层
-         会被当 100% 100% 铺满整行 ⇒ `<tr>` 上只画一层背景最稳，底线走 inset box-shadow。）
-     ★ 为什么用 `tr:first-child` 而不是 `thead`：本站表格是裸 `<tr><th>`。 */
+  /* 表头行：深酒红渐变（四段，左深→中亮→右深，模拟纸张侧光） */
   .card table tr:first-child{
-    background:linear-gradient(135deg,#d0202f 0%,#e43644 60%,#e43644 100%) !important;
-    background-image:linear-gradient(135deg,#d0202f 0%,#e43644 60%,#e43644 100%) !important;
-    box-shadow:inset 0 -3px 0 0 #c81a33 !important;
+    background:linear-gradient(100deg,#751111 0%,#a82020 42%,#8b1a1a 74%,#6e1414 100%) !important;
+    background-image:linear-gradient(100deg,#751111 0%,#a82020 42%,#8b1a1a 74%,#6e1414 100%) !important;
   }
   .card table tr:first-child > th{
     background:transparent !important;background-image:none !important;
     box-shadow:none !important;
-    color:#fff !important;
-    font-weight:700 !important;font-size:12.4px !important;letter-spacing:.08em;
-    padding:13px 16px 11px !important;text-align:left;
+    color:#f7efe1 !important;
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif !important;
+    font-weight:600 !important;font-size:11.4px !important;letter-spacing:.12em;
+    padding:14px 16px 12px !important;text-align:left;
     border:none !important;
-    text-shadow:0 1px 1px rgba(0,0,0,.15) !important;white-space:nowrap;
+    border-bottom:1px solid rgba(201,162,39,.55) !important;
+    text-shadow:none !important;white-space:nowrap;
   }
   /* 兜底：第一行没有 th（少数表直接是 td）的，补一条暗红压边 */
   .card table tr:first-child:not(:has(> th)) > td:first-child{
-    box-shadow:inset 3px 0 0 0 #c81a33;
+    box-shadow:inset 3px 0 0 0 #8b1a1a;
   }
-  /* 其它行的 th（少数表有第二行也用 th）给回浅蓝底，避免裸白 */
+  /* 其它行的 th（少数表有第二行也用 th）给回纸色底，避免裸白 */
   .card table th{
     background:transparent !important;background-image:none !important;
   }
-  /* D4/D5：单元格极淡蓝斑马纹 + 冷蓝分隔线 */
+  /* 单元格：暖灰分隔线（#d8d0bf 系）+ 墨色正文 */
   .card table td{
     padding:12px 16px !important;
-    border:none !important;border-bottom:1px solid #e2e9ee !important;
+    border:none !important;border-bottom:1px solid rgba(216,208,191,.65) !important;
     vertical-align:top !important;line-height:1.72;
     background:transparent !important;background-image:none !important;
+    color:#2a2422;
   }
-  /* D4 斑马纹（极淡蓝）
+  /* 斑马纹：极淡纸色 ↔ 近白纸（不是蓝，也不是纯白）
      ★⚠️ 必须写 `td:not(:first-child)` 排除首列（实测踩坑）：
        `tr:nth-child(even) > td` 特异度 (0,2,4) **高于** 首列规则
-       `tbody td:first-child` 的 (0,2,3) ⇒ 偶数行纯白会盖掉首列底色，
-       现象是「斑马纹行白、非斑马纹行黄」的**隔行颠倒**。
-       排除首列后两套规则互不重叠，首列配色与行序彻底解耦。 */
+       `tbody td:first-child` 的 (0,2,3) ⇒ 偶数行会盖掉首列底色，
+       现象是「斑马纹行白、非斑马纹行深」的**隔行颠倒**。 */
   .card table tbody tr:nth-child(odd) > td:not(:first-child){
-    background:#f1f6f9 !important;background-image:none !important;
+    background:rgba(245,241,232,.62) !important;background-image:none !important;
   }
   .card table tbody tr:nth-child(even) > td:not(:first-child){
-    background:#fff !important;background-image:none !important;
+    background:rgba(255,253,248,.92) !important;background-image:none !important;
   }
   .card table tbody tr:last-child > td{
     border-bottom:none !important;
-    box-shadow:inset 0 2px 0 0 rgba(51,127,193,.55);
+    box-shadow:inset 0 1px 0 0 rgba(201,162,39,.35);
   }
   .card table tbody tr:last-child > td:first-child{
-    box-shadow:inset 0 2px 0 0 rgba(51,127,193,.55),inset 3px 0 0 0 rgba(51,127,193,.55);
+    box-shadow:inset 0 1px 0 0 rgba(201,162,39,.35),inset 3px 0 0 0 rgba(139,26,26,.3);
   }
-  /* D3 首列＝行标签列：浅蓝渐变 + 半粗 + 左侧主蓝小柱。
-     特异度必须压得住斑马纹：这里用 `tbody tr > td:first-child`（0,2,4）
-     而不是 `tbody td:first-child`（0,2,3）。 */
+  /* 首列 = 行标签列：宣纸渐变 + 墨色粗体 + 左侧淡红柱。
+     特异度必须压得住斑马纹：这里是 `tbody tr > td:first-child`（0,2,4）。 */
   .card table tbody tr > td:first-child{
-    background:linear-gradient(100deg,#ecf3f8 0%,#e5eef5 62%,#eef4f8 100%) !important;
-    background-image:linear-gradient(100deg,#ecf3f8 0%,#e5eef5 62%,#eef4f8 100%) !important;
-    font-weight:600 !important;color:#243642 !important;
-    box-shadow:inset 3px 0 0 0 rgba(45,129,190,.55);
+    background:linear-gradient(100deg,rgba(245,241,232,.98) 0%,rgba(239,233,220,.88) 62%,rgba(245,241,232,.7) 100%) !important;
+    background-image:linear-gradient(100deg,rgba(245,241,232,.98) 0%,rgba(239,233,220,.88) 62%,rgba(245,241,232,.7) 100%) !important;
+    font-weight:700 !important;color:#14100e !important;
+    font-family:"Songti SC","SimSun","Noto Serif SC",Georgia,serif !important;
+    box-shadow:inset 3px 0 0 0 rgba(139,26,26,.3);
   }
-  /* hover：浅蓝渐变铺一行；首列更深一档 + 蓝柱加亮 —— 一眼看出是哪一行 */
+  /* hover：整行提亮到纸白，首列红柱加深 —— 一眼看出是哪一行 */
   .card table tbody tr{transition:background .16s ease;}
   .card table tbody tr:hover{box-shadow:none !important;}
   .card table tbody tr:hover > td:not(:first-child){
-    background:linear-gradient(90deg,#e5eff6 0%,#eaf3f8 55%,#f0f6fa 100%) !important;
-    background-image:linear-gradient(90deg,#e5eff6 0%,#eaf3f8 55%,#f0f6fa 100%) !important;
+    background:rgba(255,253,248,.99) !important;background-image:none !important;
   }
   .card table tbody tr:hover > td:first-child{
-    background:linear-gradient(90deg,#cce1f0 0%,#d7e8f3 62%,#e2eff7 100%) !important;
-    background-image:linear-gradient(90deg,#cce1f0 0%,#d7e8f3 62%,#e2eff7 100%) !important;
-    box-shadow:inset 3px 0 0 0 #3e90cc !important;
+    background:linear-gradient(100deg,rgba(249,245,236,1) 0%,rgba(243,237,224,.95) 60%,rgba(249,245,236,.9) 100%) !important;
+    background-image:linear-gradient(100deg,rgba(249,245,236,1) 0%,rgba(243,237,224,.95) 60%,rgba(249,245,236,.9) 100%) !important;
+    box-shadow:inset 3px 0 0 0 #8b1a1a !important;
   }
   .card table tbody tr:last-child:hover > td:first-child{
-    box-shadow:inset 0 2px 0 0 rgba(51,127,193,.55),inset 3px 0 0 0 #3e90cc !important;
+    box-shadow:inset 0 1px 0 0 rgba(201,162,39,.35),inset 3px 0 0 0 #8b1a1a !important;
   }
   /* 数字列右对齐 + 等宽数字（is-num 由渲染层脚本按「整格都是数字/百分比/单位」
      打标，见 script id=rpt-blockscript；打标失败也不影响可读性） */
@@ -455,4 +447,127 @@
   /* 窄屏：首列收窄，让三个项目列还留得住可读宽度 */
   @media(max-width:860px){
     .card .mi-card > table > thead th:first-child{width:104px !important;}
+  }
+
+  /* ================================================================
+     ⑦ 整站背景：「宣纸 · 墨金」（2026-10-19 学 capital-table.html）
+     ----------------------------------------------------------------
+     参考稿的四层结构，逐层搬过来（只换载体、不改观感）：
+       ① 纸底     —— 米黄底色 + 3 个超大径向柔光（藏青 / 酒红 / 金）
+       ② 网格     —— 56px 红细网格，用径向遮罩向四周淡出（否则像坐标纸）
+       ③ 光球     —— blur(64px) 的色团缓慢漂移（复写页面原有的 .bg-orbs 四球）
+       ④ 暗角     —— 径向压暗四边，把视线收到中间
+     粒子层在渲染层注入（要 26 个随机节点，CSS 造不出来），见 rpt-blockscript。
+
+     ★ 为什么纸色底色要写在 `html` 上而不是只写 body：
+       body 的渐变是 `linear-gradient(180deg, …)` 且带 `overflow-x:hidden`，
+       页面滚到底时 body 背景只覆盖内容高度，露出来的是 html 的底色。
+       两边都刷同一个纸色，长页面滚到尾部才不会有「白边断层」。
+     ★ 光球必须 `fixed + z-index:0`，且 `.wrap` 要 z-index ≥ 1；
+       页面原有的 .bg-orbs 就是 z-index:0，这里只改配色不改定位，风险最小。 */
+  html{
+    background-color:#f5f1e8 !important;
+  }
+  body{
+    background-color:#f5f1e8 !important;
+    background-image:
+      radial-gradient(1100px 560px at 8% -5%, rgba(60,72,96,.10), transparent 55%),
+      radial-gradient(950px 520px at 96% 10%, rgba(139,26,26,.075), transparent 55%),
+      radial-gradient(900px 700px at 50% 112%, rgba(201,162,39,.10), transparent 55%),
+      linear-gradient(180deg,#f7f3ea 0%,#f2ece0 55%,#efe9dc 100%) !important;
+    background-attachment:fixed,fixed,fixed,scroll !important;
+  }
+  /* 网格层：fixed 铺满视口，径向遮罩只留中间 —— 四周干净、中间有纸纹 */
+  #rpt-paper{
+    position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+    /* ⚠️ 不能写 contain:strict —— 它含 size 约束，会让 fixed+inset:0 的盒子
+       在某些 WebKit 版本上退化成 0 高度。只取布局与绘制的隔离即可。 */
+    contain:layout style paint;
+  }
+  #rpt-paper .rp-grid{
+    position:absolute;inset:0;
+    background-image:
+      linear-gradient(rgba(139,26,26,.062) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(139,26,26,.062) 1px,transparent 1px);
+    background-size:56px 56px;
+    -webkit-mask-image:radial-gradient(ellipse 78% 68% at 50% 46%,#000 18%,transparent 78%);
+    mask-image:radial-gradient(ellipse 78% 68% at 50% 46%,#000 18%,transparent 78%);
+    animation:rptGridPulse 18s ease-in-out infinite alternate;
+    will-change:opacity;
+  }
+  @keyframes rptGridPulse{from{opacity:.5}to{opacity:1}}
+  /* 纸面柔光层：大尺度、极低透明度，只负责让纯色底不平 */
+  #rpt-paper .rp-grad{
+    position:absolute;inset:-20%;
+    background:
+      radial-gradient(ellipse 60% 45% at 12% 8%, rgba(60,72,96,.075), transparent 60%),
+      radial-gradient(ellipse 55% 45% at 88% 88%, rgba(139,26,26,.06), transparent 62%),
+      radial-gradient(ellipse 70% 50% at 50% 50%, rgba(245,241,232,.6), transparent 70%);
+    animation:rptDrift 34s ease-in-out infinite alternate;
+    will-change:transform;
+  }
+  @keyframes rptDrift{
+    0%{transform:translate(0,0) scale(1)}
+    50%{transform:translate(-2.4%,1.8%) scale(1.05)}
+    100%{transform:translate(2%,-1.6%) scale(1.02)}
+  }
+  /* 暗角：压四边、留中间 */
+  #rpt-paper .rp-vig{
+    position:absolute;inset:0;
+    background:radial-gradient(120% 90% at 50% 34%,transparent 44%,rgba(20,16,14,.07) 100%);
+  }
+  /* 尘粒：26 个小圆点自下而上缓慢升，透明度极低（纸面浮尘） */
+  #rpt-paper .rp-pt{
+    position:absolute;border-radius:50%;background:#8b1a1a;opacity:0;
+    animation:rptRise linear infinite;will-change:transform,opacity;
+  }
+  #rpt-paper .rp-pt.g{background:#c9a227;}
+  @keyframes rptRise{
+    0%{transform:translateY(0) scale(.6);opacity:0}
+    12%{opacity:.3}
+    88%{opacity:.2}
+    100%{transform:translateY(-108vh) scale(1.1);opacity:0}
+  }
+  /* 页面原有的四个光球：改成宣纸色系（原来是红 / 金 / 红 / 亮蓝，
+     那颗 #00b0f0 的冷蓝跟宣纸完全不搭，必须换掉） */
+  .bg-orbs i:nth-child(1){background:#8b1a1a !important;opacity:.055 !important;}
+  .bg-orbs i:nth-child(2){background:#c9a227 !important;opacity:.13 !important;}
+  .bg-orbs i:nth-child(3){background:#8b1a1a !important;opacity:.045 !important;}
+  .bg-orbs i:nth-child(4){background:#a8862c !important;opacity:.11 !important;}
+
+  /* 卡片与壳块：从纯白改成纸面（白卡压在米黄底上会像贴纸） */
+  .card{
+    background:linear-gradient(180deg,rgba(253,251,246,.97),rgba(251,248,242,.94)) !important;
+    border:1px solid rgba(196,185,163,.55) !important;
+    box-shadow:
+      0 1px 2px rgba(20,16,14,.04),
+      0 14px 34px -22px rgba(20,16,14,.18) !important;
+  }
+  #verdict{
+    background:linear-gradient(180deg,rgba(253,251,246,.97),rgba(251,248,242,.94)) !important;
+    border-color:rgba(196,185,163,.6) !important;
+  }
+  /* 顶部工具条：原来是 94% 的纯白玻璃，压在纸底上会成一条「白胶带」 */
+  .rbar{
+    background:rgba(251,248,242,.94) !important;
+    border:1px solid rgba(196,185,163,.7) !important;
+    box-shadow:0 6px 22px rgba(20,16,14,.09) !important;
+  }
+  /* KPI 卡：白渐变 → 纸面，边框跟着换暖灰 */
+  .stat{
+    background:linear-gradient(160deg,rgba(253,251,246,.98),rgba(250,246,238,.94)) !important;
+    border:1px solid rgba(196,185,163,.6) !important;
+  }
+  /* 页脚灰字在米黄底上对比度会掉，往墨色提一档 */
+  footer{color:#6b6259 !important;}
+
+  /* 打印：纸底与网格全关（省墨、也不让每页重复印网格），只留表格配色 */
+  @media print{
+    html,body{background:#fff !important;background-image:none !important;}
+    #rpt-paper{display:none !important;}
+    .bg-orbs{display:none !important;}
+    .card,#verdict{background:#fff !important;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    #rpt-paper .rp-grid,#rpt-paper .rp-grad,#rpt-paper .rp-pt{animation:none !important;}
   }

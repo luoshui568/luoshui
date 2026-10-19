@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-"""「模块堆叠文本分块 + 表格色块」线上体检（第四版「浅蓝」口径）。
+"""「模块堆叠文本分块 + 表格色块」线上体检（「宣纸 · 墨金」口径）。
 
 量的是**真实渲染结果**，不是字符串存在性：
   A. `<style id="rpt-blockstyle">` 是否真的上了线、`rpt-txtstyle` 有没有被顺带动过
   B. `.card > ul` 是否变成了 grid、行距是否 10px
-  C. `.card > ul > li` 是否拿到了「4px 渐变左柱 + 浅蓝渐变底 + 右侧 13px 圆角」
-  D. 表格五层装饰：表头行渐变 + 主蓝底线、容器 15px 圆角 + 浅蓝描边、
-     首列渐变 + 600 字重 + 主蓝小柱、斑马纹 #f1f6f9 ↔ #fff、行分隔线 #e2e9ee
+  C. `.card > ul > li` 是否拿到了「4px 金→红渐变左柱 + 宣纸渐变底 + 右侧 13px 圆角」
+  D. 表格装饰：表头深酒红渐变 + 金色下边框、容器 12px 圆角 + 暖灰描边、
+     首列宣纸渐变 + 700 墨色 + 淡红小柱、斑马 米纸↔纸白、行分隔线 #d8d0bf
   E. 渲染层：`**` 星号是否已清零、数字列是否右对齐
 
 ⚠️ 换配色就要换期望值常量区 + JS 采集段 + 断言，三处必须一起改，
@@ -48,34 +48,35 @@ class _H(http.server.SimpleHTTPRequestHandler):
 def _server():
     return _srv[0]
 
-# 期望值（与 build/block_style.css 的 ③ 段一一对应 · 2026-10-15 第四版「浅蓝」）
-# ★★ 用户最终确认要这一版（2026-10-15 12:02）：
-#   表头行整行浅蓝渐变 `#ecf3f9→#d6e6f0→#ccdfea→#c3d8e4` + 底部 3px 主蓝实线 `#2d81be`；
-#   容器 `#d0dde7` + 圆角 **15px**；斑马纹 `#f1f6f9 ↔ #fff`（回归，但只差 3 个色阶）；
-#   首列浅蓝渐变 + 600 字重 + 左侧 3px 主蓝小柱；行分隔线 `#e2e9ee`。
-#   ⚠️ 与第二版的关键差别：圆角 14px→15px、**斑马纹回归**、表头行多一层装饰。
+# 期望值（与 build/block_style.css 的 ③ 段一一对应 · 2026-10-19「宣纸 · 墨金」）
+# ★★ 现行口径（照 capital-table.html 改，用户令「学这个样式改背景和表格」）：
+#   表头 = 深酒红四段渐变 `#751111→#a82020→#8b1a1a→#6e1414` + **金色下边框**（走 th 的 border-bottom）；
+#   表身 = 宣纸米白 + 暖灰 1px 横线；容器 `rgba(196,185,163,.7)` + 圆角 **12px**；
+#   首列 = 宣纸渐变 + **700** 墨色 + 左侧淡红小柱；斑马 = 米纸 ↔ 纸白（都是半透明）。
+#   ⚠️ 与上一版（红表头 + 浅蓝身）的关键差别：表头由亮红转深酒红、底线由 box-shadow
+#      改为 th 的 border-bottom、圆角 15→12px、首列 600→700、斑马由纯色改半透明。
 # ⚠️ 读数纪律（写断言时必须知道）：
 #   ① 渐变底色下 getComputedStyle().backgroundColor 返回**透明**（渐变在
 #      background-image 上）⇒ 判底色必须看 background-image，判 background-color 会误报。
-#   ② 半透明阴影（rgba(45,129,190,.55)）取不到纯 rgb 字符串
-#      ⇒ 断言匹配 rgb **前三通道**（'45, 129, 190' in shadow）。
-#   ③ 表头是**裸 <tr><th>**（没有 <thead>），底色画在 `tr:first-child` 上、
-#      `th` 自身必须透明 ⇒ 断言 `th` 的 background-color 为透明。
-EXP_TH_COLOR = 'rgb(255, 255, 255)'        # 表头字色：红底白字（第一版原值）
-EXP_TH_ROW_SHADOW_RGB = '200, 26, 51'      # 表头行底部暗红实线 #c81a33
-EXP_TH_BG = 'rgba(0, 0, 0, 0)'             # th 自身必须透明（底色由 tr 承担）
-EXP_TD_BB = 'rgb(226, 233, 238)'           # #e2e9ee 冷蓝行分隔线
-EXP_TBL_BORDER = 'rgb(208, 221, 231)'      # #d0dde7 浅蓝容器边框
-EXP_RADIUS = '15px'
-EXP_ROW1_BG = 'rgb(241, 246, 249)'         # #f1f6f9 奇数行极淡蓝
-EXP_ROW2_BG = 'rgb(255, 255, 255)'         # 偶数行纯白
-EXP_FIRSTCOL_SHADOW_RGB = '45, 129, 190'   # 首列左侧主蓝小柱
-EXP_FIRSTCOL_FW = '600'
-# 斑马纹色阶差上限（实测 #f1f6f9 ↔ #fff 三通道最大差 = 14；设 8 会误报）
+#   ② 半透明数值读数是 `rgba(r, g, b, a)` 四段字符串 ⇒ **必须逐字比整串**，
+#      不能只比前三通道（这版斑马与分隔线都带 alpha，只比 rgb 会漏掉透明度改动）。
+#   ③ 表头是**裸 <tr><th>**（没有 <thead>），底色画在 `tr:first-child` 上、`th` 自身必须透明；
+#      金线画在 th 的 border-bottom 上（不是 tr 的 box-shadow，那会连不成整行）。
+EXP_TH_COLOR = 'rgb(247, 239, 225)'          # #f7efe1 米白（酒红底上的字）
+EXP_TH_GOLD_BB = 'rgba(201, 162, 39, 0.55)'  # 表头金色下边框 #c9a227 @55%
+EXP_TH_BG = 'rgba(0, 0, 0, 0)'               # th 自身必须透明（底色由 tr 承担）
+EXP_TD_BB = 'rgba(216, 208, 191, 0.65)'      # 暖灰行分隔线 #d8d0bf
+EXP_TBL_BORDER = 'rgba(196, 185, 163, 0.7)'  # 容器暖灰边框 #c4b9a3
+EXP_RADIUS = '12px'
+EXP_ROW1_BG = 'rgba(245, 241, 232, 0.62)'    # 奇数行：宣纸米
+EXP_ROW2_BG = 'rgba(255, 253, 248, 0.92)'    # 偶数行：纸白
+EXP_FIRSTCOL_SHADOW_RGB = '139, 26, 26'      # 首列左侧淡红小柱 #8b1a1a
+EXP_FIRSTCOL_FW = '700'
+# 斑马纹色阶差上限（实测 rgb 通道差 16 + 两档 alpha 不同；设 14 会误报）
 # 下限恒为 >0：差 0 等于没上色
-EXP_ROW_DELTA_MAX = 14
-# 表头渐变必须是**红色系**（红表头 + 浅蓝身双系）；先验字面量，改配色时同步更新
-EXP_TH_GRAD_RED = ('rgb(208, 32, 47)', 'rgb(228, 54, 68)')   # #d0202f / #e43644
+EXP_ROW_DELTA_MAX = 20
+# 表头渐变必须是**深酒红系**（宣纸·墨金）；先验字面量，改配色时同步更新
+EXP_TH_GRAD_WINE = ('rgb(117, 17, 17)', 'rgb(168, 32, 32)')   # #751111 / #a82020
 
 JS = r"""
 setTimeout(function(){
@@ -99,7 +100,7 @@ setTimeout(function(){
     out.ul_rowgap  = cs(ul, 'row-gap');
     out.ul_padding = cs(ul, 'padding-left');
     var l0 = lis[0];
-    /* 第四版浅蓝：左条**不是** border-left，而是 4px 渐变伪元素
+    /* 左条**不是** border-left，而是 4px 渐变伪元素
        （渐变色柱 border-left 做不出来）⇒ border-left 必须是 0 */
     out.li_border_left_w = cs(l0, 'border-left-width');
     out.li_pad_left      = cs(l0, 'padding-left');
@@ -138,7 +139,10 @@ setTimeout(function(){
     var th = tb.querySelector('th');
     out.th_bg    = th ? rgb(th) : '';
     out.th_color = th ? cs(th, 'color') : '';
-    /* ★ 表头**行**：底色与底部主蓝实线都画在 tr:first-child 上（本站是裸 <tr><th>） */
+    /* ★ 金线在 th 的 border-bottom 上（不画 tr 的 box-shadow：
+       那玩意儿在 border-collapse:separate 下没法跨单元格连成整行）。 */
+    out.th_bb    = th ? cs(th, 'border-bottom-color') + ' ' + cs(th, 'border-bottom-width') : '';
+    /* ★ 表头**行**：底色画在 tr:first-child 上；金线在 th 的 border-bottom（本站是裸 <tr><th>） */
     var thr = tb.querySelector('tr');
     out.throw_bg      = thr ? rgb(thr) : '';
     out.throw_bgimg   = thr ? cs(thr, 'background-image').slice(0, 90) : '';
@@ -151,7 +155,7 @@ setTimeout(function(){
     out.td_fw   = td0 ? cs(td0, 'font-weight') : '';
     out.td_color = td0 ? cs(td0, 'color') : '';
     /* 首列：渐变在 background-image 上，background-color 必为透明；
-       左侧主蓝小柱走 inset box-shadow ⇒ 只能匹配 rgb 前三通道。 */
+       左侧淡红小柱走 inset box-shadow ⇒ 只能匹配 rgb 前三通道。 */
     out.firstcol_bg      = td0 ? rgb(td0) : '';
     out.firstcol_bgimg   = td0 ? cs(td0, 'background-image').slice(0, 90) : '';
     out.firstcol_shadow  = td0 ? cs(td0, 'box-shadow') : '';
@@ -229,7 +233,7 @@ EXP_LI_RADIUS_L = '0px'
 
 
 def check_list(d):
-    """第四版「浅蓝」口径：分块卡片 = 浅蓝渐变底 + 4px 渐变伪元素左柱。"""
+    """宣纸口径：分块卡片 = 宣纸米渐变底 + 4px 金→红渐变伪元素左柱。"""
     red = []
     if not d.get('card_found'):
         return ['#m%s 不存在（数据没拉到？）' % d['mod']]
@@ -243,7 +247,7 @@ def check_list(d):
     if d.get('li_border_left_w') != '0px':
         red.append('li border-left=%s（期望 0px，左柱走伪元素）' % d.get('li_border_left_w'))
     if not d.get('li_bg_image', '').startswith('linear-gradient'):
-        red.append('li 底=%s（期望 linear-gradient 浅蓝）' % d.get('li_bg_image'))
+        red.append('li 底=%s（期望 linear-gradient 宣纸米）' % d.get('li_bg_image'))
     if d.get('li_radius_r') != EXP_LI_RADIUS_R:
         red.append('li 右上圆角=%s（期望 %s）' % (d.get('li_radius_r'), EXP_LI_RADIUS_R))
     if d.get('li_radius_l') not in ('0px', ''):
@@ -267,40 +271,40 @@ def _px(s):
 
 
 def check_table(d):
-    """第四版「浅蓝」口径：
-       表头行整行浅蓝渐变 + 底部 3px 主蓝实线；容器 #d0dde7 + 15px 圆角；
-       斑马纹 #f1f6f9 <-> #fff（回归）；首列浅蓝渐变 + 600 + 左侧主蓝小柱；
-       行分隔线 #e2e9ee。
+    """2026-10-19「宣纸 · 墨金」口径（照 capital-table.html）：
+       表头深酒红四段渐变 + th 底部金色 1px 线；容器暖灰边框 + 12px 圆角；
+       首列宣纸渐变 + 700 墨色 + 左侧淡红小柱；斑马 米纸 ↔ 纸白（半透明）；
+       行分隔线暖灰 #d8d0bf。
     三条读数纪律（踩过，断言必须照此写）：
        (1) 渐变底色下 background-color 返回**透明**（渐变在 background-image 上）
            => 表头行/首列的底色判 background-image，判 background-color 必误报。
-       (2) 半透明阴影读数是 rgba(45,129,190,.55) => 匹配 rgb **前三通道**。
-       (3) 本站表格是裸 <tr><th>（无 thead）=> 表头只能靠 tr:first-child，
-           且 th 自身必须透明、底色与底线都在 tr 上。
+       (2) 本版分隔线/斑马/边框**都带 alpha** => 断言要逐字比整串 `rgba(r, g, b, a)`，
+           只比前三通道会漏掉透明度被改掉的情况。
+       (3) 本站表格是裸 <tr><th>（无 thead）=> 表头只能靠 tr:first-child；
+           底色在 tr 上、th 自己透明；金线在 th 的 border-bottom 上。
     """
     red = []
     if not d.get('card_found'):
         return ['#m%s 不存在（数据没拉到？）' % d['mod']]
     if not d.get('has_table'):
         return []
-    # --- 表头单元格：自身透明 + 冷调深墨字 ---
+    # --- 表头单元格：自身透明 + 米白字 ---
     if d.get('th_bg') != EXP_TH_BG:
         red.append('表头 th 底色=%s（期望 %s => 底色必须由 tr 承担）'
                    % (d.get('th_bg'), EXP_TH_BG))
     if d.get('th_color') != EXP_TH_COLOR:
         red.append('表头字色=%s（期望 %s）' % (d.get('th_color'), EXP_TH_COLOR))
-    # --- 表头行：红渐变 + 底部暗红实线（「红表头 + 浅蓝身」双系） ---
+    # --- 表头行：深酒红渐变（不能变回亮红，也不能变蓝） + 金色下边框 ---
     bgimg = d.get('throw_bgimg') or ''
     if 'linear-gradient' not in bgimg:
-        red.append('表头行底=%s（期望 linear-gradient 红）' % (bgimg or 'none'))
+        red.append('表头行底=%s（期望 linear-gradient 深酒红）' % (bgimg or 'none'))
     else:
-        miss = [c for c in EXP_TH_GRAD_RED if c not in bgimg]
+        miss = [c for c in EXP_TH_GRAD_WINE if c not in bgimg]
         if miss:
-            red.append('表头渐变缺红色分量 %s（实际 %s）⇒ 表头必须回红，不能变蓝'
+            red.append('表头渐变缺酒红分量 %s（实际 %s）⇒ 表头必须是深酒红' 
                        % (miss, bgimg[:70]))
-    if EXP_TH_ROW_SHADOW_RGB not in (d.get('throw_shadow') or ''):
-        red.append('表头行底线=%s（期望含暗红 %s）'
-                   % ((d.get('throw_shadow') or '')[:60], EXP_TH_ROW_SHADOW_RGB))
+    if d.get('th_bb') != EXP_TH_GOLD_BB + ' 1px':
+        red.append('表头金线=%s（期望 %s 1px）' % (d.get('th_bb'), EXP_TH_GOLD_BB))
     # --- 容器 ---
     if d.get('tbl_bb') != EXP_TBL_BORDER + ' 1px':
         red.append('容器边框=%s（期望 %s 1px）' % (d.get('tbl_bb'), EXP_TBL_BORDER))
@@ -309,12 +313,12 @@ def check_table(d):
     # --- 行分隔线 ---
     if d.get('td_bb') != EXP_TD_BB + ' 1px':
         red.append('行分隔线=%s（期望 %s 1px）' % (d.get('td_bb'), EXP_TD_BB))
-    # --- 首列：渐变 + 600 + 主蓝小柱
+    # --- 首列：渐变 + 700 + 淡红小柱
     #     ★ 特异度错就会「隔行颠倒」（首列底色时有时无）=> 这三条一起红即是那个 bug ---
     if 'linear-gradient' not in (d.get('firstcol_bgimg') or ''):
-        red.append('首列底=%s（期望 linear-gradient 浅蓝）' % (d.get('firstcol_bgimg')))
+        red.append('首列底=%s（期望 linear-gradient 宣纸米）' % (d.get('firstcol_bgimg')))
     if EXP_FIRSTCOL_SHADOW_RGB not in (d.get('firstcol_shadow') or ''):
-        red.append('首列左柱=%s（期望含主蓝 %s）'
+        red.append('首列左柱=%s（期望含淡红 %s）'
                    % ((d.get('firstcol_shadow') or '')[:60], EXP_FIRSTCOL_SHADOW_RGB))
     if d.get('td_fw') != EXP_FIRSTCOL_FW:
         red.append('首列字重=%s（期望 %s）' % (d.get('td_fw'), EXP_FIRSTCOL_FW))
@@ -381,7 +385,7 @@ def main():
         if d.get('has_table'):
             print('  表格: 表头 th 底=%s 字色=%s' % (d.get('th_bg'), d.get('th_color')))
             print('        表头行 底=%s' % ((d.get('throw_bgimg') or 'none')[:76]))
-            print('        表头行 底线=%s' % ((d.get('throw_shadow') or 'none')[:66]))
+            print('        表头金线=%s' % (d.get('th_bb') or 'none'))
             print('        容器 圆角=%s 边框=%s' % (d.get('tbl_rad'), d.get('tbl_bb')))
             print('        行分隔=%s' % d.get('td_bb'))
             print('        首列 底=%s' % ((d.get('firstcol_bgimg') or 'none')[:70]))

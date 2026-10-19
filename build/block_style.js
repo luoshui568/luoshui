@@ -405,10 +405,57 @@
       return hit;
     }
 
+    /* ★ 2026-10-19：配色换成「宣纸 · 墨金」后，**金色成了主色**，不能再被搬走。
+       换色器整段保留（`fixGold` 及其 HSL 工具函数不动），只把调用点关掉：
+       将来若又要整体换色，把 RETINT 改回 true 即可，不必重写。
+       判断依据：这次参考稿 capital-table 的表头是深酒红 + 金色下边框、
+       小标题是米金批注签 —— 金色一旦被搬成蓝，整页会变成「蓝黄打架」。 */
+    var RETINT = false;
+
+    /* ---------- ⑤ 宣纸背景层：把四层装饰挂到 body 首位 ----------
+       参考稿（capital-table.html）用一个 .bg 容器装 渐变 / 网格 / 光球 / 粒子，
+       外面再压一层 .vignette 暗角。研报页已有 .bg-orbs（四个模糊光球，配色见 CSS），
+       这里只补 CSS 造不出来的两样：**网格层**与 **26 个随机尘粒**，外加暗角。
+
+       ★ 为什么必须 fixed + z-index:0 + pointer-events:none：
+         page 容器 .wrap 是 z-index:1，背景层压在下面才不挡点击；
+         fixed 令滚动时纸纹不动（跟着内容滚会像水印错位）。
+       ★ 幂等：已经有 #rpt-paper 就直接返回 —— MutationObserver 每 250ms
+         可能触发一次 once()，不判重会无限叠加光球。
+       ★ 尘粒的随机量全部走 inline style（left/bottom/尺寸/时长/负延迟），
+         负延迟让 26 颗一上来就处在不同相位，不会像同时发射的烟花。 */
+    function makePaperBg() {
+      try {
+        if (!document.body) return false;
+        if (document.getElementById('rpt-paper')) return true;
+        var box = document.createElement('div');
+        box.id = 'rpt-paper';
+        var g = document.createElement('div'); g.className = 'rp-grad';
+        var gr = document.createElement('div'); gr.className = 'rp-grid';
+        var v = document.createElement('div'); v.className = 'rp-vig';
+        box.appendChild(g); box.appendChild(gr); box.appendChild(v);
+        for (var i = 0; i < 26; i++) {
+          var p = document.createElement('i');
+          p.className = 'rp-pt' + (Math.random() > 0.62 ? ' g' : '');
+          var sz = 1.5 + Math.random() * 3.2;
+          p.style.cssText =
+            'left:' + (Math.random() * 100).toFixed(2) + '%;' +
+            'bottom:' + (-8 + Math.random() * 24).toFixed(2) + '%;' +
+            'width:' + sz.toFixed(2) + 'px;height:' + sz.toFixed(2) + 'px;' +
+            'animation-duration:' + (26 + Math.random() * 24).toFixed(1) + 's;' +
+            'animation-delay:-' + (Math.random() * 44).toFixed(1) + 's;';
+          box.appendChild(p);
+        }
+        document.body.insertBefore(box, document.body.firstChild);
+        return true;
+      } catch (e) { return false; }
+    }
+
     /* ---------- 调度 ---------- */
     var busy = false, timer = null;
     function once() {
       if (busy) return true;
+      makePaperBg();                 /* ★ 放在 #mods 判空之前：背景层不依赖模块是否渲染完 */
       var mods = document.getElementById('mods');
       if (!mods || !mods.querySelector('.card')) return false;   /* 还没渲染出模块 */
       busy = true;
@@ -417,7 +464,7 @@
         markNum(document.body);
         markTxt(document.body);        /* ★ 必须在 markNum 之后：靠 is-num 排除数字格 */
         splitEssence(document.body);      /* ★ 必须在 fixBold 之后：`**`→`<b>` 先落地，才能当切点 */
-        fixGold(document.body);
+        if (RETINT) fixGold(document.body);   /* 宣纸风：默认不换色，见 RETINT 说明 */
       } catch (e) {
         if (window.console && console.warn) console.warn('[rpt-blockscript]', e);
       }
@@ -429,6 +476,7 @@
       timer = setTimeout(function () { timer = null; once(); }, 250);
     }
     function start() {
+      makePaperBg();
       once();
       var mods = document.getElementById('mods');
       if (!mods) { poll(); return; }
