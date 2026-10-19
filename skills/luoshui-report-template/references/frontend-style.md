@@ -15,8 +15,9 @@
 
 | 块 | id | 生成器 | 顺序 |
 |---|---|---|---|
+| **阿里巴巴普惠体**（子集 base64 内嵌，约 1.67 MB） | `rpt-fontface` | `build/make_font_css.py` → **`build/block_font.css`** | 最前（document 顺序无关，先读 `@font-face` 更顺） |
 | 堆叠文本分块 + **宣纸墨金表格** + 宣纸背景层 | `rpt-blockstyle` | `build/_patch_blockstyle.py`（CSS 源 = **`build/block_style.css`**，⚠️ **不要放回 `report_theme.css`**，会被并发会话整个重写） | ⚠️ **必须排在「可读性版式」之前** |
-| **`**`→`<b>` + 数字列右对齐 + essence 分块 + 背景层注入**（⭐ 会整块被删，发完必复查 md5） | `rpt-blockscript` | `build/block_style.js` | 同一份注入产物，紧随 style |
+| **`**`→`<b>` + 数字列标注 + essence 分块 + 背景层注入**（⭐ 会整块被删，发完必复查 md5） | `rpt-blockscript` | `build/block_style.js` | 同一份注入产物，紧随 style |
 | 正文可读性版式 | `rpt-txtstyle` | `build/_patch_txtstyle.py`（支持"已有该块 ⇒ 整体替换"） | 在后 |
 
 ### 1.1 表格终版：**宣纸 · 墨金**（2026-10-19 用户令「学习这个样式改研报的背景和表格，不要动内容」，已上线 md5 `c25d3272`）
@@ -195,6 +196,56 @@ hover 只改底色不动阴影 / 品牌红交给模块标题条与结论块。
 **别去查 CSS**（那时 CSS 也是一起没的）。
 **每次部署后 / 下次开工第一步都要 `curl` 复查 md5**，光看探针「全绿」不够
 （探针只查本块在不在，查不出「谁把它删了」）。
+
+### 1.4 全站字体 = 阿里巴巴普惠体（2026-10-19 用户令「所有字体帮我改成阿里巴巴那个字体」）
+
+**为什么要内嵌而不是外链**：研报是**单文件离线页**（拖进浏览器 / 邮件发 / U 盘拷）。
+外链 CDN 一断网就掉回宋体，等于没改。
+
+**为什么要子集化**：普惠体原文件 Regular 4.85 MB + Bold 5.09 MB，base64 后 13 MB，页面直接废掉。
+按「全库实际用字 + GB2312 一级常用字」裁到 **4,191 字**后各 **626 KB**，
+base64 合计约 **1.67 MB**（页面 2.2 MB → 3.9 MB，实测首屏 1.7 s）。
+
+| 环节 | 做法 |
+|---|---|
+| 取字 | 原字体走 `api.github.com` 的 `Accept: application/vnd.github.raw`（`raw.githubusercontent.com` 在本机被墙，curl 退 16） |
+| 裁字 | `fonttools.subset --text-file=charset.txt --flavor=woff2 --no-hinting` |
+| 字符集 | 全库 `build/seed/report_*.json` + 模板 HTML + **GB2312 一级 3,755 字**（兜新研报的生僻人名/地名） |
+| 生成 | `build/make_font_css.py` → `build/block_font.css`（两个 `@font-face` + 一条全局规则） |
+| 注入 | 独立块 **`rpt-fontface`**，`_patch_blockstyle.py` 的 `extract_font_block()` |
+| 版本 | `build/font/*.woff2` 与 `block_font.css` **都 `.gitignore`**；换机器 `--fetch` 重跑 |
+
+```css
+*,*::before,*::after{font-family:"Alibaba PuHuiTi","Alibaba PuHuiTi 3.0",
+  "AlibabaPuHuiTi","PingFang SC","Hiragino Sans GB","Microsoft YaHei",
+  system-ui,-apple-system,"Segoe UI",sans-serif !important;}
+```
+
+★★ **必须 `!important`**：主题里有 4 处 `font-family`（含首列的宋体），
+不加就压不住 ⇒ 首列还是宋体、和正文两种字形并排。
+★★ **必须单独成块**：`swap()` 对「已存在块」有 `len(old) < 400000` 保护，
+1.67 MB 塞进 `rpt-blockstyle` 会让**下一轮注入直接断言失败**。
+★★ 代价是**全站没有衬线体了**（首列原本是宋体）。用户要的就是"全部换成阿里"，别再给首列单独留 serif。
+
+### 1.5 加粗 = 亮朱砂；表格一律居中（2026-10-19 同批需求）
+
+**加粗 `#c0392b`**：
+```css
+#mods b,#mods strong,.card b,.card strong,
+.essence b,.essence strong,#verdict b,#verdict strong{color:#c0392b !important;}
+#hero b,#hero strong,
+.card table tr:first-child > th b,
+.card table tr:first-child > th strong{color:inherit !important;}  /* 深底例外 */
+```
+★ 先试的是 `#8b1a1a`（主朱砂），但**整句加粗时整行读起来像黑字**，实测后换 `#c0392b`。
+★ 例外只有两处：页首 `#hero` 横幅与表头行（都是深酒红底）。实测 209 个加粗的宿主容器全浅底。
+★ 别用 `body b` 兜底 —— 压不住 `.h-txt b{color:#d0202f}` 这类带类名的规则。
+
+**表格居中**：`.card table th, .card table td{text-align:center !important}`，
+数字列另写 `.card table tbody tr > td.is-num{text-align:center !important}`
+（**0,2,4** 才能压住主题那条同特异度的 `text-align:right !important`）＋保留 `tabular-nums`。
+⚠️ **表格本来就在卡片里水平居中**（实测 card 1060 / table 1010，左右 gap 都是 25px），
+用户说的「居中」是**格内文字**，别去改 `margin:0 auto`。
 
 ---
 

@@ -150,3 +150,8 @@ build/commodity100/data/
 
 # ── seed 下的临时脚手架（build/_* 只匹配直属层，子目录要单独写）──
 build/seed/_tmp/
+
+# ── 阿里巴巴普惠体子集 + 生成的字体 CSS（派生物，体积 1.25 MB / 1.67 MB）──
+#    换机器时跑 `python3 build/make_font_css.py --fetch` 重下重裁即可
+build/font/
+build/block_font.css

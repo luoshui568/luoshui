@@ -104,7 +104,8 @@ grep -c "<我的特征词>" /tmp/base.html     # 0 ⇒ 线上还没有我的功�
 
 | 块 | 内容 | 谁注入 |
 |---|---|---|
-| `<style id="rpt-blockstyle">` | 模块堆叠文本分块 + 表格「**宣纸 · 墨金**」+ 宣纸背景层全套餐（约 25 KB） | `build/_patch_blockstyle.py` |
+| `<style id="rpt-fontface">` | 阿里巴巴普惠体子集（2 个 `@font-face` + 全局 font-family，**约 1.67 MB**） | `build/make_font_css.py` → `_patch_blockstyle.py` |
+| `<style id="rpt-blockstyle">` | 模块堆叠文本分块 + 表格「**宣纸 · 墨金**」+ 加粗朱砂 + 表格居中 + 宣纸背景层全套餐（约 27 KB） | `build/_patch_blockstyle.py` |
 | `<script id="rpt-blockscript">` | 配套渲染层（Markdown 粗体 / 数字列标注 / 长文块分拆，19 KB） | 同上 |
 
 ⇒ **正确发布链**：

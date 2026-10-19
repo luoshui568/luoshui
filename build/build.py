@@ -237,11 +237,12 @@ def patch_blockstyle():
 
     线上 `report.html` = 本文件的模板渲染结果 **+** `_patch_blockstyle.py` 注入的：
 
-      · `<style  id="rpt-blockstyle">`   模块堆叠文本分块 + 表格「红表头 + 浅蓝身」全套餐
+      · `<style  id="rpt-fontface">`     阿里巴巴普惠体（子集 base64，约 1.67 MB；缺则跳过）
+      · `<style  id="rpt-blockstyle">`   模块堆叠文本分块 + 表格「宣纸 · 墨金」全套餐
       · `<script id="rpt-blockscript">`  配套渲染层（Markdown 粗体 / 数字列标注 / 长文块分拆）
 
-    这两块**不在模板里**（20 KB + 19 KB，且与并发会话的地盘分开用独立标签承载），
-    只有 `_patch_blockstyle.py` 会写。
+    这三块**不在模板里**（字体 1.67 MB + CSS 26 KB + JS 21 KB，且与并发会话的地盘分开用
+    独立标签承载），只有 `_patch_blockstyle.py` 会写。
 
     ★★ 为什么必须焊进 build：真实踩过一次 ——「跑完 build.py，把 deploy/report.html 直接发上线」，
        结果 **928 行 / 39 753 字符**的两块一起消失，**12 份研报的表格样式与粗体渲染同时失效**，
@@ -254,7 +255,7 @@ def patch_blockstyle():
     try:
         r = subprocess.run([sys.executable, os.path.join(HERE, "_patch_blockstyle.py"),
                             "--base", p, "--out", p],
-                           capture_output=True, text=True, timeout=180)
+                           capture_output=True, text=True, timeout=300)
     except Exception as e:                                        # noqa: BLE001
         print("  ! blockstyle 注入异常：%s" % e)
         print("    ⚠️ deploy/report.html 未含 rpt-blockstyle，**别直接发布**")
@@ -267,7 +268,7 @@ def patch_blockstyle():
         print("    ⚠️ deploy/report.html 未含 rpt-blockstyle，**别直接发布**")
         return
     out = [x.strip() for x in (r.stdout or "").split("\n") if x.startswith("产物")]
-    print("  已补 rpt-blockstyle + rpt-blockscript%s" % ("：%s" % out[0] if out else ""))
+    print("  已补 rpt-fontface + rpt-blockstyle + rpt-blockscript%s" % ("：%s" % out[0] if out else ""))
 
 
 if __name__ == "__main__":

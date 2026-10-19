@@ -168,11 +168,24 @@ setTimeout(function(){
     out.row1_bgimg= cOdd  ? cs(cOdd, 'background-image').slice(0, 30) : '';
     out.row2_bg   = cEven ? rgb(cEven) : '';
     out.row2_bgimg= cEven ? cs(cEven, 'background-image').slice(0, 30) : '';
-    /* 数字列：必须有 is-num 且右对齐 */
+    /* 数字列：必须有 is-num 且**居中**（2026-10-19 用户令「表格要居中」，
+       原口径是右对齐；`tabular-nums` 保留，居中后数位仍对齐） */
     var nums = tb.querySelectorAll('td.is-num');
     out.num_count = nums.length;
     out.num_align = nums.length ? cs(nums[0], 'text-align') : '';
     out.num_tnum  = nums.length ? cs(nums[0], 'font-variant-numeric') : '';
+    /* 表头与普通单元格的文字对齐 */
+    out.th_align = th ? cs(th, 'text-align') : '';
+    out.td_align = td0 ? cs(td0, 'text-align') : '';
+    /* 加粗 = 亮朱砂（#c0392b → rgb(192, 57, 43)） */
+    var bolds = card.querySelectorAll('b, strong');
+    out.bold_count = bolds.length;
+    out.bold_color = bolds.length ? cs(bolds[0], 'color') : '';
+    var boldRed = 0;
+    for (var bi = 0; bi < bolds.length; bi++) {
+      if (cs(bolds[bi], 'color') === 'rgb(192, 57, 43)') boldRed++;
+    }
+    out.bold_red = boldRed;
     out.stars = card.innerHTML.split('**').length - 1;
   }
   var pre = document.createElement('pre');
@@ -337,8 +350,21 @@ def check_table(d):
         if (d.get(k) or 'none') != 'none':
             red.append('%s 残留渐变底图：%s' % (k, d.get(k)))
     if d.get('num_count', 0) > 0:
-        if d.get('num_align') != 'right':
-            red.append('数字列未右对齐（text-align=%s）' % d.get('num_align'))
+        if d.get('num_align') != 'center':
+            red.append('数字列未居中（text-align=%s；2026-10-19 起表格一律居中）'
+                       % d.get('num_align'))
+        if 'tabular-nums' not in (d.get('num_tnum') or ''):
+            red.append('数字列丢了等宽数字（%s）⇒ 居中后数位会参差'
+                       % d.get('num_tnum'))
+    # 表头 / 单元格一律居中
+    if d.get('th_align') != 'center':
+        red.append('表头未居中（text-align=%s）' % d.get('th_align'))
+    if d.get('td_align') != 'center':
+        red.append('单元格未居中（text-align=%s）' % d.get('td_align'))
+    # 加粗 = 朱砂
+    if d.get('bold_count', 0) > 0 and d.get('bold_red', 0) != d.get('bold_count'):
+        red.append('加粗未全部转朱砂：%s/%s 个是 %s'
+                   % (d.get('bold_red'), d.get('bold_count'), d.get('bold_color')))
     if d.get('stars', 0) != 0:
         red.append('模块内仍有 %s 个未渲染的 ** 星号' % d['stars'])
     return red
@@ -395,9 +421,12 @@ def main():
             print('        斑马 奇行=%s(%s) 偶行=%s(%s)'
                   % (d.get('row1_bg'), d.get('row1_bgimg') or 'none',
                      d.get('row2_bg'), d.get('row2_bgimg') or 'none'))
-            print('        数字列 %s 个 右对齐=%s 等宽数字=%s | 残余 ** 星号=%s'
-                  % (d.get('num_count'), d.get('num_align'), d.get('num_tnum'),
-                     d.get('stars')))
+            print('        对齐 表头=%s 单元格=%s 数字列=%s（一律居中）'
+                  % (d.get('th_align'), d.get('td_align'), d.get('num_align')))
+            print('        数字列 %s 个 等宽数字=%s | 残余 ** 星号=%s'
+                  % (d.get('num_count'), d.get('num_tnum'), d.get('stars')))
+            print('        加粗 %s 个 已转朱砂=%s（%s）'
+                  % (d.get('bold_count'), d.get('bold_red'), d.get('bold_color')))
         if red:
             for x in red:
                 print('  ✗ ' + x)
