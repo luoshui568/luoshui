@@ -177,6 +177,30 @@ setTimeout(function(){
     /* 表头与普通单元格的文字对齐 */
     out.th_align = th ? cs(th, 'text-align') : '';
     out.td_align = td0 ? cs(td0, 'text-align') : '';
+    /* 全表「横竖都居中」普查（2026-10-19 用户令「所有单元格文字水平垂直都要居中」） */
+    var allCells = tb.querySelectorAll('th, td'), badH = 0, badV = 0;
+    for (var ci = 0; ci < allCells.length; ci++) {
+      if (cs(allCells[ci], 'text-align') !== 'center') badH++;
+      if (cs(allCells[ci], 'vertical-align') !== 'middle') badV++;
+    }
+    out.cell_total = allCells.length;
+    out.cell_bad_h = badH;
+    out.cell_bad_v = badV;
+    /* 小数位普查：不得有 3 位及以上（整数不动，故只查带小数点的） */
+    var decBad = [], decTot = 0;
+    var dre = /(^|[^\d.,])(\d[\d,]*(?:\.\d+)?)(?![\d.])/g;
+    for (var di = 0; di < allCells.length; di++) {
+      var dt = (allCells[di].textContent || '');
+      var dm; dre.lastIndex = 0;
+      while ((dm = dre.exec(dt))) {
+        var tk = dm[2], dd = tk.indexOf('.');
+        if (dd < 0) continue;
+        decTot++;
+        if (tk.length - dd - 1 > 2 && decBad.length < 8) decBad.push(tk);
+      }
+    }
+    out.dec_total = decTot;
+    out.dec_bad = decBad;
     /* 加粗 = 亮朱砂（#c0392b → rgb(192, 57, 43)） */
     var bolds = card.querySelectorAll('b, strong');
     out.bold_count = bolds.length;
@@ -361,6 +385,16 @@ def check_table(d):
         red.append('表头未居中（text-align=%s）' % d.get('th_align'))
     if d.get('td_align') != 'center':
         red.append('单元格未居中（text-align=%s）' % d.get('td_align'))
+    # 全表普查：水平 + 垂直都必须居中（垂直原为 top，2026-10-19 改 middle）
+    if d.get('cell_bad_h'):
+        red.append('%s/%s 个单元格未水平居中'
+                   % (d.get('cell_bad_h'), d.get('cell_total')))
+    if d.get('cell_bad_v'):
+        red.append('%s/%s 个单元格未垂直居中（vertical-align 应为 middle）'
+                   % (d.get('cell_bad_v'), d.get('cell_total')))
+    # 小数位：带小数点的数一律两位，不得出现 3 位及以上
+    if d.get('dec_bad'):
+        red.append('仍有 3 位以上小数：%s' % ' / '.join(d['dec_bad']))
     # 加粗 = 朱砂
     if d.get('bold_count', 0) > 0 and d.get('bold_red', 0) != d.get('bold_count'):
         red.append('加粗未全部转朱砂：%s/%s 个是 %s'
@@ -423,6 +457,11 @@ def main():
                      d.get('row2_bg'), d.get('row2_bgimg') or 'none'))
             print('        对齐 表头=%s 单元格=%s 数字列=%s（一律居中）'
                   % (d.get('th_align'), d.get('td_align'), d.get('num_align')))
+            print('        全表 %s 格：未水平居中=%s 未垂直居中=%s'
+                  % (d.get('cell_total'), d.get('cell_bad_h'), d.get('cell_bad_v')))
+            print('        带小数点数值 %s 个：3 位以上=%s %s'
+                  % (d.get('dec_total'), len(d.get('dec_bad') or []),
+                     ' / '.join(d.get('dec_bad') or [])[:60]))
             print('        数字列 %s 个 等宽数字=%s | 残余 ** 星号=%s'
                   % (d.get('num_count'), d.get('num_tnum'), d.get('stars')))
             print('        加粗 %s 个 已转朱砂=%s（%s）'

@@ -161,6 +161,62 @@
       return c;
     }
 
+    /* ---------- ②c 单元格小数统一两位（2026-10-19 用户令） ----------
+       「数字，百分数等等，全部改为小数点后两位，没有就不加」⇒
+         · 带小数点的：四舍五入到 2 位（3.1 → 3.10，1.4333 → 1.43，0.006 → 0.01）；
+         · 没有小数点的整数：**原样不动**（绝不补 `.00`）⇐ 这就是「没有就不加」。
+       只动**表格单元格**（td / th）里的文本节点，正文段落不碰 —— 用户说的是「单元格」。
+       ★ 为什么放渲染层：库里存的是原文，改了就是写库、要备份回滚；这里纯 DOM，零副作用。
+       ★ 幂等：已是两位的再跑一遍返回原串，不必打标记。
+       ★ 三个必须绕过的坑：
+         ① 千分位 `1,234.5678` → 先剥逗号算，再按原样补回，不能输出 1234.57；
+         ② `600456.SH` / `2025.06.30` 这类点分串：正则尾部 `(?![\d.])` 断言右侧不是数字
+            也不是点，否则会把 `1.2.3` 切成 `1.20.3`；
+         ③ `2025.06`（年.月）会被误判成小数 ⇒ 整数部分 4 位且落在 1900~2099 的直接跳过。
+            副作用是「2025.50」这种价格不会被改 —— 已扫全表，0 例。
+       ★ 1 位小数要不要补齐：**要**。实测全表 149 个 1 位小数（98.5 / 13.2 / 0.9 …），
+         补成 98.50 后整列数位才齐。已逐个核对 111 个 distinct 值，全部是数值
+         （% / 亿 / 万吨 / 元 / 年），没有「1.1 行业背景」这种章节编号，误伤风险 0。 */
+    var DECT = /(^|[^\d.,])(\d[\d,]*(?:\.\d+)?)(?![\d.])/g;
+    function dec2(tok) {
+      var dot = tok.indexOf('.');
+      if (dot < 0) return tok;                       /* 整数：没有小数位，不加 */
+      var ip = tok.slice(0, dot), fp = tok.slice(dot + 1);
+      if (fp.length === 2) return tok;               /* 已经两位 */
+      var plain = ip.replace(/,/g, '');
+      if (plain.length === 4) {                      /* 年.月 之类，别动 */
+        var y = parseInt(plain, 10);
+        if (y >= 1900 && y <= 2099) return tok;
+      }
+      var n = parseFloat(plain + '.' + fp);
+      if (!isFinite(n)) return tok;
+      var s = n.toFixed(2);
+      if (ip.indexOf(',') >= 0) {                    /* 还原千分位 */
+        var p = s.split('.');
+        p[0] = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        s = p.join('.');
+      }
+      return s;
+    }
+    function fixDecimals(root) {
+      if (!root || !root.querySelectorAll || !document.createTreeWalker) return 0;
+      var cells = root.querySelectorAll('table td, table th'), c = 0;
+      for (var i = 0; i < cells.length; i++) {
+        var w = document.createTreeWalker(cells[i], 4 /* SHOW_TEXT */, null, false), t;
+        while ((t = w.nextNode())) {
+          var src = t.nodeValue;
+          /* 没小数点 ⇒ 整段跳过（整数不动），这是最省的短路 */
+          if (!src || src.indexOf('.') < 0) continue;
+          var out = src.replace(DECT, function (m0, pre, tok) {
+            var nv = dec2(tok);
+            return nv === tok ? m0 : (pre + nv);
+          });
+          if (out !== src) { t.nodeValue = out; c++; }
+        }
+      }
+      return c;
+    }
+
     /* ---------- ③ 整站金色 → 浅蓝（色相搬运，不是「换个颜色」） ----------
        做法：对每一处声明了颜色的计算样式，取出 rgb 三通道，
        用 HSL 判定「是不是金色」（色相落在 38~62°、且 R−B 明显大于 G−B），
@@ -464,6 +520,7 @@
         markNum(document.body);
         markTxt(document.body);        /* ★ 必须在 markNum 之后：靠 is-num 排除数字格 */
         splitEssence(document.body);      /* ★ 必须在 fixBold 之后：`**`→`<b>` 先落地，才能当切点 */
+        fixDecimals(document.body);       /* ★ 必须在 markTxt 之后：会把文本改短，先让打标看原文 */
         if (RETINT) fixGold(document.body);   /* 宣纸风：默认不换色，见 RETINT 说明 */
       } catch (e) {
         if (window.console && console.warn) console.warn('[rpt-blockscript]', e);

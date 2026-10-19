@@ -193,7 +193,7 @@
   .card table td{
     padding:12px 16px !important;
     border:none !important;border-bottom:1px solid rgba(216,208,191,.65) !important;
-    vertical-align:top !important;line-height:1.72;
+    vertical-align:middle !important;line-height:1.72;
     background:transparent !important;background-image:none !important;
     color:#2a2422;
   }
@@ -207,8 +207,27 @@
        唯独数字列仍是 right）。这里用 `tbody tr > td.is-num`（**0,2,4**）稳稳压住。
      ★ `font-variant-numeric:tabular-nums` 保留：等宽数字居中后数位仍然对齐。 */
   .card table th,
-  .card table td{text-align:center !important;}
+  .card table td{text-align:center !important;vertical-align:middle !important;}
   .card table tbody tr > td.is-num{text-align:center !important;}
+
+  /* ---- 单元格「横竖都居中」终版（2026-10-19 用户令「所有单元格文字水平垂直都要居中」）----
+     上一版只做了水平居中，垂直仍是 `vertical-align:top`（实测 1240 格里有 1066 格是 top）
+     ⇒ 一格文字少、旁边一格折三行时，短的那格贴着上边框，整行看起来像没对齐。
+     ★ 必须用 `#mods`（id 计 1 分）抬到 (1,2,3)：主题 `build/report_theme.css` 里
+       同样有 `.card table td{vertical-align:top !important}`（0,2,3），与本站规则**同特异度**，
+       谁赢只看样式表先后；而运行期还会再 append 一张样式表 ⇒ 只靠同特异度会被盖掉。
+       （上一轮 `td.is-num` 就是这么被主题右对齐盖回去的，踩过一次。）
+     ★ 单元格里只有 inline 子元素（实测 45 格，全是 strong/span/b），
+       所以 `vertical-align` 直接生效，不必给 `td > *` 清 margin。 */
+  #mods .card table th,
+  #mods .card table td,
+  #mods .card table tbody tr > td.is-num,
+  #mods .card table td.is-txt{
+    text-align:center !important;
+    vertical-align:middle !important;
+  }
+  /* 表头自己那条 text-align:left 也要压掉（它没写 !important，但留着容易误读） */
+  #mods .card table tr:first-child > th{text-align:center !important;vertical-align:middle !important;}
   /* 斑马纹：极淡纸色 ↔ 近白纸（不是蓝，也不是纯白）
      ★⚠️ 必须写 `td:not(:first-child)` 排除首列（实测踩坑）：
        `tr:nth-child(even) > td` 特异度 (0,2,4) **高于** 首列规则
@@ -250,10 +269,11 @@
   .card table tbody tr:last-child:hover > td:first-child{
     box-shadow:inset 0 1px 0 0 rgba(201,162,39,.35),inset 3px 0 0 0 #8b1a1a !important;
   }
-  /* 数字列右对齐 + 等宽数字（is-num 由渲染层脚本按「整格都是数字/百分比/单位」
-     打标，见 script id=rpt-blockscript；打标失败也不影响可读性） */
+  /* 数字列：等宽数字（is-num 由渲染层脚本按「整格都是数字/百分比/单位」打标，
+     见 script id=rpt-blockscript；打标失败也不影响可读性）。
+     ★ 对齐已归上面「横竖都居中」那条管，这里**只留数位特性**，
+       别再写 `text-align:right` —— 留着会和居中规则打架，后人改一处漏一处。 */
   .card table td.is-num{
-    text-align:right !important;
     font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
     white-space:nowrap;
   }

@@ -241,11 +241,27 @@ base64 合计约 **1.67 MB**（页面 2.2 MB → 3.9 MB，实测首屏 1.7 s）�
 ★ 例外只有两处：页首 `#hero` 横幅与表头行（都是深酒红底）。实测 209 个加粗的宿主容器全浅底。
 ★ 别用 `body b` 兜底 —— 压不住 `.h-txt b{color:#d0202f}` 这类带类名的规则。
 
-**表格居中**：`.card table th, .card table td{text-align:center !important}`，
-数字列另写 `.card table tbody tr > td.is-num{text-align:center !important}`
-（**0,2,4** 才能压住主题那条同特异度的 `text-align:right !important`）＋保留 `tabular-nums`。
+**表格居中（横 + 竖，2026-10-19 两轮）**：
+```css
+#mods .card table th,
+#mods .card table td,
+#mods .card table tbody tr > td.is-num,
+#mods .card table td.is-txt{text-align:center !important;vertical-align:middle !important;}
+.card table td.is-num{font-variant-numeric:tabular-nums;/* 只留数位特性，别再写 text-align */ }
+```
+★★ **必须用 `#mods .card table`（id 计 1 分）**：主题 `report_theme.css` 里有同特异度的
+`.card table td{vertical-align:top !important}`，且运行期还会 append 样式表 ⇒ 同特异度必被盖回。
+实测：改前 1240 格有 **1066 格 vertical-align=top**；抬到 id 级后 0 格例外。
+★★ **垂居中的可见价值在「折行格」**：62 个 ≥60px 的高格里，改前 39 个偏离中心最多 **35.8px**
+（旁边一格折三行，短的那格贴顶），改后最大偏差 1.2px。
 ⚠️ **表格本来就在卡片里水平居中**（实测 card 1060 / table 1010，左右 gap 都是 25px），
 用户说的「居中」是**格内文字**，别去改 `margin:0 auto`。
+
+**数字一律两位小数（2026-10-19）**：渲染层 `fixDecimals()`，**零写库**，范围 `td/th`。
+带小数点的四舍五入到 2 位（`3.1→3.10`、`1.4333→1.43`、`0.006→0.01`），**纯整数原样不动**（「没有就不加」）。
+三个绕过：千分位先剥后补 · 点分串靠 `(?![\d.])` 挡住（否则 `1.2.3`→`1.20.3`）· 4 位年.月（1900~2099）跳过。
+正文与脚注 `.src` **不动**：脚注是审计链，`1.4333 亿元 ← 143,333,261.70 元` 不能圆。
+实测：全页 1240 格 143 格文本变化，全部是 1 位/3 位小数补/缩到 2 位，0 误伤。
 
 ---
 
