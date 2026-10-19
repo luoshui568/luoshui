@@ -20,12 +20,12 @@
 | **`**`→`<b>` + 数字列标注 + essence 分块 + 背景层注入**（⭐ 会整块被删，发完必复查 md5） | `rpt-blockscript` | `build/block_style.js` | 同一份注入产物，紧随 style |
 | 正文可读性版式 | `rpt-txtstyle` | `build/_patch_txtstyle.py`（支持"已有该块 ⇒ 整体替换"） | 在后 |
 
-### 1.1 表格终版：**宣纸 · 墨金**（2026-10-19 用户令「学习这个样式改研报的背景和表格，不要动内容」，已上线 md5 `c25d3272`）
+### 1.1 表格终版：**宣纸 · 墨金**（2026-10-19 用户令「学习这个样式改研报的背景和表格，不要动内容」，已上线；当前线上 md5 `74e16065`）
 
 ⚠️ **版式演进史（别走回头路）**：
 `大红金块` → `现代细线·无斑马纹`（曾上线 `3359af5d`，用户观感「跟没上样式一样」）
 → `品牌装饰·斑马纹回归`（`112bcca2`）→ `全浅蓝`（`b602084c`）→ `红表头 + 浅蓝身`（`be6b41e9`）
-→ **`宣纸 · 墨金`（`c25d3272`，当前线上）**。曾短暂试过粉色，未采用。
+→ **`宣纸 · 墨金`（`c25d3272` 起，现 `74e16065` 含字体/加粗/居中/小数）**。曾短暂试过粉色，未采用。
 
 **设计依据**：用户指定参考稿 `capital-table.html`（中式复古「宣纸 · 墨金」）。
 整站底色由**冷蓝**转为**暖纸**（`#f5f1e8`），表头因此**不能再亮红** ——
@@ -138,8 +138,12 @@ hover 只改底色不动阴影 / 品牌红交给模块标题条与结论块。
   **只拼 DOM 节点，文字必须逐字守恒**（探针要量 `全文字数 == 各块字数之和`）。
 - 守卫三条：`data-ebk="1"` 幂等 / 总长 ≥180 字 / 顶层强标记 ≥2 且**顶层只有 inline 标签**
   ⇒ 没容器的**裸 `<b>` 形态**（002408 / 603599 的 essence 没有 `.essence` 容器）自动跳过，不越界。
-- ★ **调度顺序**：`fixBold` → `markNum` → `splitEssence` → `fixGold`
-  （`**`→`<b>` 必须先落地，否则找不到切点）。
+- ★ **调度顺序**（2026-10-19 终版）：
+  `fixBold` → `markNum` → `markTxt` → `splitEssence` → `fixDecimals` → `[fixGold 仅当 RETINT]`
+  · `fixBold` 必须最先（`**`→`<b>` 落地后，essence 才有切点）
+  · `markTxt` 必须在 `markNum` 之后（靠 `is-num` 排除数字格）
+  · `fixDecimals` 必须在 `markTxt` 之后（它会把文本改短，打标要看原文）
+  · `fixGold` **默认已关**（`var RETINT = false;` —— 宣纸风里金色是主色，搬色相会毁配色）。
 
 ⚠️ **深色 banner 改浅色卡要关三样**：`background-image:none`（老规则是渐变简写，
 只写 `background:<色>` 会残留渐变图）、`animation:none`（底色漂移）、
@@ -210,10 +214,10 @@ base64 合计约 **1.67 MB**（页面 2.2 MB → 3.9 MB，实测首屏 1.7 s）�
 |---|---|
 | 取字 | 原字体走 `api.github.com` 的 `Accept: application/vnd.github.raw`（`raw.githubusercontent.com` 在本机被墙，curl 退 16） |
 | 裁字 | `fonttools.subset --text-file=charset.txt --flavor=woff2 --no-hinting` |
-| 字符集 | 全库 `build/seed/report_*.json` + 模板 HTML + **GB2312 一级 3,755 字**（兜新研报的生僻人名/地名） |
+| 字符集 | 全库 `build/seed/report_*.json` + 模板 HTML + **GB2312 一级 3,755 字**（兜新研报的生僻人名/地名）→ `build/font/charset.txt`（**能自举**：缺了会自己重建，新研报生僻字多时 `--charset` 强制重算） |
 | 生成 | `build/make_font_css.py` → `build/block_font.css`（两个 `@font-face` + 一条全局规则） |
 | 注入 | 独立块 **`rpt-fontface`**，`_patch_blockstyle.py` 的 `extract_font_block()` |
-| 版本 | `build/font/*.woff2` 与 `block_font.css` **都 `.gitignore`**；换机器 `--fetch` 重跑 |
+| 版本 | `build/font/`（含 charset）与 `block_font.css` **都 `.gitignore`**；换机器 `$PY build/make_font_css.py --fetch` 一条命令搞定（字符集自建，不用手工准备） |
 
 ```css
 *,*::before,*::after{font-family:"Alibaba PuHuiTi","Alibaba PuHuiTi 3.0",

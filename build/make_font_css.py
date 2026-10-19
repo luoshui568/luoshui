@@ -15,13 +15,15 @@
       同一段里出现两种字形。多花的 600 KB 买这个保险值。
 
 重新生成（字体或字符集变了才需要跑）：
-    python3 build/make_font_css.py            # 只生成 CSS
-    python3 build/make_font_css.py --fetch    # 顺便重下原字体并重做子集
+    python3 build/make_font_css.py            # 只生成 CSS（字体已存在时）
+    python3 build/make_font_css.py --fetch    # 重下原字体 + 缺字符集时自建 + 重做子集
+    python3 build/make_font_css.py --charset  # 强制重算字符集（新研报写了很多生僻字时）
 
-⚠️ `build/font/*.woff2` 与 `build/block_font.css` 都**不入库**（.gitignore）：
-   体积大、且是派生物。换机器时按上面 --fetch 重跑即可。
+⚠️ `build/font/`（含 charset.txt）与 `build/block_font.css` 都**不入库**（.gitignore）：
+   体积大、且是派生物。换机器时按上面 --fetch 重跑即可 —— 字符集能自举，不必手工准备。
 """
 import base64
+import glob
 import io
 import os
 import subprocess
@@ -44,9 +46,45 @@ STACK = ('"Alibaba PuHuiTi","Alibaba PuHuiTi 3.0","AlibabaPuHuiTi",'
          'system-ui,-apple-system,"Segoe UI",sans-serif')
 
 
+def build_charset():
+    """重算字符集：全库 seed/模板用字 + ASCII + GB2312 一级（3,755 常用字）。
+
+    ★ 必须能自举：`build/font/` 整个是 .gitignore 的，换机器时 charset.txt 也不在。
+      没有它 `--fetch` 会在 subset 那一步直接失败（漏掉这个的后果是「换机器必炸」）。
+    """
+    chars = set()
+    pats = [os.path.join(REPO, 'build', 'seed', 'report_*.json'),
+            os.path.join(REPO, 'build', 'seed', '*', '*.json'),
+            os.path.join(REPO, 'build', 'seed', 'data_v31_*.json')]
+    for pat in pats:
+        for p in glob.glob(pat):
+            try:
+                chars |= set(io.open(p, encoding='utf-8').read())
+            except Exception:
+                pass
+    for d in ('deploy', 'build', 'deliver'):
+        for p in glob.glob(os.path.join(REPO, d, '*.html')):
+            try:
+                chars |= set(io.open(p, encoding='utf-8', errors='replace').read())
+            except Exception:
+                pass
+    chars |= set(chr(c) for c in range(32, 127))
+    for hi in range(0xB0, 0xD8):
+        for lo in range(0xA1, 0xFF):
+            try:
+                chars.add(bytes([hi, lo]).decode('gb2312'))
+            except Exception:
+                pass
+    os.makedirs(FONTDIR, exist_ok=True)
+    io.open(CHARSET, 'w', encoding='utf-8').write(''.join(sorted(chars)))
+    print('  字符集 %d 字 → %s' % (len(chars), CHARSET))
+
+
 def fetch_and_subset():
     """下载原字体 → 按字符集裁 → 落盘。需要 fonttools + brotli。"""
     os.makedirs(FONTDIR, exist_ok=True)
+    if not os.path.exists(CHARSET):
+        build_charset()
     for name, dst in (('Regular', REG), ('Bold', BOLD)):
         raw = os.path.join(FONTDIR, '_raw_%s.woff2' % name.lower())
         print('  下载 %s …' % name, end=' ', flush=True)
@@ -79,6 +117,8 @@ def face(weight, path):
 
 
 def main():
+    if '--charset' in sys.argv or ('--fetch' in sys.argv and not os.path.exists(CHARSET)):
+        build_charset()
     if '--fetch' in sys.argv:
         fetch_and_subset()
     for p in (REG, BOLD):

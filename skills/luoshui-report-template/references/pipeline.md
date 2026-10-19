@@ -356,15 +356,17 @@ curl -s https://liuchaowang.cn/report.html -o /tmp/base.html
 python3 build.py            # 或 build.py::build_report() 单独构建
 # ⚠️ build.py 一跑会把 5 个产物全部重写 ⇒ 之后只发你真正改的那一个文件
 
-# ③ ★★★ 确认报告页那两块「**不经模板生成**」的东西在（2026-10-16 固化）
+# ③ ★★★ 确认报告页那**三个**「**不经模板生成**」的东西在（2026-10-16 固化，2026-10-19 加字体块）
 #    线上 report.html = 模板渲染结果 **+** _patch_blockstyle.py 注入的：
 #      <style  id="rpt-fontface">    阿里巴巴普惠体（子集 base64，约 1.67 MB）
-#      <style  id="rpt-blockstyle">   模块堆叠文本分块 + 表格「宣纸 · 墨金」+ 加粗朱砂 + 表格居中
-#      <script id="rpt-blockscript">  配套渲染层（Markdown 粗体 / 数字列标注 / essence 分块 / 背景层注入）
-#    ⚠️ 这两块**不在模板里**。直发未补的 build 产物 ⇒ 产物少约 1.71 MB（字体 1.67 MB + CSS 27 KB + JS 21 KB），
-#       **12 份研报的表格样式与粗体渲染同时失效，而且页面不报错**（只是全体「没样式」）。
+#      <style  id="rpt-blockstyle">   模块堆叠文本分块 + 表格「宣纸 · 墨金」+ 加粗朱砂 + 横竖居中 + 两位小数
+#      <script id="rpt-blockscript">  配套渲染层（Markdown 粗体 / 数字列标注 / essence 分块 / fixDecimals / 背景层注入）
+#    ⚠️ 这三块**不在模板里**。直发未补的 build 产物 ⇒ 产物少约 1.71 MB（字体 1.67 MB + CSS 27 KB + JS 21 KB），
+#       **12 份研报的表格样式、字体与粗体渲染同时失效，而且页面不报错**（只是全体「没样式」）。
+#    ★ 字体块的前置：build/block_font.css 必须已生成（派生物、.gitignore 掉的）
+#       [ -f block_font.css ] || python3 make_font_css.py --fetch
 #    ★ 好消息：build.py 末尾已自动补（patch_blockstyle()），会打印
-#       「已补 rpt-blockstyle + rpt-blockscript：… md5=64e6ad9a…」
+#       「已补 rpt-fontface + rpt-blockstyle + rpt-blockscript：… md5=…」
 #       看到「! blockstyle 注入失败」⇒ **停手，别发**。
 #    手工兜底（build.py 跑不了 / 想从线上字节重打）：
 #       python3 _patch_blockstyle.py --base ../deploy/report.html --out /tmp/blk/report.html
@@ -373,7 +375,7 @@ python3 build.py            # 或 build.py::build_report() 单独构建
 python3 probe_cssom_diff.py   # CSS 规则级 A/B：线上有·产物没有 必须 = 0
 python3 probe_style_diff.py   # 逐元素 computed style：差异必须全是预期
 # 还要逐 <script> 块比 md5（含 window.RPT_SEED 逐字节）—— 只允许本次改的那一块不同
-# ★ 特征词表必须钉死 rpt-blockstyle / rpt-blockscript / rpt-txtstyle ——
+# ★ 特征词表必须钉死 rpt-fontface / rpt-blockstyle / rpt-blockscript / rpt-txtstyle ——
 #   上面两步量的是「规则 / 计算样式」，**整块标签消失**它们看不出来（2026-10-16 的教训）。
 
 # ④ 核对待发文件

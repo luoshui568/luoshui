@@ -44,7 +44,8 @@ compatibility: 需配合项目仓库（`build/` 构建脚本 + `deploy/` 模板 
 | ★★ **修「图是空白」/「图画错了」** | **`chart-specs.md`** | **§6 空图 vs 错图 · 两道语义闸 · 摘槽位 `drop_chart_slot.py`** |
 | ★★ **seed 与库不同步 / 担心「一 push 就退化」** | **`pipeline.md`** | **§5 的「seed ↔ 库 双向纪律」**（含两道自动防线 + 哪些脚本只写库） |
 | ★ **定期体检全库 13 份** | **`build/audit_reports.py`** | 直接跑：`python3 audit_reports.py`（一次查 8 类问题） |
-| **改表格 / 文字 / 配色** | **`frontend-style.md`** | §1 纯文字与表格 · §7 表格溢出 |
+| **改表格 / 文字 / 配色 / 字体 / 加粗 / 小数 / 居中** | **`frontend-style.md`** | §1.1 宣纸墨金表格 · §1.4 阿里普惠体内嵌 · §1.5 加粗朱砂 + 横竖居中 + 两位小数 · §7 表格溢出 |
+| ★ **换机器后页面字体变成系统字体 / 页面突然变小 1.67 MB** | **`frontend-style.md`** | **§1.4**（`build/font/` 与 `block_font.css` 是 `.gitignore` 派生物 ⇒ 先跑 `build/make_font_css.py --fetch`） |
 | **改研报列表页 / 公司资料库** | **`frontend-style.md`** | §3 / §4 |
 | **样式改了却不生效** | **`frontend-style.md`** | §5 样式表腰斩 · §2 注入顺序 |
 | **发 `report.html`**（★ **必读**，直发 `build.py` 产物会删掉线上样式块） | **`deploy-verify.md`** | **§3 `_patch_blockstyle.py` 那一段** |
@@ -69,8 +70,8 @@ skill 里**所有命令都用变量写**。把下表几个值换成你自己机�
 | 变量 | 含义 | 本机（作者）当前值 |
 |---|---|---|
 | `PROJ` | 项目根（含 `build/` `deploy/` `deliver/`） | `/Users/luoshui/WorkBuddy/2026-10-10-22-59-27/luoshui` |
-| `PY` | 主 Python（3.13+，跑构建脚本） | `/Users/luoshui/.workbuddy/binaries/python/versions/3.13.12/bin/python3` |
-| `PYV` | 隔离 venv Python（跑探针 / PIL 出图） | `/Users/luoshui/.workbuddy/binaries/python/envs/default/bin/python` |
+| `PY` | 主 Python（跑构建脚本） | `/Users/luoshui/.workbuddy/binaries/python/envs/default/bin/python`（3.9.6）<br>⚠️ **不要用** versions/3.13.12/bin/python3.13 —— 二进制被截成 **0 字节**，跑它**静默返回空输出（rc=0）** |
+| `PYV` | 隔离 venv Python（跑探针 / PIL 出图 / fonttools 子集化） | `/Users/luoshui/.workbuddy/binaries/python/envs/default/bin/python`（与 PY 同一个，Pillow / requests / fonttools 都装在这） |
 | `TCB` | CloudBase CLI（部署用，需先 `tcb login`） | `/Users/luoshui/.workbuddy/binaries/node/cli-connector-packages/bin/tcb` |
 | `ENVID` | 你的 CloudBase 环境 ID | `fdels568-d7g1d8o3y90a80cd7` |
 | `DOM` | 你的访问域名 | `liuchaowang.cn` |
@@ -86,13 +87,17 @@ skill 里**所有命令都用变量写**。把下表几个值换成你自己机�
 | 渲染器 | `build/report_build_v31.py` |
 | 种子数据 | `build/seed/{data_v31_<code>.json, report_<code>.json}` |
 | 研报页模板 | `deploy/report.template.html` → 产物 `deploy/report.html` |
-| **表格/装饰样式源** | **`build/block_style.css`** ＋ **`build/block_style.js`**（注入器 `build/_patch_blockstyle.py`）<br>⚠️ 这是**表格配色 / 观感 / 星号 / essence 分块**的唯一源。`build/report_theme.css` 仍是注入源之一（承载 `rpt-txtstyle` 等），但**它会被并发会话整份重写 ⇒ 别把自己的块放进去** |
+| **表格/装饰样式源** | **`build/block_style.css`** ＋ **`build/block_style.js`**（注入器 `build/_patch_blockstyle.py`）<br>⚠️ 这是**表格配色 / 观感 / 字体 / 加粗 / 居中 / 小数 / 星号 / essence 分块 / 背景层**的唯一源。`build/report_theme.css` 仍是注入源之一（承载 `rpt-txtstyle` 等），但**它会被并发会话整份重写 ⇒ 别把自己的块放进去** |
+| **字体资源**（★ 派生物，`.gitignore`） | `build/font/{apht-regular,apht-bold}.woff2` + `charset.txt` → 生成 `build/block_font.css`（1.67 MB base64）<br>生成器 `build/make_font_css.py`；**新机器 / 目录被清** ⇒ 先 `$PY build/make_font_css.py --fetch` 再注入 |
 | 交付物 | `deliver/`（**不要写桌面**） |
 
 ## 标准流程（骨架，细节见 `pipeline.md`）
 
 ```bash
 cd "$PROJ/build"          # $PROJ 见上方「★ 环境配置」
+
+# 0) 换机器 / 首次：字体派生物是 .gitignore 的，缺了会渲染成系统字体
+[ -f block_font.css ] || $PY make_font_css.py --fetch   # 下 4.85+5.09 MB 原字体 → 子集 → base64
 
 # 1) 取数落盘：iFinD + 发现研报 MCP → seed/_raw_b1/<code>.<key>.json
 #    组装成模板数据源（财务 / 可比 / 行业 / 预测）
@@ -122,7 +127,7 @@ $PY push_reports_v31.py <code>
 `report_build_v31.py` 末尾的 `assert` 会拦住编号不连续、图槽无图数据、壳字段缺失
 ——**红了就是没写完，不要绕过**。
 
-## 四条最容易被忽略的硬性要求
+## 五条最容易被忽略的硬性要求
 
 1. **31 模块与十节目录一律照抄宝钛，不可乱改**（模块顺序、标题、目录逐字）。
 2. **数字只来自 `data_v31_<code>.json`；取不到写 `[MISSING]`，模型推算标 `[模型输出]`，绝不编造**；
@@ -135,6 +140,10 @@ $PY push_reports_v31.py <code>
    抓线上基线 → 逐 `<script>` 块比 md5（含 `window.RPT_SEED`）→ **CSS 规则级**（线上有·产物没有
    **必须 = 0**）→ 逐元素 computed style（差异全为预期）→ 才发、发完回读 md5 逐字节一致。
    **通过即可直接部署**（「以后都直接上线」已授权加强）。
+5. ★ **壳＝三个自有块，缺一个就整块退版**：`rpt-fontface`（阿里普惠体 1.67 MB）+ `rpt-blockstyle`
+   （宣纸墨金 / 加粗 / 居中 / 小数）+ `rpt-blockscript`（渲染层）。它们**都不在模板里**，只有
+   `build/_patch_blockstyle.py` 会补；发完 `curl` 回读 md5 与产物**逐字节比对**，
+   上一版 md5 一变就说明被并发会话盖了（`frontend-style.md` §2）。
 
 ## 交付纪律
 

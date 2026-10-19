@@ -42,6 +42,8 @@ REQUIRED = [
 OPTIONAL = [
     ("build/block_style.css", "表格配色样式源"),
     ("build/block_style.js", "表格装饰脚本源"),
+    ("build/make_font_css.py", "阿里普惠体子集生成器"),
+    ("build/block_font.css", "内嵌字体 CSS（派生物）"),
     ("build/lib/world-cn.js", "国标世界地图底图"),
     ("build/probe_report_mac.py", "线上真字节探针（mac）"),
     ("build/check_map_compliance.py", "地图合规自检"),
@@ -107,7 +109,7 @@ def resolve(overrides):
     """合并四层取值来源。"""
     cfg = {
         "PROJ": "/Users/luoshui/WorkBuddy/2026-10-10-22-59-27/luoshui",
-        "PY": "/Users/luoshui/.workbuddy/binaries/python/versions/3.13.12/bin/python3",
+        "PY": "/Users/luoshui/.workbuddy/binaries/python/envs/default/bin/python",
         "PYV": "/Users/luoshui/.workbuddy/binaries/python/envs/default/bin/python",
         "TCB": "/Users/luoshui/.workbuddy/binaries/node/cli-connector-packages/bin/tcb",
         "ENVID": "fdels568-d7g1d8o3y90a80cd7",
@@ -167,11 +169,19 @@ def main():
     print("\n[2/4] 运行时")
     py = expand(cfg["PY"], cfg)
     rc, out = run([py, "-c", "import sys;print('%d.%d.%d' % sys.version_info[:3])"])
-    if rc == 0:
+    if rc == 0 and out.strip():
         ver = out.strip().splitlines()[0] if out.strip() else "?"
         major = int(ver.split(".")[0]); minor = int(ver.split(".")[1])
         ok_ver = major > 3 or (major == 3 and minor >= 9)
         line(ok_ver, "PY 可执行", "Python %s%s" % (ver, "" if ok_ver else "  ← 需要 3.9+"))
+    elif os.path.isfile(py) and os.path.getsize(py) == 0:
+        # ★ 作者本机真实踩过：managed 3.13 的 python3.13 被截成 0 字节，
+        #   跑它 rc=0 但**一个字符都不输出** ⇒ 所有脚本"成功但没结果"。
+        line(False, "PY 可执行",
+             "%s 是 0 字节（二进制被截断）⇒ 改用 envs/default/bin/python" % py)
+    elif rc == 0:
+        line(False, "PY 可执行",
+             "%s 跑通了但没有任何输出 —— 多半是二进制被截断，换 envs/default/bin/python" % py)
     else:
         line(False, "PY 可执行", "%s (%s)" % (py, out.strip()[:40]))
 
@@ -216,7 +226,10 @@ def main():
         print("  ── 以下为建议项（缺了只影响部分环节）──")
         for rel, desc in OPTIONAL:
             p = proj / rel
-            line(p.exists(), rel, desc if p.exists() else "缺失 · %s" % desc, warn=True)
+            msg = desc if p.exists() else "缺失 · %s" % desc
+            if not p.exists() and rel == "build/block_font.css":
+                msg = "缺失 ⇒ 跑 $PY build/make_font_css.py --fetch（否则页面掉回系统字体）"
+            line(p.exists(), rel, msg, warn=True)
         if miss:
             print("  ⇒ 缺 %d 个必需文件，仓库可能不完整" % miss)
 

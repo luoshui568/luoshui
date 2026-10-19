@@ -30,13 +30,30 @@
 | 依赖 | 必需 | 说明 |
 |---|---|---|
 | **项目仓库** | ★ 必需 | 本 skill **只含规范与流程，不含构建脚本** —— 脚本要跟着仓库走。仓库：`luoshui568/luoshui`（私有，找作者开权限）。skill 里所有路径都相对项目根 `$PROJ`。 |
-| Python **3.13+** | ★ 必需 | 跑 `build/` 下的生成器 |
-| Python `PIL` | 出图才要 | 截图 / 拼图类探针需要，建议装在**隔离 venv** 里 |
+| Python **3.9+** | ★ 必需 | 跑 `build/` 下的生成器。<br>⚠️ 作者本机 `versions/3.13.12/bin/python3.13` **二进制已被截成 0 字节**，跑它**静默返回空输出（rc=0）**、不报错 ⇒ 一律用 `envs/default/bin/python`（3.9.6） |
+| Python `fonttools` + `brotli` | ★ 要改字体才要 | 阿里巴巴普惠体子集化（`build/make_font_css.py`）；`pip install fonttools brotli` |
+| Python `PIL` | 出图才要 | 截图 / 拼图类探针需要，建议装在**隔离 venv** 里（作者与 `PY` 同一个） |
 | Node.js **20+** | 建议 | `node --check` 语法检查 |
 | CloudBase CLI `tcb` | 要上线才需要 | 部署静态托管，需 `tcb login` 一次 |
 | MCP 连接器 | 取数才需要 | iFinD 系（`hexin-ifind-ds-*`）· `westock` · `tdx-connector` |
 
 **不用装的东西**：ECharts、xlsx 库等前端依赖全部随页面走，无 npm 安装步骤。
+
+### ★ 字体资源（派生物，`.gitignore` 掉的，换机器必做）
+
+页面里那 **1.67 MB** 的阿里巴巴普惠体是 `build/font/*.woff2` 子集化后 base64 内嵌的。
+原字体和生成物**都没进仓库**（原始 Regular 4.85 MB + Bold 5.09 MB，进 git 会撑爆），
+所以新机器 / 清过目录之后：
+
+```bash
+cd "$PROJ/build"
+$PY make_font_css.py --fetch     # 下原字体 → 裁 4,191 字 → 生成 block_font.css
+```
+
+跑完 `block_font.css` 约 1.67 MB。**不跑**的话研报页会掉回系统字体（PingFang / 微软雅黑），
+样式没错但看起来"不像洛水研报"。`--fetch` 走 `api.github.com` 的 raw 头
+（`raw.githubusercontent.com` 在国内常被墙）；下到的 woff2 若被截断会报 `brotli: decoder failed`，
+生成器已内置字节数重试。
 
 ---
 
@@ -96,17 +113,17 @@ unzip luoshui-report-template.zip -d ~/.workbuddy/skills/
 | 变量 | 是什么 | 怎么找 |
 |---|---|---|
 | `PROJ` | **项目根**（含 `build/` `deploy/` `deliver/`） | 你克隆仓库的位置 |
-| `PY` | 主 Python（3.13+） | `which python3` |
-| `PYV` | 隔离 venv 的 Python（跑探针 / PIL 出图） | 见下方「建 venv」 |
+| `PY` | 主 Python（跑构建脚本；**别用被截断的 3.13 二进制**） | `which python3` → 换成实际能跑的那个 |
+| `PYV` | 隔离 venv 的 Python（跑探针 / PIL 出图 / fonttools 子集化） | 见下方「建 venv」 |
 | `TCB` | CloudBase CLI | `which tcb` |
 | `ENVID` | 你的 CloudBase 环境 ID | CloudBase 控制台 |
 | `DOM` | 你的访问域名 | CloudBase 静态托管配置 |
 
-**建 venv（放 PIL）**：
+**建 venv（放 PIL / requests / fonttools）**：
 
 ```bash
 "$PY" -m venv ~/.workbuddy/binaries/python/envs/default
-~/.workbuddy/binaries/python/envs/default/bin/pip install pillow
+~/.workbuddy/binaries/python/envs/default/bin/pip install pillow requests fonttools brotli
 ```
 
 > **也可以完全不改文件** —— 在对话里直接把 `PROJ / PY / PYV / TCB / ENVID / DOM`
@@ -149,6 +166,9 @@ python3 scripts/check_env.py --py /usr/bin/python3 --pyv .venv/bin/python --tcb 
 | 页面打开是**白屏** | 用 `file://` 打开 ⇒ `Origin: null` 被网关拒 | 起本地 http（`http://127.0.0.1:<port>`）再访问 |
 | 部署报未登录 | `tcb` 没登录 | `tcb login` |
 | 改了样式却不生效 | 改的**不在取材范围内** | 见 `references/frontend-style.md` §2 / §5 |
+| **页面字体变成 PingFang / 微软雅黑** | `build/block_font.css` 不存在（派生物没跟着走） | `$PY build/make_font_css.py --fetch`，再重新注入 |
+| **脚本"跑成功了"但一个字都没输出** | 用了被截断的 `versions/3.13.12/bin/python3.13` | 改用 `envs/default/bin/python`（见 §2 依赖表） |
+| 页面比预期小 1.67 MB | 同上，字体块没注进去 | 注入产物应含 `<style id="rpt-fontface">`，发前 `grep -c rpt-fontface` 应为 1 |
 | 图表 tooltip 报错 | 只发了数据没发渲染器 | 环图 / 时间轴 / 渲染层改了 ⇒ **必须同时发 `report.html`** |
 
 ---

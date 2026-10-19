@@ -13,18 +13,20 @@
 
 ---
 
-## ★ 2026-10-15 定稿速查（最新一轮，最易踩的几条）
+## ★ 定稿速查（最新一轮，最易踩的几条）
 
-这一天做了「配色 / 版式 / 流程 / 图表」四类迭代，**最终定稿如下**（详细见对应组）：
+2026-10-15 做了「配色 / 版式 / 流程 / 图表」四类迭代，**2026-10-19 又补了「宣纸墨金 / 阿里普惠体 / 加粗朱砂 / 横竖居中 / 两位小数」五条**，
+**最终定稿如下**（详细见对应组）：
 
 | 主题 | 定稿 | 条号 |
 |---|---|---|
 | **表格配色** | **宣纸 · 墨金**：深酒红渐变表头 + 金色发丝线 + 暖纸表身（不是亮红、不是浅蓝、不是纯金） | 38 |
-| **表格观感** | 表头与单元格**一律居中**（数字也居中、保留 `tabular-nums`）；模块内表格**固定布局**防溢出、**表头可换行** | 39 |
+| **表格观感** | 表头与单元格**横竖都居中**（`text-align:center` **＋** `vertical-align:middle`，数字也居中、保留 `tabular-nums`）；模块内表格**固定布局**防溢出、**表头可换行** | 39 |
 | **一句话本质** | `.essence` 长段**必须分块**（按语义强标记切） | 40 |
 | **`**` 星号** | 渲染层一律清掉，**零写库**；SKIP 白名单不能含 `B/STRONG` | 41 |
 | **全站字体** | **阿里巴巴普惠体**（子集 base64 内嵌 `rpt-fontface`，`*` + `!important` 全覆盖，**不留宋体/系统字体**） | 42 |
 | **加粗** | `<b>/<strong>` 一律**亮朱砂 `#c0392b`**；深底（`#hero` / 表头行）`inherit` | 43 |
+| **★ 数字两位小数** | 表内数字/百分数**四舍五入到 2 位**，**纯整数不加 `.00`**（「没有就不加」）；渲染层 `fixDecimals()` 零写库，只作用 `td/th`（脚注 `.src` 不动） | 72 |
 | **★ 双轴 0 轴对齐** | **`type:'time'` 的图 `btAlignZero` 必然失效** ⇒ **自己在 opt 里写死 min/max**（两轴 `p` 相等）；非负那条必须下探；假负刻度用 `{{fn:hideNeg}}`。★★ 4 格 = 5 条刻度 ⇒ `lo=−s / hi=3s`（0 落 25%）；★★★ `min/max/interval` 必 `round(·,6)`，否则端刻度渲染成 `99999996` | 29 |
 | **★ 面积图** | **要够深 + 要在最上层**：打 `areaStyle.__keep` + line `z`(5) > bar `z`(4) | 31 |
 | **★ 全量日线取数** | 通达信 **`tqFlag=2` 后复权**（`tqFlag=1` 已损坏）+ **每页 700 根**翻页（★ **满页 ⇒ 后面还有，别提前收工**）；EPS(TTM)：单份走 iFinD 取「值变化」日，**批量改走 westock `data_finance` 的 `EPSTTM`+`InfoPublDate`** | 21 / 22 |
@@ -97,7 +99,7 @@
 | 37 | 打印 / PDF 时**必须全量还原**（折叠态、截断态都要展开；说明印在文末） | `@media print` 段 | 折叠方案要求「PDF 点不动」⇒ 必须还原 |
 | 38 | **表格 / 整站配色终版 =「宣纸 · 墨金」**（整站暖纸 `#f5f1e8`；表头**深酒红四段渐变** `#751111→#a82020→#8b1a1a→#6e1414` + `<th>` 上**金色发丝线** `rgba(201,162,39,.55)` + 米白字 `#f7efe1`；表身暖纸 + 首列宣纸渐变 `700`；容器 12px 圆角 + `rgba(196,185,163,.7)` 描边）。**不得再改回亮红 `#e43644`（在米纸上会跳出纸面）、不得改回浅蓝身** | `build/block_style.css`（源文件，**不再放 `report_theme.css`**）+ 背景层 `build/block_style.js` 的 `makePaperBg()` | 「学习这个样式改研报的背景和表格的样式，不要动内容，以宝钛股份为例」（参考稿 `capital-table.html`） |
 | 39 | **表头与所有单元格「横竖都居中」**（2026-10-19 两轮改口径：① 原来「非数字长文本居中、数字右对齐」，用户令「表格要居中」⇒ 数字也居中；② 再令「水平垂直都要居中」⇒ `vertical-align` 由 `top` 改 `middle`。`font-variant-numeric:tabular-nums` **必须保留**，否则数位参差）。⚠️ **必须用 `#mods .card table`（id 计 1 分）抬特异度**：主题 `report_theme.css` 里有同特异度的 `.card table td{vertical-align:top !important}`，且运行期还会 append 样式表，同特异度必被盖回（实测 1240 格有 1066 格是 top）；**模块内表格必须固定布局防溢出**：`.mi-card > table` 用 `table-layout:fixed + width:100%`，首列定宽，**表头允许换行**（固定布局下**列宽只能写在 `thead th` 上**，写在 tbody 的 `td` 上不生效）。⚠️ `td.is-num` 必须写 `tbody tr > td.is-num`（**0,2,4**）—— 主题里那条同特异度 `text-align:right !important` 会被运行期后插的样式表盖回来，同特异度写会「改了没生效」 | `build/block_style.css`，`.mi-card` 作用域 | 「一行的文字太多了就还行居中」「这个溢出还是没有解决，而且这个表格行高太高了，选择换行显示」「还有表格要居中」 |
-| 40 | **一句话本质（`.essence`）长段必须分块**：按顶层 `<strong>/<b>`（语义转折点）切块 + 短段合并（MIN 26 字），**不得一整段堆着**；调度顺序 `fixBold → markNum → markTxt → splitEssence → (if RETINT) fixGold` | `build/block_style.js` 的 `splitEssence()`（**零写库**） | 「这里重新排版一下看着太乱了，改成（核心结论）这种」 |
+| 40 | **一句话本质（`.essence`）长段必须分块**：按顶层 `<strong>/<b>`（语义转折点）切块 + 短段合并（MIN 26 字），**不得一整段堆着**；调度顺序 `fixBold → markNum → markTxt → splitEssence → fixDecimals → (if RETINT) fixGold` | `build/block_style.js` 的 `splitEssence()`（**零写库**） | 「这里重新排版一下看着太乱了，改成（核心结论）这种」 |
 | 41 | **Markdown `**` 星号一律在渲染层清掉（零写库）**；⚠️ 清除器的 `SKIP` 白名单**不能含 `B/STRONG`** —— 数据里粗体是**嵌套包裹**的（`<b><p>**…**</p></b>`、整张表裹进 `<b>`），一旦祖先里有 `<b>` 就整节点跳过 ⇒ 白名单反而漏掉最多的一类 | `build/block_style.js` 的 `fixBold()` | 「突然又多了很多这种 `**` 号」 |
 | 42 | **全站字体 = 阿里巴巴普惠体**：子集 base64 内嵌，独立标签 **`rpt-fontface`**（`build/block_font.css` ← `build/make_font_css.py`），规则 `*,*::before,*::after{font-family:"Alibaba PuHuiTi",… !important}`。**必须 `!important`**：主题里有 4 处 font-family（含宋体首列），不加压不住。⚠️ **绝不能塞进 `rpt-blockstyle`** —— 它 1.67 MB，而注入器对**已存在块**有 40 万字符上限，塞进去下一轮注入直接断言失败。⚠️ 字体块纳入 `.gitignore`（派生物），换机器跑 `make_font_css.py --fetch` 重下重裁 | `build/make_font_css.py` + `_patch_blockstyle.py` 的 `extract_font_block()` | 「所有字体帮我改成阿里巴巴那个字体」 |
 | 43 | **加粗 = 亮朱砂 `#c0392b`**（`#8b1a1a` 太深，整段加粗时读起来像黑字，实测后换掉）；覆盖 `#mods`/`.card`/`.essence`/`#verdict` 的 `b,strong`。**深底必须例外 `inherit`**：`#hero` 与表头行（深酒红）红字看不见 | `build/block_style.css` 末段 | 「加粗的字体用红色标注」 |
@@ -168,6 +170,11 @@
 
 ## 环境已知问题（会拖慢排障）
 
+- ★★ **managed Python 3.13 二进制已被截断（0 字节）**：`~/.workbuddy/binaries/python/versions/3.13.12/bin/python3.13`
+  是个空文件，但 `lib/python3.13` 还在 ⇒ 跑它**不报错、直接返回空输出（rc=0）**，
+  探针脚本"成功但没有任何读数"就查这个。**一律用** `~/.workbuddy/binaries/python/envs/default/bin/python`
+  （3.9.6，已装 Pillow / requests / fonttools）；系统 `/usr/bin/python3` 无 PIL，仅兜底。
+- **`fonttools` + `brotli` 必须装在隔离 venv 里**（`envs/default`），否则 `make_font_css.py` 跑不了。
 - `build/check_static.py`、`verify_stock_v2.py` **硬编码旧 Windows 路径，本机跑不了**（`build.py` 正常）。
 - 沙箱只放行 GitHub API / codeload（`git clone` 会 502，用 codeload tar.gz）。
 - zsh 里 `for spec in "a --b=c"` 的 `$spec` **不会分词**，要写 `${=spec}`。

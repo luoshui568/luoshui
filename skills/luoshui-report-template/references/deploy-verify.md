@@ -189,7 +189,7 @@ tcb hosting deploy /tmp/blk/report.html /report.html --env-id <env> --verify
 | `probe_ring_m11.py` | 收入/毛利双环 | — |
 | `probe_axis_zero.py` | 双轴 0 刻度对齐 | — |
 | `probe_negr.py` | 负值柱圆角 | — |
-| `probe_blockstyle.py` / `probe_txtstyle.py` | 纯文字版式（量**计算样式**） | ⚠️ 换配色要**同步改三处**：期望值常量区 + JS 采集段 + 断言 |
+| `probe_blockstyle.py` / `probe_txtstyle.py` | 纯文字版式（量**计算样式**）：表格宣纸墨金 · **表头/单元格横竖居中** · **加粗朱砂 `rgb(192,57,43)`** · **3 位以上小数残留** · 背景层 `#rpt-paper` | 用法 `probe_blockstyle.py <code> --mod 3`；⚠️ 换配色 / 换口径要**同步改三处**：期望值常量区 + JS 采集段 + 断言（只改一处 ⇒ 全红）。**反向必验**：拿上一版字节跑，该红的地方得红 |
 | `probe_report_notes.py` | 注解弹窗 8 项 × 11 份 | `RPT_SRC=/tmp/live.html` 可跑线上字节 |
 | `probe_comfiles.py` | 公司资料库 86 项 | `WB_PW=xxx --full` |
 | `_probe_lock29.py` | 企业评分契约 | — |
