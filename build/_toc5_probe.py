@@ -52,6 +52,8 @@ JS = r"""
     out.items = as.length;
     out.n = [].map.call(as, function(a){ return a.getAttribute('data-n'); }).join(',');
     out.i = [].map.call(as, function(a){ return a.getAttribute('data-i'); }).join(',');
+    /* 条目不许多出 title：会在 hover 时弹浏览器原生提示条（2026-10-20 用户令删掉） */
+    out.titles = [].filter.call(as, function(a){ return a.hasAttribute('title'); }).length;
     if(as.length > 1){
       out.pitch = round(as[1].offsetTop - as[0].offsetTop);
       out.itemH = round(as[0].getBoundingClientRect().height);
@@ -166,6 +168,7 @@ if d:
         '选中：深墨块 + 光带不打折', d['onRule'][:60])
     chk(d['items'] == 10 and d['n'].startswith('01,02') and d['i'].startswith('1,2'),
         '10 条、data-n 补零 / data-i 纯数字', d['n'])
+    chk(d['titles'] == 0, '条目无 title（不弹原生提示条）', d['titles'])
     chk(d['tableOverflow'] == 0, '表格 0 溢出（共 %d 张）' % d['tables'])
     chk(d['stars'] == 0, '#mods 内 0 个残余 **')
     pgs = [x['pg'] for x in spy]

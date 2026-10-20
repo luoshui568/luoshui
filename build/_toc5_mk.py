@@ -49,7 +49,7 @@ li, lj = css_seg(live)
 new_css, old_css = css[ci:cj], live[li:lj]
 
 assert 'tc-step' in new_css and 'max-width:1427px' in new_css, 'CSS 段抓错（本地）'
-assert 'tc-step' not in old_css, '线上已经是新版了？'
+# 线上可能已经是本版（重复跑）⇒ 只要求新段有 --tc-step，不再要求旧段没有
 print('线上段：%d 字节 / nav.toc{×%d / 1427 断点=%s'
       % (len(old_css.encode()), old_css.count('nav.toc{'), 'max-width:1427px' in old_css))
 print('CSS 段 %d → %d 字节' % (len(old_css.encode()), len(new_css.encode())))

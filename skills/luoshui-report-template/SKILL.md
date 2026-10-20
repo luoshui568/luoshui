@@ -35,7 +35,7 @@ compatibility: 需配合项目仓库（`build/` 构建脚本 + `deploy/` 模板 
 
 ## ★ 当前视觉定稿（2026-10-19 · 改样式前先看这 8 行）
 
-线上 `report.html` md5 `68b0cb5b`。**只记结论，细节以 `frontend-style.md` 为准**（§1.1 / §1.4 / §1.5 / §1.6）。
+线上 `report.html` md5 `e3ef00ed`。**只记结论，细节以 `frontend-style.md` 为准**（§1.1 / §1.4 / §1.5 / §1.6）。
 
 | 项 | 定稿 | 细节 |
 |---|---|---|

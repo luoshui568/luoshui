@@ -365,7 +365,7 @@ base64 合计约 **1.67 MB**（页面 2.2 MB → 3.9 MB，实测首屏 1.7 s）�
 
 源：**样式** `build/report_theme.css` 的 `nav.toc` 段 ＋ **壳** `deploy/report.template.html` 的 `renderToc()` / `tocSpy()`，
 另加一处**全局让位**：`.wrap{max-width:1100px → 1060px}`。
-上线 md5 `68b0cb5b`（上一版 `a8c64132`），走**三段定点替换**（CSS 段 / renderToc 段 / tocSpy 段；`.wrap` 行 ④ 版已改完，本版不动）。
+上线 md5 `e3ef00ed`（上一版 `68b0cb5b`），走**三段定点替换**（CSS 段 / renderToc 段 / tocSpy 段；`.wrap` 行 ④ 版已改完，本版不动）。
 
 ★★ **六版演进，别走回头路**：
 ① 亮红实色「太塑料」→ ② 墨玉金箔「还是太丑」→ ③ 纯白玻璃「太素」→ ④ 参考稿壳（136）「不够大」
@@ -399,6 +399,10 @@ base64 合计约 **1.67 MB**（页面 2.2 MB → 3.9 MB，实测首屏 1.7 s）�
 ★ **hover 为什么写 `background-size` 而不是换底色**：换底色是「瞬间跳变」，`background-size:0→100%` 才有「光带推开」的动感；
 配 `cubic-bezier(.22,.8,.36,1)`（前段快、尾段收）。⚠️ `a.on` 用的是 `background` 简写，会重置 `background-size`，
 所以 `.on` 里必须显式再写 `background-size:100% 100%`，否则选中项 hover 时会被光带撑歪。
+
+★ **目录条目不要写 `title`**（2026-10-20 用户令：「那个悬浮的投资核心不要」）——
+浏览器原生提示条会在 hover 时弹出一条黑底模块名横在列表上，比条目本身还显眼；
+截断一律靠 CSS `ellipsis`，不要用 `title` 兜底。
 
 ★ 断点三档：`≥1428px` 178 宽 → `1361~1427px` 回退 136（`left:calc(50% - 656px)`）→ `≤1360px` 序号胶囊（`::before` 直接 `display:none`，悬停展开回 178）。
   ⚠️ 胶囊态判「有没有线」要读 `getComputedStyle(nav,'::before').display`，**不能读 `background-image`**（display:none 时它照样返回渐变串）。

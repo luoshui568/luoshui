@@ -850,8 +850,11 @@ function renderToc(){
   var box = $('toc');
   if(!t.length){ box.innerHTML = ''; box.style.display = 'none'; return; }
   var links = t.map(function(x, i){
-    return '<a href="#' + attr(x.anchor) + '" data-i="' + (i + 1) + '" data-n="' + tocPad2(i + 1) + '"' +
-           ' title="' + attr(x.text) + '">' + esc(tocLabel(x.text)) + '</a>';
+    /* ★ 条目**不加 title**（2026-10-20 用户令：「那个悬浮的投资核心不要」）：
+       浏览器原生提示条会在 hover 时弹出一条黑底「投资核心」横在列表上，
+       比条目本身还显眼。截断靠 CSS 的 ellipsis，不要用 title 兜。 */
+    return '<a href="#' + attr(x.anchor) + '" data-i="' + (i + 1) + '" data-n="' + tocPad2(i + 1) + '">' +
+           esc(tocLabel(x.text)) + '</a>';
   }).join('');
   /* 目录壳（2026-10-20 用户给了参考稿，要「花里胡哨」）：
      顶部「● 目录 03/10」+ 条目 + 底部「阅读进度条 + 回到顶部」。
