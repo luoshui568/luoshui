@@ -72,20 +72,27 @@ JS = r"""
       out.itemH = round(as[0].getBoundingClientRect().height);
     }
 
-    /* hover 规则是否在位（不能真 hover，只能读规则） */
-    var hov = [], onR = [];
-    for(var s = 0; s < document.styleSheets.length; s++){
-      var rs; try{ rs = document.styleSheets[s].cssRules; }catch(e){ continue; }
-      if(!rs) continue;
+    /* hover 规则是否在位（不能真 hover，只能读规则）
+       ★ 必须**递归进 @media**：胶囊展开态的规则全在 ≤1360 的媒体块里，
+         只扫顶层 cssRules 会一条都读不到（本轮踩过）。 */
+    var hov = [], onR = [], exp = [];
+    function scanRs(rs){
       for(var k = 0; k < rs.length; k++){
         var sel = rs[k].selectorText || '';
         var txt = rs[k].cssText || '';
         if(/^nav\.toc a:hover(::before)?$/.test(sel)) hov.push(sel + ' {' + txt + '}');
         if(/nav\.toc a\.on$/.test(sel)) onR.push(txt);
+        if(/nav\.toc:hover a::before/.test(sel)) exp.push(txt);
+        if(rs[k].cssRules && rs[k].cssRules.length) scanRs(rs[k].cssRules);
       }
+    }
+    for(var s = 0; s < document.styleSheets.length; s++){
+      var rs; try{ rs = document.styleSheets[s].cssRules; }catch(e){ continue; }
+      if(rs) scanRs(rs);
     }
     out.hoverRule = hov.join(' || ').slice(0, 400);
     out.onRule = onR.join(' || ').slice(0, 260);
+    out.expNum = exp.join(' || ').slice(0, 300);
 
     /* 滚动读数：直接调 tocSpy，不依赖 scroll 事件 */
     var pts = [0, 0.25, 0.5, 0.85, 1], res = [];
@@ -206,6 +213,9 @@ if d2:
     chk(d2['line']['content'] in ('none', 'normal'), '胶囊态同样没有竖线（无生成内容）',
         d2['line']['content'])
     chk(d2['gapToContent'] > 0, '胶囊不压正文', d2['gapToContent'])
+    # 展开回全卡时序号必须回到主档字号，否则 10px 序号 比 13px 标题还小、层次反转
+    chk('15px' in d2['expNum'], '胶囊展开：序号回到 15px（层次不反转）',
+        d2['expNum'][:90].replace('  ', ' '))
 
 print('=== 390×844（底部横排条） ===')
 d3 = dump(390, 844)

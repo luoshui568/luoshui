@@ -290,17 +290,18 @@
     color:#5a5148;text-decoration:none;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
     /* ★ 两层背景（2026-10-20 用户令「每条目录标题下加一个下划线」）：
-       ① 下划线：从**文字起点 34px** 起、高 1px，**红金渐变**（朱砂 80% → 40% → 金 52% → 淡金 16%），
+       ① 下划线：**左右各留 12px 对称**（`size:calc(100% - 24px) 2px`，不是从文字起点量）、
+          高 **2px**、**红金渐变**（朱砂 80% → 赭红 62% → 金 52% → 淡金 16%），
           向右渐隐收尾，所以它像「标题的下划线」而不是通栏分割线；
        ② hover 金带：从左往右展开（0% → 100%），换底色是硬跳变、没有动感。
-       ★ 两层必须写成同一条 background-size/position 列表，hover 时只改第二层的宽度，
-         第一层保持 `calc(100% - 34px) 1px`，否则下划线会跟着撑成整块。 */
+       ★ 两层必须写成两条 background-size（逗号分隔），hover 时只改第二层宽度，
+         第一层保持 `calc(100% - 24px) 2px`，否则下划线会跟着撑成整块灰底。 */
     background-image:
       linear-gradient(90deg,rgba(192,57,43,.80) 0%,rgba(163,34,30,.62) 34%,rgba(193,145,31,.52) 72%,rgba(232,200,92,.16) 100%),
       linear-gradient(90deg,rgba(201,162,39,.17) 0%,rgba(201,162,39,.06) 58%,rgba(201,162,39,0) 100%);
     background-repeat:no-repeat,no-repeat;
-    /* 下划线：加粗到 **2px**、左右各留 12px 对称（文字居中后，起点还是 34px 会一边长一边短） */
-    /* ★ 上移 5px 贴着自己的文字：贴到行底会与下一行（选中时是深墨块）顶边贴死，
+    /* 下划线：加粗到 **2px**、左右各留 12px 对称（文字居中后，若还按「文字起点 34px」偏移会一边长一边短） */
+    /* ★ 上移 **8px** 贴着自己的文字：贴到行底会与下一行（选中时是深墨块）顶边贴死，
        看起来像被压掉一截（2026-10-20 用户截图）。 */
     background-position:50% calc(100% - 8px),left center;
     background-size:calc(100% - 24px) 2px,0% 100%;
@@ -422,9 +423,11 @@
         linear-gradient(90deg,rgba(201,162,39,.17) 0%,rgba(201,162,39,.06) 58%,rgba(201,162,39,0) 100%);
       background-repeat:no-repeat,no-repeat;background-position:50% calc(100% - 8px),left center;
       background-size:calc(100% - 24px) 2px,0% 100%;}
+    /* ★ 展开回全卡时序号必须回到主档的 15px：胶囊里是 10px 的小前缀，
+       但展开后若仍是 10px，就比 13px 的标题还小 —— 字号层次整个反过来（2026-10-20 修）。 */
     nav.toc:hover a::before,nav.toc:focus-within a::before{
       position:absolute;left:11px;top:50%;transform:translateY(-50%);
-      width:auto;margin:0;font-size:10px;text-align:left;
+      width:auto;margin:0;font-size:15px;text-align:left;
     }
     nav.toc:hover a.on,nav.toc:focus-within a.on{padding-right:12px;}
     nav.toc:hover a.on::after,nav.toc:focus-within a.on::after{content:'';width:5px;height:5px;right:10px;}
