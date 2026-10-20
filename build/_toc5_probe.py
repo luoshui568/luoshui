@@ -51,6 +51,9 @@ JS = r"""
       out.aBgSize = cs(a0,'background-size');
       out.aBgPos = cs(a0,'background-position');
       out.aAlign = cs(a0,'text-align');
+      /* ⚠️ cs() 只读元素本身，读伪元素必须再传一次 '::before' */
+      var pfa = getComputedStyle(a0, '::before');
+      out.numSize = pfa.fontSize; out.numWeight = pfa.fontWeight;
       var last = aN[aN.length - 1];
       out.lastBgImage = cs(last,'background-image');
     }
@@ -161,9 +164,12 @@ if d:
     chk('rgba(192, 57, 43' in d['aBgImage'] and 'rgba(193, 145, 31' in d['aBgImage'],
         '下划线是红→金渐变', d['aBgImage'][:100])
     chk(d['aBgSize'].split(',')[0].strip().endswith('2px'), '下划线加粗到 2px', d['aBgSize'])
-    chk(d['aBgPos'].split(',')[0].strip() in ('50% 100%', 'center bottom', '50% 100%'),
-        '下划线左右对称（居中）', d['aBgPos'])
+    pos0 = d['aBgPos'].split(',')[0].strip()
+    chk(pos0.startswith('50%') and '8px' in pos0,
+        '下划线居中且上移 8px（避开下一行选中块顶边）', pos0)
     chk(d['aAlign'] == 'center', '条目标题文字居中', d['aAlign'])
+    chk(d['numSize'] == '12px' and d['numWeight'] in ('700', 'bold'),
+        '序号放大到 12px / 700', d['numSize'] + ' / ' + d['numWeight'])
     chk(d['lastBgImage'] == 'none', '最后一条不画线（避免与进度区分隔线成双）', d['lastBgImage'])
     # computed cssText 会把 box-shadow 规范成 `rgba(...) 3px 0px 0px -1px inset`，
     # 所以只判「有 inset / 没有 translateX」，别去比对字面量顺序。
