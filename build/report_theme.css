@@ -284,7 +284,9 @@
   nav.toc a{
     position:relative;display:block;flex:0 0 auto;
     font-size:14px;font-weight:500;line-height:1.35;
-    padding:10px 10px 10px 34px;border-radius:0;
+    /* ★ 文字居中（2026-10-20 用户令）：左右 padding 对称，序号仍是绝对定位在左侧，
+       所以「01 … 模块名 … ●」是居中排版里的一条左侧索引，不再占正文缩进。 */
+    padding:10px 12px;text-align:center;border-radius:0;
     color:#5a5148;text-decoration:none;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
     /* ★ 两层背景（2026-10-20 用户令「每条目录标题下加一个下划线」）：
@@ -297,8 +299,9 @@
       linear-gradient(90deg,rgba(192,57,43,.80) 0%,rgba(163,34,30,.62) 34%,rgba(193,145,31,.52) 72%,rgba(232,200,92,.16) 100%),
       linear-gradient(90deg,rgba(201,162,39,.17) 0%,rgba(201,162,39,.06) 58%,rgba(201,162,39,0) 100%);
     background-repeat:no-repeat,no-repeat;
-    background-position:34px 100%,left center;
-    background-size:calc(100% - 34px) 1px,0% 100%;
+    /* 下划线：加粗到 **2px**、左右各留 12px 对称（文字居中后，起点还是 34px 会一边长一边短） */
+    background-position:50% 100%,left center;
+    background-size:calc(100% - 24px) 2px,0% 100%;
     transition:background-size .4s cubic-bezier(.22,.8,.36,1),
                color .22s ease,
                transform .3s cubic-bezier(.22,.8,.36,1),
@@ -315,7 +318,7 @@
     transition:color .22s ease,transform .3s cubic-bezier(.22,.8,.36,1);
   }
   nav.toc a:hover{
-    background-size:calc(100% - 34px) 1px,100% 100%;
+    background-size:calc(100% - 24px) 2px,100% 100%;
     color:#14100e;
     /* ★ 不再右移 3px（2026-10-20 方角改版）：条目不缩进、通栏铺满，
        一移位文字就不在同一列上，列表的「对齐感」反而没了。 */
@@ -326,7 +329,7 @@
   nav.toc a.on{
     background:linear-gradient(180deg,#241d19 0%,#15100e 100%);
     background-size:100% 100%;
-    color:#fbf8f2;font-weight:600;padding-right:23px;
+    color:#fbf8f2;font-weight:600;
     box-shadow:0 6px 16px -8px rgba(20,16,14,.55);
     transition:background .3s ease,color .2s ease,box-shadow .3s ease,transform .3s cubic-bezier(.22,.8,.36,1);
   }
@@ -376,11 +379,11 @@
     .tc-dt{width:6px;height:6px;}
     .tc-tt{font-size:10px;letter-spacing:.14em;text-indent:.14em;}
     .tc-ix{font-size:9px;}
-    nav.toc a{font-size:13px;padding:7px 8px 7px 30px;border-radius:0;
-      background-size:calc(100% - 30px) 1px,0% 100%;background-position:30px 100%,left center;}
-    nav.toc a:hover{background-size:calc(100% - 30px) 1px,100% 100%;}
+    nav.toc a{font-size:13px;padding:7px 8px;border-radius:0;text-align:center;
+      background-size:calc(100% - 16px) 2px,0% 100%;background-position:50% 100%,left center;}
+    nav.toc a:hover{background-size:calc(100% - 16px) 2px,100% 100%;}
     nav.toc a::before{left:8px;font-size:9px;}
-    nav.toc a.on{padding-right:20px;}
+    nav.toc a.on{padding-right:8px;}
     nav.toc a.on::after{right:9px;width:4px;height:4px;}
     .tc-ft{padding:9px 4px 1px;margin-top:5px;}
     .tc-pg{font-size:8.5px;}
@@ -411,17 +414,17 @@
     nav.toc:hover .tc-pg b,nav.toc:focus-within .tc-pg b{font-size:10.5px;}
     nav.toc:hover .tc-bar,nav.toc:focus-within .tc-bar{height:3px;margin:7px 0 11px;}
     nav.toc:hover .tc-up,nav.toc:focus-within .tc-up{padding:8px 0;font-size:11px;}
-    nav.toc:hover a,nav.toc:focus-within a{font-size:14px;padding:10px 10px 10px 34px;text-align:left;
+    nav.toc:hover a,nav.toc:focus-within a{font-size:14px;padding:10px 12px;text-align:center;
       background-image:
         linear-gradient(90deg,rgba(192,57,43,.80) 0%,rgba(163,34,30,.62) 34%,rgba(193,145,31,.52) 72%,rgba(232,200,92,.16) 100%),
         linear-gradient(90deg,rgba(201,162,39,.17) 0%,rgba(201,162,39,.06) 58%,rgba(201,162,39,0) 100%);
-      background-repeat:no-repeat,no-repeat;background-position:34px 100%,left center;
-      background-size:calc(100% - 34px) 1px,0% 100%;}
+      background-repeat:no-repeat,no-repeat;background-position:50% 100%,left center;
+      background-size:calc(100% - 24px) 2px,0% 100%;}
     nav.toc:hover a::before,nav.toc:focus-within a::before{
       position:absolute;left:11px;top:50%;transform:translateY(-50%);
       width:auto;margin:0;font-size:10px;text-align:left;
     }
-    nav.toc:hover a.on,nav.toc:focus-within a.on{padding-right:23px;}
+    nav.toc:hover a.on,nav.toc:focus-within a.on{padding-right:12px;}
     nav.toc:hover a.on::after,nav.toc:focus-within a.on::after{content:'';width:5px;height:5px;right:10px;}
   }
   /* 手机：目录改成底部横排条，横向可滑 */

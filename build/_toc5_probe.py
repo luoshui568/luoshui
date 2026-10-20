@@ -50,6 +50,7 @@ JS = r"""
       out.aBgImage = cs(a0,'background-image');
       out.aBgSize = cs(a0,'background-size');
       out.aBgPos = cs(a0,'background-position');
+      out.aAlign = cs(a0,'text-align');
       var last = aN[aN.length - 1];
       out.lastBgImage = cs(last,'background-image');
     }
@@ -159,8 +160,10 @@ if d:
     chk(bgs == 2, '条目双层背景（下划线 + hover 金带）', bgs)
     chk('rgba(192, 57, 43' in d['aBgImage'] and 'rgba(193, 145, 31' in d['aBgImage'],
         '下划线是红→金渐变', d['aBgImage'][:100])
-    chk(d['aBgSize'].split(',')[0].strip().endswith('1px'), '下划线高 1px', d['aBgSize'])
-    chk(d['aBgPos'].split(',')[0].strip() == '34px 100%', '下划线从文字起点 34px 起', d['aBgPos'])
+    chk(d['aBgSize'].split(',')[0].strip().endswith('2px'), '下划线加粗到 2px', d['aBgSize'])
+    chk(d['aBgPos'].split(',')[0].strip() in ('50% 100%', 'center bottom', '50% 100%'),
+        '下划线左右对称（居中）', d['aBgPos'])
+    chk(d['aAlign'] == 'center', '条目标题文字居中', d['aAlign'])
     chk(d['lastBgImage'] == 'none', '最后一条不画线（避免与进度区分隔线成双）', d['lastBgImage'])
     # computed cssText 会把 box-shadow 规范成 `rgba(...) 3px 0px 0px -1px inset`，
     # 所以只判「有 inset / 没有 translateX」，别去比对字面量顺序。
