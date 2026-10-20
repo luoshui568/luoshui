@@ -288,13 +288,13 @@
     color:#5a5148;text-decoration:none;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
     /* ★ 两层背景（2026-10-20 用户令「每条目录标题下加一个下划线」）：
-       ① 下划线：从**文字起点 34px** 起、高 1px，向右由暖墨 15% 渐隐到 2%，
-          所以它像「标题的下划线」而不是通栏分割线；
+       ① 下划线：从**文字起点 34px** 起、高 1px，**红金渐变**（朱砂 80% → 40% → 金 52% → 淡金 16%），
+          向右渐隐收尾，所以它像「标题的下划线」而不是通栏分割线；
        ② hover 金带：从左往右展开（0% → 100%），换底色是硬跳变、没有动感。
        ★ 两层必须写成同一条 background-size/position 列表，hover 时只改第二层的宽度，
          第一层保持 `calc(100% - 34px) 1px`，否则下划线会跟着撑成整块。 */
     background-image:
-      linear-gradient(90deg,rgba(20,16,14,.15) 0%,rgba(20,16,14,.07) 55%,rgba(20,16,14,.02) 100%),
+      linear-gradient(90deg,rgba(192,57,43,.80) 0%,rgba(163,34,30,.62) 34%,rgba(193,145,31,.52) 72%,rgba(232,200,92,.16) 100%),
       linear-gradient(90deg,rgba(201,162,39,.17) 0%,rgba(201,162,39,.06) 58%,rgba(201,162,39,0) 100%);
     background-repeat:no-repeat,no-repeat;
     background-position:34px 100%,left center;
@@ -413,7 +413,7 @@
     nav.toc:hover .tc-up,nav.toc:focus-within .tc-up{padding:8px 0;font-size:11px;}
     nav.toc:hover a,nav.toc:focus-within a{font-size:14px;padding:10px 10px 10px 34px;text-align:left;
       background-image:
-        linear-gradient(90deg,rgba(20,16,14,.15) 0%,rgba(20,16,14,.07) 55%,rgba(20,16,14,.02) 100%),
+        linear-gradient(90deg,rgba(192,57,43,.80) 0%,rgba(163,34,30,.62) 34%,rgba(193,145,31,.52) 72%,rgba(232,200,92,.16) 100%),
         linear-gradient(90deg,rgba(201,162,39,.17) 0%,rgba(201,162,39,.06) 58%,rgba(201,162,39,0) 100%);
       background-repeat:no-repeat,no-repeat;background-position:34px 100%,left center;
       background-size:calc(100% - 34px) 1px,0% 100%;}

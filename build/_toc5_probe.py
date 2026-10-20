@@ -157,7 +157,8 @@ if d:
     chk(d['aRadius'] == '0px', '条目方角', d['aRadius'])
     bgs = d['aBgImage'].count('linear-gradient')
     chk(bgs == 2, '条目双层背景（下划线 + hover 金带）', bgs)
-    chk(d['aBgImage'].count('rgba(20, 16, 14') >= 3, '下划线是暖墨渐隐色阶', d['aBgImage'][:90])
+    chk('rgba(192, 57, 43' in d['aBgImage'] and 'rgba(193, 145, 31' in d['aBgImage'],
+        '下划线是红→金渐变', d['aBgImage'][:100])
     chk(d['aBgSize'].split(',')[0].strip().endswith('1px'), '下划线高 1px', d['aBgSize'])
     chk(d['aBgPos'].split(',')[0].strip() == '34px 100%', '下划线从文字起点 34px 起', d['aBgPos'])
     chk(d['lastBgImage'] == 'none', '最后一条不画线（避免与进度区分隔线成双）', d['lastBgImage'])
