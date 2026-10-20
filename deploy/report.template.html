@@ -447,6 +447,49 @@ table.rpt-grid td.ix .gx:hover{background:#f1f0ee;border-color:#e0a4ab;color:#d0
   .rpt-nbox{width:100%;max-height:90vh}
 }
 </style>
+<style id="rte-tools-css">/* 研报编辑器工具栏扩展（2026-10-20 用户令：字号 / 文字颜色 / 填充颜色 / 编号样式）
+   —— 只作用于「编辑」弹层里的富文本区，不影响成品页面。 */
+.rtebar{position:relative;flex-wrap:wrap;}
+.rtesel.rtesz{width:62px;}
+.rte-pal{
+  position:absolute;right:8px;top:calc(100% + 4px);z-index:60;display:none;
+  background:#fffdf8;border:1px solid #e6dcc6;border-radius:10px;
+  padding:7px 8px;box-shadow:0 10px 26px rgba(120,96,40,.18);
+}
+.rte-pal.on{display:block;}
+.rte-pal .row{display:flex;align-items:center;gap:6px;margin:3px 0;}
+.rte-pal .lab{font-size:11px;color:#8a8072;min-width:26px;}
+.rte-col{
+  width:18px;height:18px;border-radius:4px;padding:0;cursor:pointer;
+  border:1px solid rgba(0,0,0,.16);box-shadow:inset 0 0 0 1px rgba(255,255,255,.5);
+}
+.rte-col:hover{transform:scale(1.12);}
+
+/* 面板里的小按钮（字号 / 编号） */
+.rte-pal .rteb{min-width:auto;padding:3px 8px;font-size:12px;}
+.rte-pal .row{flex-wrap:wrap;}
+
+/* 「字色 / 底色」按钮：标签下面一条色条，一眼能看出是改颜色 */
+.rteb-pal{display:inline-flex;flex-direction:column;align-items:center;line-height:1.15;
+  padding:2px 7px 1px;gap:1px;}
+.rteb-pal .sw{display:block;width:100%;min-width:16px;height:3px;border-radius:2px;}
+
+/* ================================================================
+   编辑区里的「三色分级」——所见即所得（2026-10-20 用户令：颜色不一致）
+   ------------------------------------------------------------------
+   库里的颜色是**类**，不是内联样式：裸 <b> = 一级朱砂，#hl2 = 二级靛蓝，
+   #hl3 = 三级黛紫。但线上那几条规则全挂在 `#mods b.hl2 !important` /
+   `.card b.hl2` 这些**页面作用域**上，编辑弹层的 .rte 一个都不匹配 ⇒
+   编辑区里满屏黑字，用户以为「颜色丢了 / 取不到」。
+   这里按同样的色号给 .rte 补一套，只影响编辑区，不碰成品样式。
+   ================================================================ */
+.rte b{color:#c0392b;}
+.rte strong{color:#c0392b;}
+.rte b.hl2, .rte strong.hl2{color:#1f5fa8;}
+.rte b.hl3, .rte strong.hl3{color:#6b3fa0;}
+/* 自定义色（色板里三色之外的）走 data-c 内联，第 6 条已经写进 style，这里不用管 */
+.rte [data-c]{border-radius:2px;}
+</style>
 </head>
 <body>
 <div class="bg-orbs"><i></i><i></i><i></i><i></i></div>
@@ -798,13 +841,31 @@ function tocLabel(s){
     .trim();
 }
 
+/* 序号补零：目录条要显示成 01…10（2026-10-20 参考稿口径）。
+   ⚠️ 只补 `data-n`，`data-i` 必须保持纯数字 —— build/probe_toc.py 用 'IT' + data-i 拼断言名。 */
+function tocPad2(n){ return n < 10 ? '0' + n : '' + n; }
+
 function renderToc(){
   var t = (St.rep && St.rep.toc) || [];
-  $('toc').innerHTML = t.map(function(x, i){
-    return '<a href="#' + attr(x.anchor) + '" data-i="' + (i + 1) + '" title="' + attr(x.text) + '">' +
-           esc(tocLabel(x.text)) + '</a>';
+  var box = $('toc');
+  if(!t.length){ box.innerHTML = ''; box.style.display = 'none'; return; }
+  var links = t.map(function(x, i){
+    return '<a href="#' + attr(x.anchor) + '" data-i="' + (i + 1) + '" data-n="' + tocPad2(i + 1) + '"' +
+           ' title="' + attr(x.text) + '">' + esc(tocLabel(x.text)) + '</a>';
   }).join('');
-  $('toc').style.display = t.length ? '' : 'none';
+  /* 目录壳（2026-10-20 用户给了参考稿，要「花里胡哨」）：
+     顶部「● 目录 03/10」+ 条目 + 底部「阅读进度条 + 回到顶部」。
+     ★ 三块壳全由渲染层生成，**不加任何库字段**；计数与进度在 tocSpy() 里跟着滚动刷新。 */
+  box.innerHTML =
+    '<div class="tc-hd"><i class="tc-dt"></i><span class="tc-tt">目录</span>' +
+      '<span class="tc-ix"><b>01</b><em>/</em>' + tocPad2(t.length) + '</span></div>' +
+    links +
+    '<div class="tc-ft">' +
+      '<div class="tc-pg"><span>阅读进度</span><b>0%</b></div>' +
+      '<div class="tc-bar"><i></i></div>' +
+      '<button type="button" class="tc-up" onclick="try{window.scrollTo({top:0,behavior:\'smooth\'});}catch(e){window.scrollTo(0,0);}return false;">回到顶部</button>' +
+    '</div>';
+  box.style.display = '';
   tocSpy();
 }
 
@@ -837,6 +898,17 @@ function tocSpy(){
   } else if(box.scrollHeight > box.clientHeight + 4){
     box.scrollTop = Math.max(0, a.offsetTop - (box.clientHeight - a.offsetHeight) / 2);
   }
+  /* ---- 目录壳刷新（2026-10-20）：右侧「03 / 10」+ 底部阅读进度 ----
+     ⚠️ 只在 DOM 里读写，不写库；tocSpy 有 90ms 节流，每次 3 次 querySelector 可忽略。 */
+  var ixB = box.querySelector('.tc-ix b');
+  if(ixB){ var cn = cur + 1; ixB.textContent = cn < 10 ? '0' + cn : '' + cn; }
+  var spanY = de.scrollHeight - window.innerHeight;
+  var pct = spanY > 4 ? Math.round(window.pageYOffset / spanY * 100) : 0;
+  if(pct < 0) pct = 0; else if(pct > 100) pct = 100;
+  var barI = box.querySelector('.tc-bar i');
+  if(barI) barI.style.width = pct + '%';
+  var pgB = box.querySelector('.tc-pg b');
+  if(pgB) pgB.textContent = pct + '%';
 }
 var _tocTick = 0;
 function tocSpySoon(){
@@ -5205,6 +5277,373 @@ RGATE.forEach(function(sp){
 
 
 
+</script>
+<script id="rte-tools-js">/* 研报编辑器工具栏扩展（2026-10-20）
+   用户令：编辑里增加 ①文字大小 ②文字颜色 ③填充颜色 ④编号样式（多几种）。
+
+   实现思路：**不改模板里那份 rteBar**，而是在末尾用「包装器」接管它 ——
+   先把原始 rteBar 存起来，调用后再往返回的 HTML 里插入新控件。
+   好处：模板原文一个字不动，后续若模板升级也不会打架；坏处：依赖 .rtebar-tip 这个锚点，
+   所以下面用 indexOf 判空，找不到就原样返回（绝不抛错）。
+
+   ⚠️ 所有按钮都要 onmousedown="return false"：否则点按钮会抢走编辑区选区，
+      execCommand / getSelection 全部失效（模板里原有按钮也是这么写的）。
+*/
+(function(){
+  if (window.__rteTools) return;
+  window.__rteTools = 1;
+
+  var FG = ['#c0392b', '#a5232f', '#d4541f', '#c9a227', '#0f7b6c',
+            '#1f5fa8', '#3f51b5', '#6b3fa0', '#14100e', '#6b6259'];
+  var BG = ['#fff3cd', '#fde2e2', '#fce8d5', '#e3eefc', '#e6f4ea', '#efe6fa', '#efeae0'];
+
+  function swatch(kind, c, id){
+    return '<button type="button" class="rte-col" onmousedown="return false" title="' + c + '" ' +
+      'style="background:' + c + '" ' +
+      'onclick="Rpt.rteColor(\'' + id + '\',\'' + kind + '\',\'' + c + '\')"></button>';
+  }
+
+  function palette(id, kind){
+    var list = kind === 'bg' ? BG : FG;
+    var rows = list.map(function(c){ return swatch(kind, c, id); }).join('');
+    return '<div class="rte-pal" id="' + id + '-pal-' + kind + '">' +
+      '<div class="row"><span class="lab">' + (kind === 'bg' ? '底色' : '字色') + '</span>' + rows + '</div>' +
+      '<div class="row"><span class="lab">清除</span>' +
+        '<button type="button" class="rteb" onmousedown="return false" title="恢复默认颜色" ' +
+        'onclick="Rpt.rteColor(\'' + id + '\',\'' + kind + '\',\'\')">默认</button>' +
+      '</div></div>';
+  }
+
+  /* 打开色板的按钮。⚠️ 2026-10-20 踩坑：上一版只注入了 palette(fg)/palette(bg) 两块面板，
+     却漏了这两个触发器 ⇒ 面板永远打不开，用户看到的就是「文字色和填充色没了」。
+     以后加面板必须同时加触发器，两边成对出现。 */
+  function palBtn(id, kind, label){
+    var c = kind === 'bg' ? '#f0d98a' : '#c0392b';
+    return '<button type="button" class="rteb rteb-pal" onmousedown="return false" title="' +
+      (kind === 'bg' ? '填充颜色（给选中的字加底色）' : '文字颜色') + '" ' +
+      'onclick="Rpt.rtePal(\'' + id + '\',\'' + kind + '\')">' + label +
+      '<i class="sw" style="background:' + c + '"></i></button>';
+  }
+
+  function sizePal(id){
+    var sizes = [12, 13, 14, 16, 18, 20, 24, 28];
+    var btns = sizes.map(function(px){
+      return '<button type="button" class="rteb" onmousedown="return false" title="' + px + 'px" ' +
+        'onclick="Rpt.rteSize(\'' + id + '\',' + px + ')">' + px + '</button>';
+    }).join('');
+    return '<div class="rte-pal" id="' + id + '-pal-size">' +
+      '<div class="row"><span class="lab">字号</span>' + btns + '</div></div>';
+  }
+
+  function listPal(id){
+    var L = [['decimal', '1. 2. 3.'], ['decimal-leading-zero', '01. 02.'], ['lower-alpha', 'a. b. c.'],
+             ['upper-alpha', 'A. B. C.'], ['lower-roman', 'i. ii. iii.'], ['upper-roman', 'I. II. III.'],
+             ['cjk-ideographic', '一、二、三'], ['disc', '• 圆点'], ['square', '▪ 方块'], ['none', '无序号']];
+    var btns = L.map(function(x){
+      return '<button type="button" class="rteb" onmousedown="return false" ' +
+        'onclick="Rpt.rteList(\'' + id + '\',\'' + x[0] + '\')">' + x[1] + '</button>';
+    }).join('');
+    return '<div class="rte-pal" id="' + id + '-pal-list">' +
+      '<div class="row" style="flex-wrap:wrap;max-width:360px">' +
+      '<span class="lab">编号</span>' + btns + '</div></div>';
+  }
+
+  var _rteBar0 = window.rteBar;
+  if (typeof _rteBar0 === 'function') {
+    window.rteBar = function(id, withChart){
+      var h = _rteBar0.apply(this, arguments);
+      if (typeof h !== 'string' || h.indexOf('rtebar-tip') < 0) return h;
+      var extra =
+        '<span class="rteSep"></span>' +
+        /* ★ select 上绝不能写 onmousedown="return false"：那会连原生下拉一起禁掉，
+           用户看到的就是「点不了」。改成先存选区、选完再还原（见 rteSaveSel/rteRestoreSel）。 */
+        palBtn(id, 'fg', '字色') +
+        palBtn(id, 'bg', '底色') +
+        '<button type="button" class="rteb" onmousedown="return false" title="文字大小" ' +
+          'onclick="Rpt.rtePal(\'' + id + '\',\'size\')">A<sup>±</sup></button>' +
+        '<button type="button" class="rteb" onmousedown="return false" title="编号样式（先把光标点进列表）" ' +
+          'onclick="Rpt.rtePal(\'' + id + '\',\'list\')">编号</button>' +
+        sizePal(id) + listPal(id) +
+        palette(id, 'fg') + palette(id, 'bg');
+      /* ★ 模板原有的「图表」下拉也写着 onmousedown="return false" —— 同样打不开。
+         这里统一把**所有 select 上的这条拦截**换成「先存选区」。 */
+      h = h.replace(/<select([^>]*?)\s+onmousedown="return false"/g,
+                    '<select$1 onmousedown="Rpt.rteSaveSel(\'' + id + '\')"');
+      return h.replace('<span class="rtebar-tip">', extra + '<span class="rtebar-tip">');
+    };
+  }
+
+  /* ---------- 保存时修结构 ----------
+     Chrome 在 contenteditable 里编辑块级元素会**把 class 剥掉**：
+     实测 600328 保存后 `<div class="vbox">`、`<p class="vlead">` 全丢，
+     页面上的「导语 + 编号卡片」就退化成普通段落（用户看到「样式不一致 / 改了没反应」）。
+     这里在写库前统一补回：有 .vlist 而没 .vbox ⇒ 包一层；首个 <p> 补 vlead。 */
+  function fixVBox(h){
+    if (!h || h.indexOf('vlist') < 0) return h;
+    if (h.indexOf('vbox') >= 0) {
+      /* 已经有 vbox，只补 vlead */
+      return h.replace(/(<div class="vbox">\s*)<p(?!\s+class)/i, '$1<p class="vlead"');
+    }
+    var i = h.indexOf('<ul');
+    if (i < 0) return h;
+    var head = h.slice(0, i), tail = h.slice(i);
+    head = head.replace(/<p(\s[^>]*)?>/i, function(m, a){
+      a = a || '';
+      if (/class=/.test(a)) return '<p' + a.replace(/class="([^"]*)"/, 'class="$1 vlead"') + '>';
+      return '<p class="vlead"' + a + '>';
+    });
+    return '<div class="vbox">' + head + tail + '</div>';
+  }
+
+  function fixEssence(h){
+    if (!h || h.indexOf('essence') < 0) return h;
+    if (h.indexOf('class="ec"') >= 0) return h;
+    var m = h.match(/<div class="essence"[^>]*>([\s\S]*?)<\/div>\s*$/i);
+    var inner = m ? m[1] : h;
+    inner = inner.replace(/<div class="et">[\s\S]*?<\/div>/i, '');
+    return '<div class="essence" id="essence"><div class="et">THE ESSENCE · 一句话本质（可证伪命题）</div>' +
+           '<div class="ec">' + inner + '</div></div>';
+  }
+
+  function fixStruct(id, h){
+    try{
+      if (id === 'h-essence') return fixEssence(h);
+      if (id === 'h-vc') return fixVBox(h);
+    }catch(e){}
+    return h;
+  }
+
+  var _rteSave0 = window.rteSave;
+  if (typeof _rteSave0 === 'function') {
+    window.rteSave = function(html){ return fixStruct(UI.__rteId || '', _rteSave0.apply(this, arguments)); };
+  }
+
+  /* rteRead 里调用 rteSave 时拿不到 id，这里记一下「当前正在读哪个字段」 */
+  var _rteRead0 = window.rteRead;
+  if (typeof _rteRead0 === 'function') {
+    window.rteRead = function(id, orig){
+      UI.__rteId = id;
+      try { return _rteRead0.apply(this, arguments); }
+      finally { UI.__rteId = ''; }
+    };
+  }
+
+  /* 选区记忆（给 select 用）：点 select 会让编辑区失去选区，所以在 mousedown 时先克隆一份 Range */
+  Rpt._sel = {};
+  Rpt.rteSaveSel = function(id){
+    try{
+      var sel = window.getSelection();
+      if(sel && sel.rangeCount) Rpt._sel[id] = sel.getRangeAt(0).cloneRange();
+    }catch(e){}
+  };
+  Rpt.rteRestoreSel = function(id){
+    var r = Rpt._sel[id];
+    if(!r) return false;
+    try{
+      var sel = window.getSelection();
+      sel.removeAllRanges(); sel.addRange(r);
+      return true;
+    }catch(e){ return false; }
+  };
+
+  /* 选区兜底：**当前选区本来就在这个编辑区里时，绝不要去「还原」记忆里的旧 Range**。
+     2026-10-20 踩坑：连续两次改色时 Rpt._sel 还停在上一步的位置（selectionchange 是异步的），
+     一还原就把新选区顶掉，颜色落到上一段文字上 —— 表现就是「改了不认识的那块」。
+     顺序：先看现状 → 不在框里才回填记忆。 */
+  function _inBox(box){
+    try{
+      var s = window.getSelection();
+      if (!s || !s.rangeCount) return false;
+      var n = s.anchorNode;
+      while (n && n !== box) n = n.parentNode;
+      return n === box;
+    }catch(e){ return false; }
+  }
+  function _ensureSel(box, id){
+    if (!_inBox(box)) Rpt.rteRestoreSel(id);
+    var s = window.getSelection();
+    return !!(s && s.rangeCount);
+  }
+
+  /* 字号：用 Range 包一层 span（execCommand('fontSize') 只能给 1—7 档，且产出 <font>） */
+  Rpt.rteSize = function(id, px){
+    if (!px) return;
+    var box = $(id); if (!box) return;
+    box.focus();
+    if (!_ensureSel(box, id)) { toast('先选中要改的字', 'bad'); return; }
+    var sel = window.getSelection();
+    var r = sel.getRangeAt(0);
+    if (r.collapsed) { toast('先选中要改的字，再选字号', 'bad'); return; }
+    try {
+      var sp = document.createElement('span');
+      sp.style.fontSize = px + 'px';
+      sp.appendChild(r.extractContents());
+      r.insertNode(sp);
+      var nr = document.createRange(); nr.selectNodeContents(sp);
+      sel.removeAllRanges(); sel.addRange(nr);
+    } catch (e) { toast('字号没改成功，可展开「代码」手改', 'bad'); return; }
+    UI.rteDirty[id] = 1;
+    Rpt.rtePal(id, '');
+  };
+
+  /* ---------- 颜色：与线上同一套色号 ----------
+     ⚠️ 2026-10-20 用户「颜色改不进去，编辑里也获取不到，颜色不一致」的根因：
+     线上三色是 **类**（裸 <b> = 朱砂 / .hl2 = 靛蓝 / .hl3 = 黛紫），且规则全挂在
+     `#mods b.hl2{…!important}` / `.card b.hl2` 这类**页面作用域**上。而
+     execCommand('foreColor') 产出的是内联 span/font，回到页面被 !important 盖掉
+     ⇒ 改了不生效，编辑区里又因为 .rte 不匹配那些作用域而全是黑字。
+     改法：① 命中加粗短语就**换 class**（保住三色体系）；
+           ② 普通文字才包 span，且内联色带 !important（行内 important 压过样式表 important）；
+           ③ 默认色 = 去掉类与内联色，回到裸 <b>（一级朱砂）。 */
+  var C_RED = '#c0392b', C_BLUE = '#1f5fa8', C_PURPLE = '#6b3fa0';
+
+  function _anc(n, box, names){
+    while (n && n !== box){
+      if (n.nodeType === 1 && names.indexOf(n.nodeName) >= 0) return n;
+      n = n.parentNode;
+    }
+    return null;
+  }
+  function _touched(box, r){
+    var all = box.querySelectorAll('b,strong'), out = [], i;
+    for (i = 0; i < all.length; i++){
+      try { if (r.intersectsNode && r.intersectsNode(all[i])) out.push(all[i]); } catch(e){}
+    }
+    return out;
+  }
+  function _setInl(el, prop, val){
+    if (val) el.style.setProperty(prop, val, 'important');
+    else el.style.removeProperty(prop);
+    if (!el.getAttribute('style')) el.removeAttribute('style');
+  }
+  function _paintB(b, color){
+    b.classList.remove('hl2'); b.classList.remove('hl3');
+    if (color === C_BLUE) b.classList.add('hl2');
+    else if (color === C_PURPLE) b.classList.add('hl3');
+    if (!b.getAttribute('class')) b.removeAttribute('class');
+    if (!color || color === C_RED || color === C_BLUE || color === C_PURPLE) _setInl(b, 'color', '');
+    else _setInl(b, 'color', color);        /* 三色之外的任意色走内联 important */
+  }
+  function _spanOf(n, box, mark){
+    while (n && n !== box){
+      if (n.nodeType === 1 && n.hasAttribute && n.hasAttribute(mark)) return n;
+      n = n.parentNode;
+    }
+    return null;
+  }
+  function _unwrap(el){
+    var p = el.parentNode; if (!p) return null;
+    while (el.firstChild) p.insertBefore(el.firstChild, el);
+    p.removeChild(el);
+    return p;
+  }
+  function _wrapSel(r, attrs, styleStr){
+    var sp = document.createElement('span'), k;
+    for (k in attrs) sp.setAttribute(k, attrs[k]);
+    if (styleStr) sp.setAttribute('style', styleStr);
+    sp.appendChild(r.extractContents());
+    r.insertNode(sp);
+    try{
+      var nr = document.createRange(); nr.selectNodeContents(sp);
+      var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(nr);
+    }catch(e){}
+    return sp;
+  }
+
+  Rpt.rteColor = function(id, kind, color){
+    var box = $(id); if (!box) return;
+    box.focus();
+    if (!_ensureSel(box, id)) { toast('先把光标点进要改色的文字里', 'bad'); return; }   /* ★ 别用裸 restore：会顶掉当前选区 */
+    var sel = window.getSelection();
+    var r = sel.getRangeAt(0);
+    var prop = kind === 'bg' ? 'background-color' : 'color';
+    var mark = kind === 'bg' ? 'data-b' : 'data-c';
+
+    /* ① 落在加粗短语上 → 换类，保持线上的三色体系 */
+    if (kind === 'fg'){
+      var bs = _touched(box, r);
+      if (bs.length){
+        for (var i = 0; i < bs.length; i++) _paintB(bs[i], color || C_RED);
+        UI.rteDirty[id] = 1; Rpt.rtePal(id, '');
+        return;
+      }
+    }
+
+    /* ② 已经有自己包过的 span → 就地改 / 去掉 */
+    var sp = _spanOf(r.startContainer, box, mark);
+    if (sp){
+      if (color) _setInl(sp, prop, color); else _unwrap(sp);
+      UI.rteDirty[id] = 1; Rpt.rtePal(id, '');
+      return;
+    }
+
+    /* ③ 普通文字 → 包一层带 !important 的 span */
+    if (!color){ if (kind === 'fg') toast('这段本来就是默认色', 'ok'); Rpt.rtePal(id, ''); return; }
+    if (r.collapsed){ toast('先选中要改色的字，再点颜色', 'bad'); return; }
+    try {
+      _wrapSel(r, kind === 'bg' ? {'data-b':'1'} : {'data-c':'1'}, prop + ':' + color + ' !important');
+    } catch (e) { toast('颜色没改成功，可展开「代码」手改', 'bad'); return; }
+    UI.rteDirty[id] = 1; Rpt.rtePal(id, '');
+  };
+
+  Rpt.rtePal = function(id, kind){
+    var kinds = ['fg', 'bg', 'size', 'list'];
+    var target = kind ? document.getElementById(id + '-pal-' + kind) : null;
+    for (var i = 0; i < kinds.length; i++) {
+      var el = document.getElementById(id + '-pal-' + kinds[i]);
+      if (el) el.classList.toggle('on', el === target);
+    }
+  };
+
+  /* 编号样式：只改光标所在 ol / ul 的 list-style-type，不影响其它列表 */
+  Rpt.rteList = function(id, type){
+    var box = $(id); if (!box) return;
+    box.focus();
+    if (!_ensureSel(box, id)) { toast('先把光标点进列表里，再选编号样式', 'bad'); return; }
+    var sel = window.getSelection();
+    var n = sel && sel.anchorNode;
+    while (n && n !== box && n.nodeName !== 'OL' && n.nodeName !== 'UL') n = n.parentNode;
+    if (!n || n === box) { toast('先把光标点进列表里，再选编号样式', 'bad'); return; }
+    n.style.listStyleType = type || '';
+    UI.rteDirty[id] = 1;
+    Rpt.rtePal(id, '');
+  };
+
+  /* 持续记录选区：select 会抢焦点，靠 mousedown 存一次不够稳。
+     监听 selectionchange，只要锚点在某个 .rte 里就把 Range 克隆下来。 */
+  document.addEventListener('selectionchange', function(){
+    try{
+      var sel = window.getSelection();
+      if(!sel || !sel.rangeCount) return;
+      var n = sel.anchorNode;
+      var el = (n && n.nodeType === 1) ? n : (n && n.parentNode);
+      while(el && !(el.classList && el.classList.contains('rte'))) el = el.parentNode;
+      if(el && el.id) Rpt._sel[el.id] = sel.getRangeAt(0).cloneRange();
+    }catch(e){}
+  });
+
+  /* 图表下拉选完要插到「原来选中的位置」，所以同样先还原选区 */
+  if (typeof Rpt.rteChart === 'function') {
+    var _chart0 = Rpt.rteChart;
+    Rpt.rteChart = function(id){
+      var box = $(id);
+      if (box) box.focus();
+      Rpt.rteRestoreSel(id);
+      return _chart0.apply(this, arguments);
+    };
+  }
+
+  /* 点空白处收起色板 */
+  document.addEventListener('mousedown', function(e){
+    var t = e.target;
+    /* 点在色板内部（含「默认」按钮）不要收起 —— 否则 mousedown 一收起，
+       mouseup 落在隐藏元素上，click 根本不触发，看起来就是「点了没反应」。 */
+    if (t && t.closest && t.closest('.rte-pal')) return;
+    if (t && t.className && String(t.className).indexOf('rte-col') >= 0) return;
+    var pals = document.querySelectorAll('.rte-pal.on');
+    for (var i = 0; i < pals.length; i++) pals[i].classList.remove('on');
+  }, true);
+})();
 </script>
 </body>
 </html>

@@ -276,34 +276,37 @@ echarts.registerMap('china',{"type":"FeatureCollection","features":[{"type":"Fea
   .tag.warn{background:#fff4dc;color:var(--amber);}
   .tag.info{background:var(--accent-soft);color:var(--accent);}
   /* ============================================================
-     左侧竖排目录 —— 2026-10-20 第三版「现代白玻璃」
+     左侧竖排目录 —— 2026-10-20 第四版「参考稿 · 精致重读」
      ------------------------------------------------------------------
-     ★ 前两版都被用户否掉了，别复活：
-       ① 亮红实色渐变 `#e43644→#a30f24` + 白底红字  → 「太塑料」
-       ② 墨玉金箔（暖墨底 + 金描边 + 金箔选中）      → 「还是太丑」
-     现在走当下主流做法，去掉所有大面积渐变与描金：
-       · 高不透明度暖白玻璃（.86）+ 细边框（透明黑 7%）+ 极轻投影
-       · 条目**左对齐 + 前置小序号**（文档型导航的通行排法，比居中稳）
-       · 选中态 = 深墨实底 + 暖白字，序号点金 —— 唯一的品牌色触点
-     ⚠️ `backdrop-filter` 只准用在这一块小面积上：整页 3.9 MB，
-        再加模糊层会明显拖滚动。
-     ⚠️ 宽度 136 是上限：1440 视口下目录右缘 168 vs 正文左缘 192，余量只 24px。
-     ≥1361px 完整竖排；≤1360px 收成序号胶囊（悬停展开）；≤760px 变底部横排条
+     ★ 用户给了参考稿（暖白卡 / ●目录 + 03/10 计数 / 两位数序号 /
+       深墨大圆角选中 + 右侧金点 / 底部阅读进度条 / 回到顶部按钮），
+       要求「按这个样式改的花里胡哨一点」。
+     ★ 前三版别复活：亮红实色（塑料）→ 墨玉金箔（老气）→ 纯白玻璃（太素）。
+       本版＝白玻璃的骨 + 参考稿的壳：所有「花」都花在**信息与小结构**上，
+       不用大面积渐变，避免又滑回前两版的坑。
+     ★ 壳由 renderToc() 生成（`.tc-hd` / `.tc-ft`），计数与进度由 tocSpy()
+       随滚动刷新 —— **不新增任何库字段**，纯渲染层。
+     ⚠️ 宽度 136 是硬上限：1440 视口下目录右缘 168 vs 正文左缘 192，余量 24px。
+     ⚠️ `backdrop-filter` 只准用这一块（整页 3.9 MB，多加会拖滚动）。
+     ≥1361px 完整竖排；≤1360px 序号胶囊（悬停展开成全卡）；≤760px 底部横排条
      ============================================================ */
   nav.toc{
     position:fixed;z-index:80;
     left:max(10px,calc(50% - 688px));top:50%;transform:translateY(-50%);
     width:136px;max-height:86vh;overflow-y:auto;overscroll-behavior:contain;
-    display:flex;flex-direction:column;gap:2px;
-    padding:10px 8px 11px;border-radius:16px;
-    background:rgba(255,253,248,.86);
-    -webkit-backdrop-filter:blur(20px) saturate(150%);
-    backdrop-filter:blur(20px) saturate(150%);
-    border:1px solid rgba(20,16,14,.07);
+    display:flex;flex-direction:column;gap:1px;
+    padding:11px 8px 9px;border-radius:18px;
+    /* 底色 + 右下角一点极淡金晕（参考稿的暖光收尾，透明度只 9%，不是大面积渐变） */
+    background:
+      radial-gradient(120% 78% at 108% 106%,rgba(201,162,39,.09) 0%,rgba(201,162,39,0) 62%),
+      rgba(255,253,248,.92);
+    -webkit-backdrop-filter:blur(22px) saturate(160%);
+    backdrop-filter:blur(22px) saturate(160%);
+    border:1px solid rgba(20,16,14,.06);
     box-shadow:
-      0 1px 2px rgba(20,16,14,.05),
-      0 12px 30px -10px rgba(20,16,14,.20),
-      inset 0 1px 0 rgba(255,255,255,.85);
+      0 1px 2px rgba(20,16,14,.04),
+      0 18px 44px -14px rgba(20,16,14,.22),
+      inset 0 1px 0 rgba(255,255,255,.9);
     scrollbar-width:none;
     transition:box-shadow .28s ease,border-color .28s ease;
   }
@@ -311,67 +314,116 @@ echarts.registerMap('china',{"type":"FeatureCollection","features":[{"type":"Fea
   nav.toc:hover{
     border-color:rgba(20,16,14,.13);
     box-shadow:
-      0 1px 2px rgba(20,16,14,.05),
-      0 18px 40px -12px rgba(20,16,14,.26),
-      inset 0 1px 0 rgba(255,255,255,.92);
+      0 1px 2px rgba(20,16,14,.04),
+      0 24px 52px -16px rgba(20,16,14,.28),
+      inset 0 1px 0 rgba(255,255,255,.94);
   }
-  /* 顶部小标题：小字号 + 大字距 + 暖灰，一条极细分隔线收口 */
-  nav.toc::before{
-    content:'目录';display:block;
-    font-size:10.5px;font-weight:700;letter-spacing:.18em;text-indent:.18em;
-    color:#9c9184;padding:4px 9px 9px;margin-bottom:3px;
+  /* ---------- 顶栏：● 目录 …………… 03 / 10 ---------- */
+  .tc-hd{
+    display:flex;align-items:center;gap:5px;flex:0 0 auto;
+    padding:1px 5px 9px;margin-bottom:4px;
     border-bottom:1px solid rgba(20,16,14,.06);
   }
+  .tc-dt{
+    width:6px;height:6px;border-radius:50%;flex:0 0 auto;background:#c9a227;
+    box-shadow:0 0 0 3px rgba(201,162,39,.15);
+  }
+  .tc-tt{
+    flex:1 1 auto;font-size:10px;font-weight:700;letter-spacing:.14em;
+    text-indent:.14em;color:#9c9184;
+  }
+  .tc-ix{
+    flex:0 0 auto;font-size:9px;font-weight:600;letter-spacing:.04em;
+    color:rgba(20,16,14,.28);font-variant-numeric:tabular-nums;
+  }
+  .tc-ix b{color:#b08a1f;font-weight:800;}
+  .tc-ix em{font-style:normal;opacity:.55;margin:0 2px;}
+  /* ---------- 条目：01 │ 模块名 ---------- */
   nav.toc a{
-    position:relative;display:block;
+    position:relative;display:block;flex:0 0 auto;
     font-size:13px;font-weight:500;line-height:1.3;
-    padding:7px 10px 7px 33px;border-radius:9px;
+    padding:7px 8px 7px 30px;border-radius:11px;
     color:#5a5148;text-decoration:none;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-    transition:background .16s ease,color .16s ease;
+    transition:background .16s ease,color .16s ease,box-shadow .16s ease;
   }
-  /* 前置序号：`data-i` 由 renderToc() 写成 1..N（不是「第X篇」那种前缀，不占字宽） */
+  /* 两位数序号：读 `data-n`（补零串），不是 `data-i`（纯数字，探针在用） */
   nav.toc a::before{
-    content:attr(data-i);
-    position:absolute;left:9px;top:50%;transform:translateY(-50%);
-    width:15px;text-align:right;font-size:9.5px;font-weight:600;
-    font-variant-numeric:tabular-nums;
-    color:rgba(20,16,14,.26);transition:color .16s ease;
+    content:attr(data-n);
+    position:absolute;left:8px;top:50%;transform:translateY(-50%);
+    font-size:9px;font-weight:600;letter-spacing:.02em;
+    font-variant-numeric:tabular-nums;color:rgba(20,16,14,.22);
+    transition:color .16s ease;
   }
-  nav.toc a:hover{background:rgba(20,16,14,.055);color:#14100e;}
-  /* 选中：深墨实底 + 暖白字 + 金色序号。★ 这是全目录唯一的「重」元素，
-     所以条目本身不再带描边/左柱 —— 越少装饰越像 2026 年的产品界面。 */
+  nav.toc a:hover{background:rgba(20,16,14,.05);color:#14100e;}
+  /* 选中：深墨大圆角 + 金序号 + 右侧金点（参考稿的两个记忆点都在这） */
   nav.toc a.on{
-    background:linear-gradient(180deg,#241d19 0%,#171210 100%);
-    color:#fbf8f2;font-weight:600;
-    box-shadow:0 2px 8px -1px rgba(20,16,14,.28);
+    background:linear-gradient(180deg,#241d19 0%,#15100e 100%);
+    color:#fbf8f2;font-weight:600;padding-right:20px;
+    box-shadow:0 6px 16px -8px rgba(20,16,14,.55);
   }
-  nav.toc a.on::before{color:#c9a227;}
+  nav.toc a.on::before{color:#d8b64a;}
+  nav.toc a.on::after{
+    content:'';position:absolute;right:9px;top:50%;transform:translateY(-50%);
+    width:4px;height:4px;border-radius:50%;background:#d8b64a;
+    box-shadow:0 0 0 3px rgba(201,162,39,.16);
+  }
+  /* ---------- 底栏：阅读进度 + 回到顶部 ---------- */
+  .tc-ft{
+    display:block;flex:0 0 auto;margin-top:5px;padding:9px 4px 1px;
+    border-top:1px solid rgba(20,16,14,.06);
+  }
+  .tc-pg{
+    display:flex;align-items:baseline;justify-content:space-between;
+    font-size:8.5px;letter-spacing:.03em;color:#a89e8f;
+  }
+  .tc-pg b{color:#b08a1f;font-weight:800;font-size:9.5px;font-variant-numeric:tabular-nums;}
+  .tc-bar{
+    height:2px;border-radius:2px;background:rgba(20,16,14,.07);
+    margin:6px 0 9px;overflow:hidden;
+  }
+  .tc-bar i{
+    display:block;height:100%;width:0;border-radius:2px;
+    background:linear-gradient(90deg,#e0c268,#c9a227);
+    transition:width .3s ease;
+  }
+  .tc-up{
+    display:block;width:100%;padding:6px 0;margin:0;
+    font:inherit;font-size:10px;font-weight:600;letter-spacing:.06em;
+    color:#7a7168;background:transparent;cursor:pointer;
+    border:1px solid rgba(20,16,14,.10);border-radius:8px;
+    transition:background .16s ease,color .16s ease,border-color .16s ease;
+  }
+  .tc-up::before{content:'\2191\00a0';font-weight:700;color:#b08a1f;}
+  .tc-up:hover{background:rgba(20,16,14,.045);color:#14100e;border-color:rgba(20,16,14,.18);}
   /* 锚点定位补偿：点目录跳过去时，模块标题不被顶部操作条压住。
      ⚠️ 2026-09-20：目录新增「投资核心」锚到页面顶部的核心结论区（#verdict，
      不是模块卡），所以要一并给 #verdict 补 scroll-margin-top，
      否则点目录跳过去时核心结论会被固定顶栏压掉一截。 */
   .card[id], #verdict{scroll-margin-top:86px;}
-  /* 窄屏：目录收成「序号胶囊」，悬停 / 聚焦后展开全文 */
+  /* 窄屏：目录收成「序号胶囊」，悬停 / 聚焦后展开成全卡 */
   @media(max-width:1360px){
     body{padding-left:62px;}
     nav.toc{left:9px;width:46px;padding:9px 6px 10px;border-radius:14px;}
-    /* ★ 胶囊态只有 34px 可用宽：「目录」必须归零字距，否则挤成两行竖排（已踩） */
-    nav.toc::before{font-size:9px;letter-spacing:0;text-indent:0;padding:3px 0 8px;}
+    .tc-hd,.tc-ft{display:none;}
     nav.toc a{font-size:0;padding:9px 0;text-align:center;}
+    /* ★ text-align 必须显式回收：宽屏给它的是继承值，static 后会让序号贴右沿 */
     nav.toc a::before{
       position:static;transform:none;display:block;width:auto;
-      margin:0;font-size:11px;font-weight:700;
-      /* ★ text-align 必须显式回收：宽屏给的是 right（右对齐成列），
-         static 块继承过来会让序号码贴胶囊右沿 */
-      text-align:center;}
-    nav.toc:hover,nav.toc:focus-within{width:136px;padding:10px 8px 11px;border-radius:16px;}
-    nav.toc:hover::before,nav.toc:focus-within::before{
-      font-size:10px;letter-spacing:.2em;text-indent:.2em;padding:4px 8px 9px;}
-    nav.toc:hover a,nav.toc:focus-within a{font-size:13px;padding:7px 10px 7px 33px;text-align:left;}
+      margin:0;font-size:10px;font-weight:700;text-align:center;
+    }
+    nav.toc a.on{padding-right:0;}
+    nav.toc a.on::after{content:none;}
+    nav.toc:hover,nav.toc:focus-within{width:136px;padding:11px 8px 9px;border-radius:18px;}
+    nav.toc:hover .tc-hd,nav.toc:focus-within .tc-hd{display:flex;}
+    nav.toc:hover .tc-ft,nav.toc:focus-within .tc-ft{display:block;}
+    nav.toc:hover a,nav.toc:focus-within a{font-size:13px;padding:7px 8px 7px 30px;text-align:left;}
     nav.toc:hover a::before,nav.toc:focus-within a::before{
-      position:absolute;left:9px;top:50%;transform:translateY(-50%);
-      width:15px;text-align:right;margin:0;font-size:9.5px;}
+      position:absolute;left:8px;top:50%;transform:translateY(-50%);
+      width:auto;margin:0;font-size:9px;text-align:left;
+    }
+    nav.toc:hover a.on,nav.toc:focus-within a.on{padding-right:20px;}
+    nav.toc:hover a.on::after,nav.toc:focus-within a.on::after{content:'';}
   }
   /* 手机：目录改成底部横排条，横向可滑 */
   @media(max-width:760px){
@@ -381,15 +433,20 @@ echarts.registerMap('china',{"type":"FeatureCollection","features":[{"type":"Fea
       flex-direction:row;gap:4px;overflow-x:auto;overflow-y:hidden;
       padding:8px 10px;border-radius:16px 16px 0 0;
       border-width:1px 0 0;border-color:rgba(20,16,14,.10);
-      background:rgba(255,253,248,.94);
+      background:rgba(255,253,248,.95);
       box-shadow:0 -10px 28px -8px rgba(20,16,14,.18),inset 0 1px 0 rgba(255,255,255,.9);
     }
-    nav.toc::before{display:none;}
-    nav.toc a,nav.toc:hover a{flex:0 0 auto;font-size:12.5px;padding:7px 12px;text-align:left;}
-    nav.toc a::before,nav.toc:hover a::before{display:none;}
+    .tc-hd,.tc-ft{display:none !important;}
+    nav.toc a,nav.toc:hover a{
+      flex:0 0 auto;font-size:12.5px;padding:7px 12px 7px 25px;text-align:left;
+    }
+    nav.toc a::before,nav.toc:hover a::before{
+      position:absolute;left:9px;top:50%;transform:translateY(-50%);
+      width:auto;margin:0;font-size:8.5px;text-align:left;
+    }
     nav.toc a:hover{transform:none;}
   }
-  /* ================================================================
+/* ================================================================
      核心结论（2026-10-14 版式重做）
      用户口径：「核心结论看起来很乱，所有的文字一定要注意排版，
      要一眼看上去就很舒服」。旧版是**横向 flex**：标题挤在左边、
@@ -3801,13 +3858,31 @@ function tocLabel(s){
     .trim();
 }
 
+/* 序号补零：目录条要显示成 01…10（2026-10-20 参考稿口径）。
+   ⚠️ 只补 `data-n`，`data-i` 必须保持纯数字 —— build/probe_toc.py 用 'IT' + data-i 拼断言名。 */
+function tocPad2(n){ return n < 10 ? '0' + n : '' + n; }
+
 function renderToc(){
   var t = (St.rep && St.rep.toc) || [];
-  $('toc').innerHTML = t.map(function(x, i){
-    return '<a href="#' + attr(x.anchor) + '" data-i="' + (i + 1) + '" title="' + attr(x.text) + '">' +
-           esc(tocLabel(x.text)) + '</a>';
+  var box = $('toc');
+  if(!t.length){ box.innerHTML = ''; box.style.display = 'none'; return; }
+  var links = t.map(function(x, i){
+    return '<a href="#' + attr(x.anchor) + '" data-i="' + (i + 1) + '" data-n="' + tocPad2(i + 1) + '"' +
+           ' title="' + attr(x.text) + '">' + esc(tocLabel(x.text)) + '</a>';
   }).join('');
-  $('toc').style.display = t.length ? '' : 'none';
+  /* 目录壳（2026-10-20 用户给了参考稿，要「花里胡哨」）：
+     顶部「● 目录 03/10」+ 条目 + 底部「阅读进度条 + 回到顶部」。
+     ★ 三块壳全由渲染层生成，**不加任何库字段**；计数与进度在 tocSpy() 里跟着滚动刷新。 */
+  box.innerHTML =
+    '<div class="tc-hd"><i class="tc-dt"></i><span class="tc-tt">目录</span>' +
+      '<span class="tc-ix"><b>01</b><em>/</em>' + tocPad2(t.length) + '</span></div>' +
+    links +
+    '<div class="tc-ft">' +
+      '<div class="tc-pg"><span>阅读进度</span><b>0%</b></div>' +
+      '<div class="tc-bar"><i></i></div>' +
+      '<button type="button" class="tc-up" onclick="try{window.scrollTo({top:0,behavior:\'smooth\'});}catch(e){window.scrollTo(0,0);}return false;">回到顶部</button>' +
+    '</div>';
+  box.style.display = '';
   tocSpy();
 }
 
@@ -3840,6 +3915,17 @@ function tocSpy(){
   } else if(box.scrollHeight > box.clientHeight + 4){
     box.scrollTop = Math.max(0, a.offsetTop - (box.clientHeight - a.offsetHeight) / 2);
   }
+  /* ---- 目录壳刷新（2026-10-20）：右侧「03 / 10」+ 底部阅读进度 ----
+     ⚠️ 只在 DOM 里读写，不写库；tocSpy 有 90ms 节流，每次 3 次 querySelector 可忽略。 */
+  var ixB = box.querySelector('.tc-ix b');
+  if(ixB){ var cn = cur + 1; ixB.textContent = cn < 10 ? '0' + cn : '' + cn; }
+  var spanY = de.scrollHeight - window.innerHeight;
+  var pct = spanY > 4 ? Math.round(window.pageYOffset / spanY * 100) : 0;
+  if(pct < 0) pct = 0; else if(pct > 100) pct = 100;
+  var barI = box.querySelector('.tc-bar i');
+  if(barI) barI.style.width = pct + '%';
+  var pgB = box.querySelector('.tc-pg b');
+  if(pgB) pgB.textContent = pct + '%';
 }
 var _tocTick = 0;
 function tocSpySoon(){
