@@ -32,8 +32,8 @@ def shot(src, w, h, png, scale=2):
 hsrc = os.path.join(ROOT, '_work/p5_hover.html')
 s = io.open(SRC, encoding='utf-8').read()
 sim = """<style>
-nav.toc a[data-i="3"]{background-size:100% 100% !important;color:#14100e !important;
-  transform:translateX(3px) !important;box-shadow:0 3px 12px -6px rgba(20,16,14,.24) !important;}
+nav.toc a[data-i="3"]{background-size:calc(100% - 34px) 1px,100% 100% !important;color:#14100e !important;
+  box-shadow:inset 3px 0 0 -1px rgba(201,162,39,.55),0 3px 12px -6px rgba(20,16,14,.24) !important;}
 nav.toc a[data-i="3"]::before{color:#b08a1f !important;transform:translateY(-50%) scale(1.12) !important;}
 </style>"""
 io.open(hsrc, 'w', encoding='utf-8').write(s.replace('</head>', sim + '</head>'))

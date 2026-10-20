@@ -229,8 +229,10 @@
        ⚠️ 需要 ≥1428px 才放得下，以下回退到 136（见 1427 断点）。 */
     left:max(10px,calc(50% - 704px));top:50%;transform:translateY(-50%);
     width:178px;max-height:88vh;overflow-y:auto;overscroll-behavior:contain;
-    display:flex;flex-direction:column;gap:2px;
-    padding:14px 10px 12px;border-radius:20px;
+    /* ★ 方角（2026-10-20 用户令「四个角改成方的」）：20px → 0。
+       条目与「回到顶部」按钮一起走方角，整卡才像一张表格纸而不是贴纸。 */
+    display:flex;flex-direction:column;gap:0;
+    padding:14px 10px 12px;border-radius:0;
     /* 底色 + 右下角一点极淡金晕（参考稿的暖光收尾，透明度只 9%，不是大面积渐变） */
     background:
       radial-gradient(120% 78% at 108% 106%,rgba(201,162,39,.09) 0%,rgba(201,162,39,0) 62%),
@@ -246,26 +248,11 @@
     transition:box-shadow .28s ease,border-color .28s ease;
   }
   nav.toc::-webkit-scrollbar{display:none;}
-  /* 序号列的红金渐变虚线（2026-10-20 用户令：「1，2，3 等往下的位置加一条虚线红金渐变」）。
-     ★ 位置不写死：`--tc-lt/--tc-lh` 由 renderToc() 按首末条目中线算出，
-       6 条还是 10 条都正好从第一个序号连到最后一个。
-     ★ 用 `mask-image` 切虚线而不是 `repeating-linear-gradient` 画色 —— 后者做不出
-       「整条线从朱砂渐变到金」，只会让每段虚线各自重复一遍色阶。
-     ★ `pointer-events:none`：不能挡住条目的点击热区。 */
-  nav.toc::before{
-    /* ★ left 是相对 nav 的 padding box：nav padding 10 + a 内序号 left 11 + 序号宽 ~11 = 32，
-       线取 38 才落在「序号右缘 32」与「文字 44」之间。写小了会直接穿过 01/02 的字腰。 */
-    content:'';position:absolute;left:38px;
-    top:var(--tc-lt,44px);height:var(--tc-lh,360px);width:1px;
-    background:linear-gradient(180deg,#c0392b 0%,#b3241f 40%,#c1911f 76%,#e8c85c 100%);
-    /* ★ 段长 = 周期 − 5px、周期 = `--tc-step`（相邻两条目的 offsetTop 差，renderToc 写入）。
-       只看两个数：4px 一档的旧写法在 1px 宽上就是一串小方块，看着像「横点」；
-       24px 一档又让行间空档过大，读起来是「一列断开的短横」（用户 2026-10-20 两次指正）。
-       现在每行只留 5px 缺口 —— 视觉上是一条**连续的竖线**，放大才看得出是虚线。 */
-    -webkit-mask-image:repeating-linear-gradient(180deg,#000 0 calc(var(--tc-step,41px) - 5px),rgba(0,0,0,0) calc(var(--tc-step,41px) - 5px) var(--tc-step,41px));
-    mask-image:repeating-linear-gradient(180deg,#000 0 calc(var(--tc-step,41px) - 5px),rgba(0,0,0,0) calc(var(--tc-step,41px) - 5px) var(--tc-step,41px));
-    opacity:.82;pointer-events:none;
-  }
+  /* 序号列的竖线已**整体移除**（2026-10-20 用户令「竖线不要了」）。
+     前六版走过的坑记在这里，别再花时间重试：4/9px 小段＝一串横点、
+     24px 段＝一列断横、段长 = 周期−5px 才连续；`mask-image` 是唯一能做出
+     「整条线红→金」的写法（`repeating-linear-gradient` 画色会让每段各自重来一遍）。
+     现在改由「每行标题下的下划线」分隔条目 —— 见 `nav.toc a` 的第一层背景。 */
   nav.toc:hover{
     border-color:rgba(20,16,14,.13);
     box-shadow:
@@ -297,21 +284,28 @@
   nav.toc a{
     position:relative;display:block;flex:0 0 auto;
     font-size:14px;font-weight:500;line-height:1.35;
-    padding:10px 10px 10px 34px;border-radius:12px;
+    padding:10px 10px 10px 34px;border-radius:0;
     color:#5a5148;text-decoration:none;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-    /* ★ hover 的「动态」全在这一条上：金色光带从左往右展开（0% → 100%），
-       而不是整块底色突然变灰。缓动走 `cubic-bezier(.22,.8,.36,1)`，
-       前段快、尾段收，观感更像原生应用。 */
-    background-image:linear-gradient(90deg,rgba(201,162,39,.17) 0%,rgba(201,162,39,.06) 58%,rgba(201,162,39,0) 100%);
-    background-repeat:no-repeat;
-    background-position:left center;
-    background-size:0% 100%;
+    /* ★ 两层背景（2026-10-20 用户令「每条目录标题下加一个下划线」）：
+       ① 下划线：从**文字起点 34px** 起、高 1px，向右由暖墨 15% 渐隐到 2%，
+          所以它像「标题的下划线」而不是通栏分割线；
+       ② hover 金带：从左往右展开（0% → 100%），换底色是硬跳变、没有动感。
+       ★ 两层必须写成同一条 background-size/position 列表，hover 时只改第二层的宽度，
+         第一层保持 `calc(100% - 34px) 1px`，否则下划线会跟着撑成整块。 */
+    background-image:
+      linear-gradient(90deg,rgba(20,16,14,.15) 0%,rgba(20,16,14,.07) 55%,rgba(20,16,14,.02) 100%),
+      linear-gradient(90deg,rgba(201,162,39,.17) 0%,rgba(201,162,39,.06) 58%,rgba(201,162,39,0) 100%);
+    background-repeat:no-repeat,no-repeat;
+    background-position:34px 100%,left center;
+    background-size:calc(100% - 34px) 1px,0% 100%;
     transition:background-size .4s cubic-bezier(.22,.8,.36,1),
                color .22s ease,
                transform .3s cubic-bezier(.22,.8,.36,1),
                box-shadow .3s ease;
   }
+  /* 最后一条不画线（下面紧接「阅读进度」区，已有分隔线，再画一条会成双线） */
+  nav.toc a:last-of-type{background-image:none;}
   /* 两位数序号：读 `data-n`（补零串），不是 `data-i`（纯数字，探针在用） */
   nav.toc a::before{
     content:attr(data-n);
@@ -321,12 +315,14 @@
     transition:color .22s ease,transform .3s cubic-bezier(.22,.8,.36,1);
   }
   nav.toc a:hover{
-    background-size:100% 100%;
-    color:#14100e;transform:translateX(3px);
-    box-shadow:0 3px 12px -6px rgba(20,16,14,.24);
+    background-size:calc(100% - 34px) 1px,100% 100%;
+    color:#14100e;
+    /* ★ 不再右移 3px（2026-10-20 方角改版）：条目不缩进、通栏铺满，
+       一移位文字就不在同一列上，列表的「对齐感」反而没了。 */
+    box-shadow:inset 3px 0 0 -1px rgba(201,162,39,.55),0 3px 12px -6px rgba(20,16,14,.24);
   }
   nav.toc a:hover::before{color:#b08a1f;transform:translateY(-50%) scale(1.12);}
-  /* 选中：深墨大圆角 + 金序号 + 右侧金点（参考稿的两个记忆点都在这） */
+  /* 选中：深墨块 + 金序号 + 右侧金点（方角，与卡片四角一致） */
   nav.toc a.on{
     background:linear-gradient(180deg,#241d19 0%,#15100e 100%);
     background-size:100% 100%;
@@ -363,7 +359,7 @@
     display:block;width:100%;padding:8px 0;margin:0;
     font:inherit;font-size:11px;font-weight:600;letter-spacing:.06em;
     color:#7a7168;background:transparent;cursor:pointer;
-    border:1px solid rgba(20,16,14,.10);border-radius:8px;
+    border:1px solid rgba(20,16,14,.10);border-radius:0;
     transition:background .16s ease,color .16s ease,border-color .16s ease;
   }
   .tc-up::before{content:'\2191\00a0';font-weight:700;color:#b08a1f;}
@@ -375,13 +371,14 @@
   .card[id], #verdict{scroll-margin-top:86px;}
   /* 1361~1427px：正文两侧只剩 ~140px，164 会压住正文 ⇒ 回退到 136（尺寸跳一档，但没有重叠） */
   @media(max-width:1427px){
-    nav.toc{left:max(10px,calc(50% - 656px));width:136px;padding:11px 8px 9px;border-radius:18px;max-height:86vh;}
-    nav.toc::before{left:32px;}
+    nav.toc{left:max(10px,calc(50% - 656px));width:136px;padding:11px 8px 9px;border-radius:0;max-height:86vh;}
     .tc-hd{gap:5px;padding:1px 5px 9px;margin-bottom:4px;}
     .tc-dt{width:6px;height:6px;}
     .tc-tt{font-size:10px;letter-spacing:.14em;text-indent:.14em;}
     .tc-ix{font-size:9px;}
-    nav.toc a{font-size:13px;padding:7px 8px 7px 30px;border-radius:11px;}
+    nav.toc a{font-size:13px;padding:7px 8px 7px 30px;border-radius:0;
+      background-size:calc(100% - 30px) 1px,0% 100%;background-position:30px 100%,left center;}
+    nav.toc a:hover{background-size:calc(100% - 30px) 1px,100% 100%;}
     nav.toc a::before{left:8px;font-size:9px;}
     nav.toc a.on{padding-right:20px;}
     nav.toc a.on::after{right:9px;width:4px;height:4px;}
@@ -394,10 +391,10 @@
   /* 窄屏：目录收成「序号胶囊」，悬停 / 聚焦后展开成全卡 */
   @media(max-width:1360px){
     body{padding-left:62px;}
-    nav.toc{left:9px;width:46px;padding:9px 6px 10px;border-radius:14px;max-height:86vh;}
-    nav.toc::before{display:none;}
+    nav.toc{left:9px;width:46px;padding:9px 6px 10px;border-radius:0;max-height:86vh;}
     .tc-hd,.tc-ft{display:none;}
-    nav.toc a{font-size:0;padding:10px 0;text-align:center;}
+    /* 胶囊态只有序号，下划线会变成一串短横 ⇒ 收起时不画，展开回全卡再恢复 */
+    nav.toc a{font-size:0;padding:10px 0;text-align:center;background-image:none;}
     /* ★ text-align 必须显式回收：宽屏给它的是继承值，static 后会让序号贴右沿 */
     nav.toc a::before{
       position:static;transform:none;display:block;width:auto;
@@ -405,8 +402,7 @@
     }
     nav.toc a.on{padding-right:0;}
     nav.toc a.on::after{content:none;}
-    nav.toc:hover,nav.toc:focus-within{width:178px;padding:14px 10px 12px;border-radius:20px;}
-    nav.toc:hover::before,nav.toc:focus-within::before{display:block;}
+    nav.toc:hover,nav.toc:focus-within{width:178px;padding:14px 10px 12px;border-radius:0;}
     nav.toc:hover .tc-hd,nav.toc:focus-within .tc-hd{display:flex;padding:2px 6px 11px;margin-bottom:5px;gap:6px;}
     nav.toc:hover .tc-tt,nav.toc:focus-within .tc-tt{font-size:11px;letter-spacing:.16em;text-indent:.16em;}
     nav.toc:hover .tc-ix,nav.toc:focus-within .tc-ix{font-size:10px;}
@@ -415,7 +411,12 @@
     nav.toc:hover .tc-pg b,nav.toc:focus-within .tc-pg b{font-size:10.5px;}
     nav.toc:hover .tc-bar,nav.toc:focus-within .tc-bar{height:3px;margin:7px 0 11px;}
     nav.toc:hover .tc-up,nav.toc:focus-within .tc-up{padding:8px 0;font-size:11px;}
-    nav.toc:hover a,nav.toc:focus-within a{font-size:14px;padding:10px 10px 10px 34px;text-align:left;}
+    nav.toc:hover a,nav.toc:focus-within a{font-size:14px;padding:10px 10px 10px 34px;text-align:left;
+      background-image:
+        linear-gradient(90deg,rgba(20,16,14,.15) 0%,rgba(20,16,14,.07) 55%,rgba(20,16,14,.02) 100%),
+        linear-gradient(90deg,rgba(201,162,39,.17) 0%,rgba(201,162,39,.06) 58%,rgba(201,162,39,0) 100%);
+      background-repeat:no-repeat,no-repeat;background-position:34px 100%,left center;
+      background-size:calc(100% - 34px) 1px,0% 100%;}
     nav.toc:hover a::before,nav.toc:focus-within a::before{
       position:absolute;left:11px;top:50%;transform:translateY(-50%);
       width:auto;margin:0;font-size:10px;text-align:left;
@@ -429,7 +430,7 @@
     nav.toc{
       left:0;right:0;bottom:0;top:auto;transform:none;width:auto;max-height:none;
       flex-direction:row;gap:4px;overflow-x:auto;overflow-y:hidden;
-      padding:8px 10px;border-radius:16px 16px 0 0;
+      padding:8px 10px;border-radius:0;
       border-width:1px 0 0;border-color:rgba(20,16,14,.10);
       background:rgba(255,253,248,.95);
       box-shadow:0 -10px 28px -8px rgba(20,16,14,.18),inset 0 1px 0 rgba(255,255,255,.9);

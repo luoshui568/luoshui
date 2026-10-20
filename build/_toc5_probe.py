@@ -38,15 +38,21 @@ JS = r"""
     out.gapToContent = round(out.wrap.contentLeft - out.nav.right);
 
     var pf = getComputedStyle(nav, '::before');
-    out.line = {
-      content: pf.content, display: pf.display, left: pf.left, width: pf.width, top: pf.top,
-      height: pf.height, opacity: pf.opacity,
-      bgImage: pf.backgroundImage.slice(0, 110),
-      mask: (pf.webkitMaskImage || pf.maskImage || '').slice(0, 130),
-      stepVar: nav.style.getPropertyValue('--tc-step'),
-      ltVar: nav.style.getPropertyValue('--tc-lt'),
-      lhVar: nav.style.getPropertyValue('--tc-lh')
-    };
+    /* 竖线已下线（2026-10-20）：::before 不该再有任何生成内容 */
+    out.line = {content: pf.content, display: pf.display, bgImage: pf.backgroundImage.slice(0, 60)};
+    out.radius = {nav: cs(nav,'border-top-left-radius'), navBr: cs(nav,'border-bottom-right-radius')};
+    /* ⚠️ 必须挑**非选中**条目量背景：第一条默认就是 .on（深墨单层背景），
+       拿它测会看到 1 层渐变、size 100% 100%，四条断言全假红。 */
+    var aN = nav.querySelectorAll('a'), a0 = null;
+    for(var q = 0; q < aN.length; q++){ if(!aN[q].classList.contains('on')){ a0 = aN[q]; break; } }
+    if(a0){
+      out.aRadius = cs(a0,'border-top-left-radius');
+      out.aBgImage = cs(a0,'background-image');
+      out.aBgSize = cs(a0,'background-size');
+      out.aBgPos = cs(a0,'background-position');
+      var last = aN[aN.length - 1];
+      out.lastBgImage = cs(last,'background-image');
+    }
 
     var as = nav.querySelectorAll('a');
     out.items = as.length;
@@ -145,23 +151,21 @@ if d:
     chk(abs(nav['w'] - 178) < 1, '目录宽 178', nav['w'])
     chk(nav['left'] >= 8, '左边距 ≥ 8px', nav['left'])
     chk(6 <= d['gapToContent'] <= 14, '与正文内容间距 6~14px', d['gapToContent'])
-    chk(line['content'] == '""', '竖线伪元素存在', line['content'])
-    chk(line['width'] in ('1px', '1.09px', '1.09px'), '线宽 1px', line['width'])
-    chk('linear-gradient' in line['bgImage'] and 'rgb(192, 57, 43)' in line['bgImage'],
-        '红→金渐变在 background-image 上', line['bgImage'][:70])
-    chk('repeating-linear-gradient' in line['mask'], '虚线靠 mask 切', line['mask'][:60])
-    nums = [float(x) for x in re.findall(r'([\d.]+)px', line['mask'])]
-    step = float(line['stepVar'][:-2]) if line['stepVar'].endswith('px') else 0
-    chk(len(nums) >= 4 and abs(nums[-1] - step) < 0.6 and abs(nums[-1] - nums[-2] - 5) < 0.6,
-        '竖线：周期 = --tc-step，每行只留 5px 缺口', line['mask'])
-    chk(line['stepVar'].endswith('px') and float(line['stepVar'][:-2]) > 30,
-        '--tc-step 已写入且 > 30px', line['stepVar'])
-    chk(line['ltVar'].endswith('px') and line['lhVar'].endswith('px'),
-        '--tc-lt/--tc-lh 已写入', line['ltVar'] + ' / ' + line['lhVar'])
-    chk(abs(float(line['lhVar'][:-2]) - d['pitch'] * (d['items'] - 1)) < 2,
-        '线长 = 首末条目中线距离', '%s vs %d×%d' % (line['lhVar'], d['pitch'], d['items'] - 1))
-    chk('translateX(3px)' in d['hoverRule'] and 'background-size' in d['hoverRule'],
-        'hover：光带展开 + 右移（规则在位）', d['hoverRule'][:60])
+    chk(line['content'] in ('none', 'normal'), '竖线已移除（::before 无内容）', line['content'])
+    chk(d['radius']['nav'] == '0px' and d['radius']['navBr'] == '0px',
+        '卡片四角是方的（radius 0）', d['radius']['nav'] + ' / ' + d['radius']['navBr'])
+    chk(d['aRadius'] == '0px', '条目方角', d['aRadius'])
+    bgs = d['aBgImage'].count('linear-gradient')
+    chk(bgs == 2, '条目双层背景（下划线 + hover 金带）', bgs)
+    chk(d['aBgImage'].count('rgba(20, 16, 14') >= 3, '下划线是暖墨渐隐色阶', d['aBgImage'][:90])
+    chk(d['aBgSize'].split(',')[0].strip().endswith('1px'), '下划线高 1px', d['aBgSize'])
+    chk(d['aBgPos'].split(',')[0].strip() == '34px 100%', '下划线从文字起点 34px 起', d['aBgPos'])
+    chk(d['lastBgImage'] == 'none', '最后一条不画线（避免与进度区分隔线成双）', d['lastBgImage'])
+    # computed cssText 会把 box-shadow 规范成 `rgba(...) 3px 0px 0px -1px inset`，
+    # 所以只判「有 inset / 没有 translateX」，别去比对字面量顺序。
+    chk('background-size' in d['hoverRule'] and 'inset' in d['hoverRule']
+        and 'translateX' not in d['hoverRule'],
+        'hover：光带展开 + 左侧金柱，且不再位移', d['hoverRule'][:70])
     chk('::before' in d['hoverRule'] and 'scale(1.12)' in d['hoverRule'],
         'hover：序号变金放大（::before 规则在位）')
     chk('linear-gradient' in d['onRule'] and '100% 100%' in d['onRule'],
@@ -183,8 +187,8 @@ print('=== 1200×900（胶囊态） ===')
 d2 = dump(1200, 900)
 if d2:
     chk(d2['nav']['w'] < 60, '收起为 46 宽胶囊', d2['nav']['w'])
-    chk(d2['line']['display'] == 'none', '胶囊态不出竖线（::before display:none）',
-        d2['line']['display'])
+    chk(d2['line']['content'] in ('none', 'normal'), '胶囊态同样没有竖线（无生成内容）',
+        d2['line']['content'])
     chk(d2['gapToContent'] > 0, '胶囊不压正文', d2['gapToContent'])
 
 print('=== 390×844（底部横排条） ===')
