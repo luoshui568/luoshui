@@ -258,8 +258,12 @@
     content:'';position:absolute;left:38px;
     top:var(--tc-lt,44px);height:var(--tc-lh,360px);width:1px;
     background:linear-gradient(180deg,#c0392b 0%,#b3241f 40%,#c1911f 76%,#e8c85c 100%);
-    -webkit-mask-image:repeating-linear-gradient(180deg,#000 0 4px,rgba(0,0,0,0) 4px 9px);
-    mask-image:repeating-linear-gradient(180deg,#000 0 4px,rgba(0,0,0,0) 4px 9px);
+    /* ★ 段长 = 周期 − 5px、周期 = `--tc-step`（相邻两条目的 offsetTop 差，renderToc 写入）。
+       只看两个数：4px 一档的旧写法在 1px 宽上就是一串小方块，看着像「横点」；
+       24px 一档又让行间空档过大，读起来是「一列断开的短横」（用户 2026-10-20 两次指正）。
+       现在每行只留 5px 缺口 —— 视觉上是一条**连续的竖线**，放大才看得出是虚线。 */
+    -webkit-mask-image:repeating-linear-gradient(180deg,#000 0 calc(var(--tc-step,41px) - 5px),rgba(0,0,0,0) calc(var(--tc-step,41px) - 5px) var(--tc-step,41px));
+    mask-image:repeating-linear-gradient(180deg,#000 0 calc(var(--tc-step,41px) - 5px),rgba(0,0,0,0) calc(var(--tc-step,41px) - 5px) var(--tc-step,41px));
     opacity:.82;pointer-events:none;
   }
   nav.toc:hover{
@@ -296,7 +300,17 @@
     padding:10px 10px 10px 34px;border-radius:12px;
     color:#5a5148;text-decoration:none;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-    transition:background .16s ease,color .16s ease,box-shadow .16s ease;
+    /* ★ hover 的「动态」全在这一条上：金色光带从左往右展开（0% → 100%），
+       而不是整块底色突然变灰。缓动走 `cubic-bezier(.22,.8,.36,1)`，
+       前段快、尾段收，观感更像原生应用。 */
+    background-image:linear-gradient(90deg,rgba(201,162,39,.17) 0%,rgba(201,162,39,.06) 58%,rgba(201,162,39,0) 100%);
+    background-repeat:no-repeat;
+    background-position:left center;
+    background-size:0% 100%;
+    transition:background-size .4s cubic-bezier(.22,.8,.36,1),
+               color .22s ease,
+               transform .3s cubic-bezier(.22,.8,.36,1),
+               box-shadow .3s ease;
   }
   /* 两位数序号：读 `data-n`（补零串），不是 `data-i`（纯数字，探针在用） */
   nav.toc a::before{
@@ -304,14 +318,21 @@
     position:absolute;left:11px;top:50%;transform:translateY(-50%);
     font-size:10px;font-weight:600;letter-spacing:.02em;
     font-variant-numeric:tabular-nums;color:rgba(20,16,14,.24);
-    transition:color .16s ease;
+    transition:color .22s ease,transform .3s cubic-bezier(.22,.8,.36,1);
   }
-  nav.toc a:hover{background:rgba(20,16,14,.05);color:#14100e;}
+  nav.toc a:hover{
+    background-size:100% 100%;
+    color:#14100e;transform:translateX(3px);
+    box-shadow:0 3px 12px -6px rgba(20,16,14,.24);
+  }
+  nav.toc a:hover::before{color:#b08a1f;transform:translateY(-50%) scale(1.12);}
   /* 选中：深墨大圆角 + 金序号 + 右侧金点（参考稿的两个记忆点都在这） */
   nav.toc a.on{
     background:linear-gradient(180deg,#241d19 0%,#15100e 100%);
+    background-size:100% 100%;
     color:#fbf8f2;font-weight:600;padding-right:23px;
     box-shadow:0 6px 16px -8px rgba(20,16,14,.55);
+    transition:background .3s ease,color .2s ease,box-shadow .3s ease,transform .3s cubic-bezier(.22,.8,.36,1);
   }
   nav.toc a.on::before{color:#d8b64a;}
   nav.toc a.on::after{

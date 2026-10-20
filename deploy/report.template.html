@@ -875,6 +875,11 @@ function renderToc(){
     var _y1 = _as[_as.length - 1].offsetTop + _as[_as.length - 1].offsetHeight / 2;
     box.style.setProperty('--tc-lt', _y0 + 'px');
     box.style.setProperty('--tc-lh', (_y1 - _y0) + 'px');
+    /* 虚线的步长 = 相邻两条目的 offsetTop 差. mask 用它当周期，
+       正好「每个条目一段竖线」；写死像素会在放大字号/换字号时错位。 */
+    if(_as.length > 1){
+      box.style.setProperty('--tc-step', (_as[1].offsetTop - _as[0].offsetTop) + 'px');
+    }
   }
   tocSpy();
 }

@@ -70,6 +70,8 @@ build/src/
 !build/_e2e_jump.py
 !build/_verify_deploy.py
 !build/_live_tip_check.py
+# 左侧目录验收链（2026-10-20 第六版起常备：生成 + 超集自检 / 27 项探针 / 三档截图）
+!build/_toc5_*.py
 
 # ── 兜底：口令文件永远不得入库（防止上面通配符将来被改错）──
 build/_secret.py
@@ -155,3 +157,8 @@ build/seed/_tmp/
 #    换机器时跑 `python3 build/make_font_css.py --fetch` 重下重裁即可
 build/font/
 build/block_font.css
+
+# ── 工作区：线上回读快照 / 预览副本 / 临时浏览器 profile（动辄几十 MB）──
+_work/
+# ── 归档截图（_verify/*.png，随时可用 build/_toc5_shot.py 之类重拍）──
+_verify/
