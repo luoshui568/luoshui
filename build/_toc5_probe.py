@@ -51,6 +51,9 @@ JS = r"""
       out.aBgSize = cs(a0,'background-size');
       out.aBgPos = cs(a0,'background-position');
       out.aAlign = cs(a0,'text-align');
+      /* ★ 第 11 轮：标题缩小到 13px、序号放大到 15px（字号层次要拉开） */
+      out.aFontSize = cs(a0,'font-size');
+      out.aLineH = cs(a0,'line-height');
       /* ⚠️ cs() 只读元素本身，读伪元素必须再传一次 '::before' */
       var pfa = getComputedStyle(a0, '::before');
       out.numSize = pfa.fontSize; out.numWeight = pfa.fontWeight;
@@ -168,8 +171,11 @@ if d:
     chk(pos0.startswith('50%') and '8px' in pos0,
         '下划线居中且上移 8px（避开下一行选中块顶边）', pos0)
     chk(d['aAlign'] == 'center', '条目标题文字居中', d['aAlign'])
-    chk(d['numSize'] == '12px' and d['numWeight'] in ('700', 'bold'),
-        '序号放大到 12px / 700', d['numSize'] + ' / ' + d['numWeight'])
+    chk(d['numSize'] == '15px' and d['numWeight'] in ('700', 'bold'),
+        '序号放大到 15px / 700', d['numSize'] + ' / ' + d['numWeight'])
+    chk(d['aFontSize'] == '13px', '标题缩小到 13px', d['aFontSize'])
+    chk(float(d['numSize'].replace('px', '')) > float(d['aFontSize'].replace('px', '')),
+        '字号层次：序号 > 标题（15 > 13）', d['numSize'] + ' > ' + d['aFontSize'])
     chk(d['lastBgImage'] == 'none', '最后一条不画线（避免与进度区分隔线成双）', d['lastBgImage'])
     # computed cssText 会把 box-shadow 规范成 `rgba(...) 3px 0px 0px -1px inset`，
     # 所以只判「有 inset / 没有 translateX」，别去比对字面量顺序。

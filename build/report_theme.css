@@ -283,7 +283,7 @@
   /* ---------- 条目：01 │ 模块名 ---------- */
   nav.toc a{
     position:relative;display:block;flex:0 0 auto;
-    font-size:14px;font-weight:500;line-height:1.35;
+    font-size:13px;font-weight:500;line-height:1.4;
     /* ★ 文字居中（2026-10-20 用户令）：左右 padding 对称，序号仍是绝对定位在左侧，
        所以「01 … 模块名 … ●」是居中排版里的一条左侧索引，不再占正文缩进。 */
     padding:10px 12px;text-align:center;border-radius:0;
@@ -315,8 +315,8 @@
   nav.toc a::before{
     content:attr(data-n);
     position:absolute;left:11px;top:50%;transform:translateY(-50%);
-    font-size:12px;font-weight:700;letter-spacing:.02em;
-    font-variant-numeric:tabular-nums;color:rgba(20,16,14,.24);
+    font-size:15px;font-weight:700;letter-spacing:.01em;
+    font-variant-numeric:tabular-nums;color:rgba(20,16,14,.26);
     transition:color .22s ease,transform .3s cubic-bezier(.22,.8,.36,1);
   }
   nav.toc a:hover{
@@ -381,10 +381,10 @@
     .tc-dt{width:6px;height:6px;}
     .tc-tt{font-size:10px;letter-spacing:.14em;text-indent:.14em;}
     .tc-ix{font-size:9px;}
-    nav.toc a{font-size:13px;padding:7px 8px;border-radius:0;text-align:center;
+    nav.toc a{font-size:12px;padding:7px 8px;border-radius:0;text-align:center;
       background-size:calc(100% - 16px) 2px,0% 100%;background-position:50% calc(100% - 6px),left center;}
     nav.toc a:hover{background-size:calc(100% - 16px) 2px,100% 100%;}
-    nav.toc a::before{left:8px;font-size:11px;}
+    nav.toc a::before{left:8px;font-size:13px;}
     nav.toc a.on{padding-right:8px;}
     nav.toc a.on::after{right:9px;width:4px;height:4px;}
     .tc-ft{padding:9px 4px 1px;margin-top:5px;}
@@ -416,7 +416,7 @@
     nav.toc:hover .tc-pg b,nav.toc:focus-within .tc-pg b{font-size:10.5px;}
     nav.toc:hover .tc-bar,nav.toc:focus-within .tc-bar{height:3px;margin:7px 0 11px;}
     nav.toc:hover .tc-up,nav.toc:focus-within .tc-up{padding:8px 0;font-size:11px;}
-    nav.toc:hover a,nav.toc:focus-within a{font-size:14px;padding:10px 12px;text-align:center;
+    nav.toc:hover a,nav.toc:focus-within a{font-size:13px;padding:10px 12px;text-align:center;
       background-image:
         linear-gradient(90deg,rgba(192,57,43,.80) 0%,rgba(163,34,30,.62) 34%,rgba(193,145,31,.52) 72%,rgba(232,200,92,.16) 100%),
         linear-gradient(90deg,rgba(201,162,39,.17) 0%,rgba(201,162,39,.06) 58%,rgba(201,162,39,0) 100%);
