@@ -35,7 +35,7 @@ compatibility: 需配合项目仓库（`build/` 构建脚本 + `deploy/` 模板 
 
 ## ★ 当前视觉定稿（2026-10-19 · 改样式前先看这 8 行）
 
-线上 `report.html` md5 `b040fb75`。**只记结论，细节以 `frontend-style.md` 为准**（§1.1 / §1.4 / §1.5 / §1.6）。
+线上 `report.html` md5 `3c6cb77c`。**只记结论，细节以 `frontend-style.md` 为准**（§1.1 / §1.4 / §1.5 / §1.6）。
 
 | 项 | 定稿 | 细节 |
 |---|---|---|
@@ -46,7 +46,7 @@ compatibility: 需配合项目仓库（`build/` 构建脚本 + `deploy/` 模板 
 | 加粗 | `<b>/<strong>` → **亮朱砂 `#c0392b`**；深底（`#hero` / 表头行）`inherit` | §1.5 |
 | 数字 | 表内**两位小数**，整数不加 `.00`；脚注 `.src` 不圆 | §1.5 / #72 |
 | 正文 | 暖墨灰 `#4a423e`，深字 `#14100e`（**别再用冷蓝灰 `#4d5f6d`**） | §1.1 |
-| 左侧目录 | **墨玉 · 金箔**：暖墨渐变底 + 金晕金描边；选中项**金箔底 + 墨字 + 朱砂书签**（不是白底红字） | §1.6 / #86 |
+| 左侧目录 | **现代白玻璃**：暖白半透明 + 模糊 + 细边轻投影；左对齐带序号，选中**深墨实底 + 暖白字 + 金色序号** | §1.6 / #86 |
 
 ⚠️ 三条别踩：`fixGold` 换色器**默认已关**（`RETINT=false`，金色是主色）· 金线只能写 `<th>` 的
 `border-bottom`（`<tr>` 的 box-shadow 跨不了单元格）· 换配色必须同步换正文字色。
@@ -74,7 +74,7 @@ compatibility: 需配合项目仓库（`build/` 构建脚本 + `deploy/` 模板 
 | ★★ **seed 与库不同步 / 担心「一 push 就退化」** | **`pipeline.md`** | **§5 的「seed ↔ 库 双向纪律」**（含两道自动防线 + 哪些脚本只写库） |
 | ★ **定期体检全库 13 份** | **`build/audit_reports.py`** | 直接跑：`python3 audit_reports.py`（一次查 8 类问题） |
 | **改表格 / 文字 / 配色 / 字体 / 加粗 / 小数 / 居中** | **`frontend-style.md`** | §1.1 宣纸墨金表格 · §1.4 阿里普惠体内嵌 · §1.5 加粗朱砂 + 横竖居中 + 两位小数 · §7 表格溢出 |
-| **改左侧竖排目录 / 目录选中态** | **`frontend-style.md`** §1.6 + 规则 #86 | 源在 **`build/report_theme.css`** 的 `nav.toc` 段（不在 `block_style.css`）；选中=金箔底墨字，别回白底 |
+| **改左侧竖排目录 / 目录选中态** | **`frontend-style.md`** §1.6 + 规则 #86 | 源在 **`build/report_theme.css`** 的 `nav.toc` 段（不在 `block_style.css`）；选中=深墨实底墨白字，别回亮红/金箔 |
 | ★ **换机器后页面字体变成系统字体 / 页面突然变小 1.67 MB** | **`frontend-style.md`** | **§1.4**（`build/font/` 与 `block_font.css` 是 `.gitignore` 派生物 ⇒ 先跑 `build/make_font_css.py --fetch`） |
 | **改研报列表页 / 公司资料库** | **`frontend-style.md`** | §3 / §4 |
 | **样式改了却不生效** | **`frontend-style.md`** | §5 样式表腰斩 · §2 注入顺序 |
