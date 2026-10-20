@@ -866,6 +866,16 @@ function renderToc(){
       '<button type="button" class="tc-up" onclick="try{window.scrollTo({top:0,behavior:\'smooth\'});}catch(e){window.scrollTo(0,0);}return false;">回到顶部</button>' +
     '</div>';
   box.style.display = '';
+  /* 序号列那条红金虚线的起止：按**首末条目的中线**算，写进 CSS 变量。
+     ★ 不用固定 top/bottom —— 6 条研报和 10 条研报的条目区高度差 130px，
+       写死会让线在条目少的时候探进底部「阅读进度」区。 */
+  var _as = box.querySelectorAll('a');
+  if(_as.length){
+    var _y0 = _as[0].offsetTop + _as[0].offsetHeight / 2;
+    var _y1 = _as[_as.length - 1].offsetTop + _as[_as.length - 1].offsetHeight / 2;
+    box.style.setProperty('--tc-lt', _y0 + 'px');
+    box.style.setProperty('--tc-lh', (_y1 - _y0) + 'px');
+  }
   tocSpy();
 }
 

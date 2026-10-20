@@ -275,7 +275,187 @@ echarts.registerMap('china',{"type":"FeatureCollection","features":[{"type":"Fea
   .tag.neg{background:#f5f4f2;color:var(--red);}
   .tag.warn{background:#fff4dc;color:var(--amber);}
   .tag.info{background:var(--accent-soft);color:var(--accent);}
-  /* ============================================================
+  /* ★ max-width 1100 → 1060（2026-10-20）：左侧竖排目录要从 136 放大到 184，
+     需要从正文那边借 40px。1440 视口下正文内容宽从 1060 收到 1020（-3.8%），
+     表格/图表都是自适应，观感几乎无差别。 */
+  .wrap{position:relative;z-index:1;max-width:1060px;margin:0 auto;padding:28px 20px 60px;}
+  /* ===== 滚动进入动画 ===== */
+  .reveal{opacity:0;transform:translateY(26px) scale(.985);transition:opacity .65s cubic-bezier(.22,.8,.36,1),transform .65s cubic-bezier(.22,.8,.36,1);}
+  .reveal.in{opacity:1;transform:none;}
+  /* ===== 关键帧动画 ===== */
+  @keyframes heroShift{0%,100%{background-position:0% 50%;}50%{background-position:100% 50%;}}
+  @keyframes sheen{0%,100%{left:-40%;}45%,60%{left:130%;}}
+  @keyframes pulseGlow{0%,100%{opacity:.5;transform:scale(1);}50%{opacity:1;transform:scale(1.15);}}
+  @keyframes badgePulse{0%,100%{box-shadow:0 0 0 0 rgba(230,197,88,.35);}50%{box-shadow:0 0 18px 4px rgba(230,197,88,.28);}}
+  @keyframes noGlow{0%,100%{box-shadow:0 2px 8px rgba(84,82,86,.30);}50%{box-shadow:0 2px 16px 3px rgba(209,75,60,.55);}}
+  @keyframes gaugePulse{0%,100%{box-shadow:0 8px 22px rgba(208,32,47,.09),0 0 0 0 rgba(208,32,47,.18);}50%{box-shadow:0 8px 30px rgba(208,32,47,.14),0 0 0 10px rgba(85,83,87,0);}}
+  @keyframes dotPulse{0%,100%{box-shadow:0 0 0 4px rgba(95,93,97,.16),0 2px 6px rgba(65,63,67,.25);}50%{box-shadow:0 0 0 8px rgba(95,93,97,.10),0 2px 10px rgba(65,63,67,.35);}}
+  @keyframes titleShimmer{0%{background-position:0% 50%;}100%{background-position:200% 50%;}}
+  header.hero{
+    position:relative;overflow:hidden;
+    background:linear-gradient(135deg,#4a0a15 0%,#c81a33 52%,#d0202f 100%);
+    background-size:300% 300%;
+    animation:heroShift 14s ease-in-out infinite;
+    color:#fff;border-radius:14px;padding:34px 36px;margin-bottom:22px;border:1px solid rgba(230,197,88,.45);
+    box-shadow:0 14px 46px rgba(40,38,42,.38), inset 0 0 70px rgba(230,197,88,.07);
+  }
+  header.hero::before{
+    content:"";position:absolute;top:-50%;left:-40%;width:56%;height:200%;
+    background:linear-gradient(100deg,transparent,rgba(255,255,255,.13),transparent);
+    transform:rotate(10deg);animation:sheen 7s ease-in-out infinite;z-index:0;
+  }
+  header.hero::after{
+    content:"";position:absolute;right:-6%;bottom:-55%;width:46%;height:150%;border-radius:50%;
+    background:radial-gradient(circle,rgba(230,197,88,.18),transparent 65%);
+    animation:pulseGlow 5.5s ease-in-out infinite;z-index:0;
+  }
+  header.hero>*{position:relative;z-index:1;}
+  header.hero .kicker{font-size:13px;letter-spacing:2px;color:#e6c558;margin-bottom:6px;font-weight:700;text-shadow:0 0 14px rgba(230,197,88,.45);}
+  header.hero h1{
+    font-size:28px;font-weight:800;margin-bottom:10px;color:#fdf6dd;
+  }
+  header.hero .sub{font-size:14px;opacity:.95;max-width:950px;}
+  header.hero .meta{display:flex;flex-wrap:wrap;gap:8px 24px;margin-top:16px;font-size:13px;opacity:.95;}
+  .badge{
+    display:inline-block;background:rgba(255,255,255,.10);border:1px solid rgba(230,197,88,.55);color:#fdf6dd;
+    padding:2px 12px;border-radius:20px;backdrop-filter:blur(4px);
+    animation:badgePulse 3.2s ease-in-out infinite;
+    transition:transform .2s ease,background .2s ease;
+  }
+  .badge:hover{transform:translateY(-2px) scale(1.04);background:rgba(230,197,88,.22);}
+  .card{
+    position:relative;
+    background:linear-gradient(180deg,#ffffff,#fefefe);
+    border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin-bottom:20px;
+    box-shadow:0 2px 6px rgba(40,38,42,.05), 0 1px 2px rgba(40,38,42,.03);
+    transition:transform .28s cubic-bezier(.22,.8,.36,1),box-shadow .28s ease,border-color .28s ease;
+  }
+  .card::before{
+    content:"";position:absolute;top:0;left:14px;right:14px;height:3px;border-radius:0 0 6px 6px;
+    background:linear-gradient(90deg,#d0202f,#c9a227,#d0202f,#d0202f);
+    background-size:300% 100%;opacity:0;transition:opacity .3s ease;
+    animation:titleShimmer 8s linear infinite;
+  }
+  .card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 16px 40px rgba(40,38,42,.12), 0 4px 12px rgba(208,32,47,.04);
+    border-color:#e6e5e3;
+  }
+  .card:hover::before{opacity:1;}
+  .card h2{font-size:20px;margin-bottom:14px;display:flex;align-items:center;gap:10px;border-bottom:2px solid #f0e6c4;padding-bottom:10px;}
+  .card h2 .no{
+    background:linear-gradient(135deg,#e43644,#b81f2c);color:#fff;width:28px;height:28px;border-radius:8px;
+    display:inline-flex;align-items:center;justify-content:center;font-size:15px;flex:none;
+    box-shadow:0 2px 8px rgba(84,82,86,.30);
+    animation:noGlow 2.8s ease-in-out infinite;
+    transition:transform .25s ease;
+  }
+  .card h2:hover .no{transform:rotate(-8deg) scale(1.12);}
+  .card h3{font-size:16px;margin:18px 0 8px;color:#3a3a3f;}
+  .card p{margin-bottom:10px;}
+  .muted{color:var(--sub);font-size:13px;}
+  .src{color:var(--sub);font-size:12px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);}
+  .src b{color:#46464b;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+  @media(max-width:860px){.grid2,.grid3,.grid4{grid-template-columns:1fr 1fr;}}
+  @media(max-width:560px){.grid2,.grid3,.grid4{grid-template-columns:1fr;}}
+  .stat{
+    position:relative;overflow:hidden;
+    background:linear-gradient(160deg,#ffffff,#fcfcfc);border:1px solid var(--line);border-radius:14px;padding:16px 18px;
+    transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease;
+  }
+  .stat::after{
+    content:"";position:absolute;right:-24px;top:-24px;width:70px;height:70px;border-radius:50%;
+    background:radial-gradient(circle,rgba(208,32,47,.028),transparent 70%);
+    transition:transform .3s ease;
+  }
+  .stat:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(208,32,47,.028);border-color:#dcdbd9;}
+  .stat:hover::after{transform:scale(1.6);}
+  .stat .label{font-size:13px;color:var(--sub);margin-bottom:4px;}
+  .stat .val{font-size:24px;font-weight:800;}
+  .stat .val small{font-size:13px;font-weight:400;color:var(--sub);}
+  .up{color:var(--red);font-weight:700;}
+  .down{color:var(--green);font-weight:700;}
+  table{
+    width:100%;border-collapse:separate;border-spacing:0;
+    font-size:13.5px;margin:10px 0;
+    border-radius:12px;overflow:hidden;
+    border:1px solid #e8e7e5;background:#fff;
+    box-shadow:0 4px 18px rgba(40,38,42,.06);
+  }
+  th{
+    background:linear-gradient(135deg,#d0202f,#e43644 60%,#e43644);
+    color:#fff;text-align:left;padding:10px 12px;border:none;font-weight:700;white-space:nowrap;
+    border-bottom:2px solid #c81a33;
+    text-shadow:0 1px 1px rgba(0,0,0,.15);
+  }
+  th:first-child{border-top-left-radius:11px;}
+  th:last-child{border-top-right-radius:11px;}
+  td{padding:9px 12px;border:none;border-bottom:1px solid #f2f2f2;vertical-align:top;}
+  tr:nth-child(even) td{background:linear-gradient(180deg,#fbfbfb,#fdfdfd);}
+  tr:nth-child(odd) td{background:#fff;}
+  tr:last-child td{border-bottom:none;}
+  tr:last-child td:first-child{border-bottom-left-radius:11px;}
+  tr:last-child td:last-child{border-bottom-right-radius:11px;}
+  td:first-child{font-weight:700;color:#232326;}
+  tbody tr{transition:background .18s ease,transform .15s ease,box-shadow .18s ease;}
+  tbody tr:hover{box-shadow:inset 4px 0 0 #c9a227,0 3px 12px rgba(201,162,39,.18);}
+  tbody tr:hover td{background:linear-gradient(90deg,#fff5e0,#ffe8c2)!important;}
+  tbody tr:hover td:first-child{color:#a8861a;}
+  .chart-box{
+    position:relative;overflow:hidden;
+    width:100%;height:360px;margin:8px 0 4px;
+    border:1px solid #f0f0f0;border-radius:10px;
+    padding:14px 14px 8px;
+    background:#ffffff;
+    transition:border-color .25s ease,box-shadow .25s ease;
+  }
+  .chart-box:hover{
+    border-color:#e6e5e3;
+    box-shadow:0 6px 18px rgba(85,83,87,.06);
+  }
+  .chart-box.short{height:300px;}
+  /* ===== 可自由缩放地图：右上角操作提示（2026-09-20）=====
+     ★ 只提示、不拦截鼠标 —— 必须 pointer-events:none，否则压在图上会挡掉
+       滚轮缩放与拖动平移；那个「双击复位」的快捷动作由 JS 绑在实例上完成，
+       这里不承担交互。
+     ★ 配色走中性墨色 + 极淡底，不要用主题红：它是操作提示，不是强调信息。 */
+  .rpt-mapguide{
+    position:absolute;top:16px;right:16px;z-index:6;
+    display:flex;gap:10px;align-items:center;
+    padding:5px 11px;border-radius:20px;
+    background:rgba(255,255,255,.92);
+    border:1px solid #ececea;
+    box-shadow:0 3px 10px rgba(40,38,42,.07);
+    font-size:12.5px;color:#6d6d73;line-height:1;
+    pointer-events:none;user-select:none;
+  }
+  .rpt-mapguide b{color:#3a3a3f;font-weight:700;}
+  .rpt-mapguide span{white-space:nowrap;}
+  @media (max-width:760px){
+    .rpt-mapguide{font-size:11.5px;gap:7px;padding:4px 9px;top:10px;right:10px;}
+  }
+  /* ===== 图表时间范围按钮组 ===== */
+  .chart-toolbar{
+    display:flex;justify-content:flex-end;gap:2px;
+    margin:-2px 0 2px;min-height:20px;
+  }
+  .chart-toolbar button{
+    font-size:11px;color:#85858a;background:transparent;border:none;
+    padding:2px 9px;border-radius:6px;cursor:pointer;
+    transition:all .18s ease;font-family:inherit;
+  }
+  .chart-toolbar button:hover{color:#d0202f;background:#f4f3f1;}
+  .chart-toolbar button.on{color:#ed7c2b;font-weight:700;background:#f4f4f4;}
+  .tag{display:inline-block;font-size:12px;padding:1px 10px;border-radius:12px;margin-right:6px;transition:transform .15s ease,box-shadow .15s ease;}
+  .tag:hover{transform:translateY(-1px) scale(1.05);box-shadow:0 3px 8px rgba(0,0,0,.10);}
+  .tag.pos{background:#e6f6ee;color:var(--green);}
+  .tag.neg{background:#f5f4f2;color:var(--red);}
+  .tag.warn{background:#fff4dc;color:var(--amber);}
+  .tag.info{background:var(--accent-soft);color:var(--accent);}
+    /* ============================================================
      左侧竖排目录 —— 2026-10-20 第四版「参考稿 · 精致重读」
      ------------------------------------------------------------------
      ★ 用户给了参考稿（暖白卡 / ●目录 + 03/10 计数 / 两位数序号 /
@@ -292,10 +472,14 @@ echarts.registerMap('china',{"type":"FeatureCollection","features":[{"type":"Fea
      ============================================================ */
   nav.toc{
     position:fixed;z-index:80;
-    left:max(10px,calc(50% - 688px));top:50%;transform:translateY(-50%);
-    width:136px;max-height:86vh;overflow-y:auto;overscroll-behavior:contain;
-    display:flex;flex-direction:column;gap:1px;
-    padding:11px 8px 9px;border-radius:18px;
+    /* ★ 164 宽：left 反推自「目录右缘 = 正文左缘 − 10px」。
+       正文 `.wrap` 1100 + padding 20 ⇒ 内容左缘 = 50% − 530；目录右缘 = 50% − 540
+       ⇒ left = 50% − 540 − 164 = calc(50% − 704px)。1440 视口下落在 16px。
+       ⚠️ 需要 ≥1428px 才放得下，以下回退到 136（见 1427 断点）。 */
+    left:max(10px,calc(50% - 704px));top:50%;transform:translateY(-50%);
+    width:178px;max-height:88vh;overflow-y:auto;overscroll-behavior:contain;
+    display:flex;flex-direction:column;gap:2px;
+    padding:14px 10px 12px;border-radius:20px;
     /* 底色 + 右下角一点极淡金晕（参考稿的暖光收尾，透明度只 9%，不是大面积渐变） */
     background:
       radial-gradient(120% 78% at 108% 106%,rgba(201,162,39,.09) 0%,rgba(201,162,39,0) 62%),
@@ -311,6 +495,22 @@ echarts.registerMap('china',{"type":"FeatureCollection","features":[{"type":"Fea
     transition:box-shadow .28s ease,border-color .28s ease;
   }
   nav.toc::-webkit-scrollbar{display:none;}
+  /* 序号列的红金渐变虚线（2026-10-20 用户令：「1，2，3 等往下的位置加一条虚线红金渐变」）。
+     ★ 位置不写死：`--tc-lt/--tc-lh` 由 renderToc() 按首末条目中线算出，
+       6 条还是 10 条都正好从第一个序号连到最后一个。
+     ★ 用 `mask-image` 切虚线而不是 `repeating-linear-gradient` 画色 —— 后者做不出
+       「整条线从朱砂渐变到金」，只会让每段虚线各自重复一遍色阶。
+     ★ `pointer-events:none`：不能挡住条目的点击热区。 */
+  nav.toc::before{
+    /* ★ left 是相对 nav 的 padding box：nav padding 10 + a 内序号 left 11 + 序号宽 ~11 = 32，
+       线取 38 才落在「序号右缘 32」与「文字 44」之间。写小了会直接穿过 01/02 的字腰。 */
+    content:'';position:absolute;left:38px;
+    top:var(--tc-lt,44px);height:var(--tc-lh,360px);width:1px;
+    background:linear-gradient(180deg,#c0392b 0%,#b3241f 40%,#c1911f 76%,#e8c85c 100%);
+    -webkit-mask-image:repeating-linear-gradient(180deg,#000 0 4px,rgba(0,0,0,0) 4px 9px);
+    mask-image:repeating-linear-gradient(180deg,#000 0 4px,rgba(0,0,0,0) 4px 9px);
+    opacity:.82;pointer-events:none;
+  }
   nav.toc:hover{
     border-color:rgba(20,16,14,.13);
     box-shadow:
@@ -320,29 +520,29 @@ echarts.registerMap('china',{"type":"FeatureCollection","features":[{"type":"Fea
   }
   /* ---------- 顶栏：● 目录 …………… 03 / 10 ---------- */
   .tc-hd{
-    display:flex;align-items:center;gap:5px;flex:0 0 auto;
-    padding:1px 5px 9px;margin-bottom:4px;
+    display:flex;align-items:center;gap:6px;flex:0 0 auto;
+    padding:2px 6px 11px;margin-bottom:5px;
     border-bottom:1px solid rgba(20,16,14,.06);
   }
   .tc-dt{
-    width:6px;height:6px;border-radius:50%;flex:0 0 auto;background:#c9a227;
+    width:7px;height:7px;border-radius:50%;flex:0 0 auto;background:#c9a227;
     box-shadow:0 0 0 3px rgba(201,162,39,.15);
   }
   .tc-tt{
-    flex:1 1 auto;font-size:10px;font-weight:700;letter-spacing:.14em;
-    text-indent:.14em;color:#9c9184;
+    flex:1 1 auto;font-size:11px;font-weight:700;letter-spacing:.16em;
+    text-indent:.16em;color:#948a7c;
   }
   .tc-ix{
-    flex:0 0 auto;font-size:9px;font-weight:600;letter-spacing:.04em;
-    color:rgba(20,16,14,.28);font-variant-numeric:tabular-nums;
+    flex:0 0 auto;font-size:10px;font-weight:600;letter-spacing:.05em;
+    color:rgba(20,16,14,.30);font-variant-numeric:tabular-nums;
   }
   .tc-ix b{color:#b08a1f;font-weight:800;}
   .tc-ix em{font-style:normal;opacity:.55;margin:0 2px;}
   /* ---------- 条目：01 │ 模块名 ---------- */
   nav.toc a{
     position:relative;display:block;flex:0 0 auto;
-    font-size:13px;font-weight:500;line-height:1.3;
-    padding:7px 8px 7px 30px;border-radius:11px;
+    font-size:14px;font-weight:500;line-height:1.35;
+    padding:10px 10px 10px 34px;border-radius:12px;
     color:#5a5148;text-decoration:none;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
     transition:background .16s ease,color .16s ease,box-shadow .16s ease;
@@ -350,37 +550,37 @@ echarts.registerMap('china',{"type":"FeatureCollection","features":[{"type":"Fea
   /* 两位数序号：读 `data-n`（补零串），不是 `data-i`（纯数字，探针在用） */
   nav.toc a::before{
     content:attr(data-n);
-    position:absolute;left:8px;top:50%;transform:translateY(-50%);
-    font-size:9px;font-weight:600;letter-spacing:.02em;
-    font-variant-numeric:tabular-nums;color:rgba(20,16,14,.22);
+    position:absolute;left:11px;top:50%;transform:translateY(-50%);
+    font-size:10px;font-weight:600;letter-spacing:.02em;
+    font-variant-numeric:tabular-nums;color:rgba(20,16,14,.24);
     transition:color .16s ease;
   }
   nav.toc a:hover{background:rgba(20,16,14,.05);color:#14100e;}
   /* 选中：深墨大圆角 + 金序号 + 右侧金点（参考稿的两个记忆点都在这） */
   nav.toc a.on{
     background:linear-gradient(180deg,#241d19 0%,#15100e 100%);
-    color:#fbf8f2;font-weight:600;padding-right:20px;
+    color:#fbf8f2;font-weight:600;padding-right:23px;
     box-shadow:0 6px 16px -8px rgba(20,16,14,.55);
   }
   nav.toc a.on::before{color:#d8b64a;}
   nav.toc a.on::after{
-    content:'';position:absolute;right:9px;top:50%;transform:translateY(-50%);
-    width:4px;height:4px;border-radius:50%;background:#d8b64a;
+    content:'';position:absolute;right:10px;top:50%;transform:translateY(-50%);
+    width:5px;height:5px;border-radius:50%;background:#d8b64a;
     box-shadow:0 0 0 3px rgba(201,162,39,.16);
   }
   /* ---------- 底栏：阅读进度 + 回到顶部 ---------- */
   .tc-ft{
-    display:block;flex:0 0 auto;margin-top:5px;padding:9px 4px 1px;
+    display:block;flex:0 0 auto;margin-top:6px;padding:11px 5px 2px;
     border-top:1px solid rgba(20,16,14,.06);
   }
   .tc-pg{
     display:flex;align-items:baseline;justify-content:space-between;
-    font-size:8.5px;letter-spacing:.03em;color:#a89e8f;
+    font-size:9px;letter-spacing:.03em;color:#a29786;
   }
-  .tc-pg b{color:#b08a1f;font-weight:800;font-size:9.5px;font-variant-numeric:tabular-nums;}
+  .tc-pg b{color:#b08a1f;font-weight:800;font-size:10.5px;font-variant-numeric:tabular-nums;}
   .tc-bar{
-    height:2px;border-radius:2px;background:rgba(20,16,14,.07);
-    margin:6px 0 9px;overflow:hidden;
+    height:3px;border-radius:2px;background:rgba(20,16,14,.07);
+    margin:7px 0 11px;overflow:hidden;
   }
   .tc-bar i{
     display:block;height:100%;width:0;border-radius:2px;
@@ -388,8 +588,8 @@ echarts.registerMap('china',{"type":"FeatureCollection","features":[{"type":"Fea
     transition:width .3s ease;
   }
   .tc-up{
-    display:block;width:100%;padding:6px 0;margin:0;
-    font:inherit;font-size:10px;font-weight:600;letter-spacing:.06em;
+    display:block;width:100%;padding:8px 0;margin:0;
+    font:inherit;font-size:11px;font-weight:600;letter-spacing:.06em;
     color:#7a7168;background:transparent;cursor:pointer;
     border:1px solid rgba(20,16,14,.10);border-radius:8px;
     transition:background .16s ease,color .16s ease,border-color .16s ease;
@@ -401,12 +601,31 @@ echarts.registerMap('china',{"type":"FeatureCollection","features":[{"type":"Fea
      不是模块卡），所以要一并给 #verdict 补 scroll-margin-top，
      否则点目录跳过去时核心结论会被固定顶栏压掉一截。 */
   .card[id], #verdict{scroll-margin-top:86px;}
+  /* 1361~1427px：正文两侧只剩 ~140px，164 会压住正文 ⇒ 回退到 136（尺寸跳一档，但没有重叠） */
+  @media(max-width:1427px){
+    nav.toc{left:max(10px,calc(50% - 656px));width:136px;padding:11px 8px 9px;border-radius:18px;max-height:86vh;}
+    nav.toc::before{left:32px;}
+    .tc-hd{gap:5px;padding:1px 5px 9px;margin-bottom:4px;}
+    .tc-dt{width:6px;height:6px;}
+    .tc-tt{font-size:10px;letter-spacing:.14em;text-indent:.14em;}
+    .tc-ix{font-size:9px;}
+    nav.toc a{font-size:13px;padding:7px 8px 7px 30px;border-radius:11px;}
+    nav.toc a::before{left:8px;font-size:9px;}
+    nav.toc a.on{padding-right:20px;}
+    nav.toc a.on::after{right:9px;width:4px;height:4px;}
+    .tc-ft{padding:9px 4px 1px;margin-top:5px;}
+    .tc-pg{font-size:8.5px;}
+    .tc-pg b{font-size:9.5px;}
+    .tc-bar{height:2px;margin:6px 0 9px;}
+    .tc-up{padding:6px 0;font-size:10px;}
+  }
   /* 窄屏：目录收成「序号胶囊」，悬停 / 聚焦后展开成全卡 */
   @media(max-width:1360px){
     body{padding-left:62px;}
-    nav.toc{left:9px;width:46px;padding:9px 6px 10px;border-radius:14px;}
+    nav.toc{left:9px;width:46px;padding:9px 6px 10px;border-radius:14px;max-height:86vh;}
+    nav.toc::before{display:none;}
     .tc-hd,.tc-ft{display:none;}
-    nav.toc a{font-size:0;padding:9px 0;text-align:center;}
+    nav.toc a{font-size:0;padding:10px 0;text-align:center;}
     /* ★ text-align 必须显式回收：宽屏给它的是继承值，static 后会让序号贴右沿 */
     nav.toc a::before{
       position:static;transform:none;display:block;width:auto;
@@ -414,16 +633,23 @@ echarts.registerMap('china',{"type":"FeatureCollection","features":[{"type":"Fea
     }
     nav.toc a.on{padding-right:0;}
     nav.toc a.on::after{content:none;}
-    nav.toc:hover,nav.toc:focus-within{width:136px;padding:11px 8px 9px;border-radius:18px;}
-    nav.toc:hover .tc-hd,nav.toc:focus-within .tc-hd{display:flex;}
-    nav.toc:hover .tc-ft,nav.toc:focus-within .tc-ft{display:block;}
-    nav.toc:hover a,nav.toc:focus-within a{font-size:13px;padding:7px 8px 7px 30px;text-align:left;}
+    nav.toc:hover,nav.toc:focus-within{width:178px;padding:14px 10px 12px;border-radius:20px;}
+    nav.toc:hover::before,nav.toc:focus-within::before{display:block;}
+    nav.toc:hover .tc-hd,nav.toc:focus-within .tc-hd{display:flex;padding:2px 6px 11px;margin-bottom:5px;gap:6px;}
+    nav.toc:hover .tc-tt,nav.toc:focus-within .tc-tt{font-size:11px;letter-spacing:.16em;text-indent:.16em;}
+    nav.toc:hover .tc-ix,nav.toc:focus-within .tc-ix{font-size:10px;}
+    nav.toc:hover .tc-ft,nav.toc:focus-within .tc-ft{display:block;padding:11px 5px 2px;margin-top:6px;}
+    nav.toc:hover .tc-pg,nav.toc:focus-within .tc-pg{font-size:9px;}
+    nav.toc:hover .tc-pg b,nav.toc:focus-within .tc-pg b{font-size:10.5px;}
+    nav.toc:hover .tc-bar,nav.toc:focus-within .tc-bar{height:3px;margin:7px 0 11px;}
+    nav.toc:hover .tc-up,nav.toc:focus-within .tc-up{padding:8px 0;font-size:11px;}
+    nav.toc:hover a,nav.toc:focus-within a{font-size:14px;padding:10px 10px 10px 34px;text-align:left;}
     nav.toc:hover a::before,nav.toc:focus-within a::before{
-      position:absolute;left:8px;top:50%;transform:translateY(-50%);
-      width:auto;margin:0;font-size:9px;text-align:left;
+      position:absolute;left:11px;top:50%;transform:translateY(-50%);
+      width:auto;margin:0;font-size:10px;text-align:left;
     }
-    nav.toc:hover a.on,nav.toc:focus-within a.on{padding-right:20px;}
-    nav.toc:hover a.on::after,nav.toc:focus-within a.on::after{content:'';}
+    nav.toc:hover a.on,nav.toc:focus-within a.on{padding-right:23px;}
+    nav.toc:hover a.on::after,nav.toc:focus-within a.on::after{content:'';width:5px;height:5px;right:10px;}
   }
   /* 手机：目录改成底部横排条，横向可滑 */
   @media(max-width:760px){
@@ -3883,6 +4109,16 @@ function renderToc(){
       '<button type="button" class="tc-up" onclick="try{window.scrollTo({top:0,behavior:\'smooth\'});}catch(e){window.scrollTo(0,0);}return false;">回到顶部</button>' +
     '</div>';
   box.style.display = '';
+  /* 序号列那条红金虚线的起止：按**首末条目的中线**算，写进 CSS 变量。
+     ★ 不用固定 top/bottom —— 6 条研报和 10 条研报的条目区高度差 130px，
+       写死会让线在条目少的时候探进底部「阅读进度」区。 */
+  var _as = box.querySelectorAll('a');
+  if(_as.length){
+    var _y0 = _as[0].offsetTop + _as[0].offsetHeight / 2;
+    var _y1 = _as[_as.length - 1].offsetTop + _as[_as.length - 1].offsetHeight / 2;
+    box.style.setProperty('--tc-lt', _y0 + 'px');
+    box.style.setProperty('--tc-lh', (_y1 - _y0) + 'px');
+  }
   tocSpy();
 }
 
